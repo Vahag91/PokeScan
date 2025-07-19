@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native';
-
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { FasterImageView } from '@rraut/react-native-faster-image';
 
 export default function EvolutionChain({ title, cards, onCardPress }) {
   if (!cards?.length) return null;
@@ -16,7 +16,7 @@ export default function EvolutionChain({ title, cards, onCardPress }) {
             onPress={() => onCardPress(card.id)}
             style={styles.item}
           >
-            <Image source={{ uri: card.images.small }} style={styles.image} />
+            <FasterImageView source={{ uri: card.images.small }} style={styles.image} />
             <Text style={styles.name}>{card.name}</Text>
           </TouchableOpacity>
         ))}
@@ -26,7 +26,7 @@ export default function EvolutionChain({ title, cards, onCardPress }) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginVertical: 8 },
+  container: { marginVertical: 10 },
   header: {
     fontSize: 16,
     fontWeight: '600',

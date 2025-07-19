@@ -1,11 +1,31 @@
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { OPENAI_API_KEY } from '@env';
+import { OPENAI_API_KEY, POKEMON_TCG_API_KEY } from '@env';
 import RNFS from 'react-native-fs';
 
 const fetcher = url =>
   fetch(url, { headers: { 'X-Api-Key': OPENAI_API_KEY } }).then(r => r.json());
 
+const fetcherSet = async url => {
+  try {
+    const res = await fetch(url, {
+      headers: { 'X-Api-Key': POKEMON_TCG_API_KEY },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Fetch failed: ${res.status} — ${text}`);
+    }
+
+    const text = await res.text();
+    if (!text) throw new Error('Empty response body');
+
+    return JSON.parse(text);
+  } catch (err) {
+    console.error('fetcherSet error:', err.message);
+    throw err;
+  }
+};
 function getTabIcon(routeName, color, size) {
   let iconName = 'home-outline';
 
@@ -131,6 +151,7 @@ const getContrastColor = hex => {
   return luminance > 0.7 ? '#000' : '#fff';
 };
 function normalizeCardFromAPI(card) {
+  
   return {
     id: card.id,
     name: card.name,
@@ -140,13 +161,23 @@ function normalizeCardFromAPI(card) {
     subtypes: card.subtypes ?? [],
     abilities: card.abilities ?? [],
     attacks: card.attacks ?? [],
-    image: card.images?.large || card.images?.small || null,
+    image:
+      card.images?.large && typeof card.images.large === 'number'
+        ? card.images.large 
+        : typeof card.images?.large === 'string'
+        ? card.images.large 
+        : null,
     artist: card.artist ?? null,
     number: card.number ?? null,
     set: {
       name: card.set?.name ?? null,
       series: card.set?.series ?? null,
-      logo: card.set?.images?.logo ?? null,
+      logo:
+        typeof card.set?.images?.logo === 'number'
+          ? card.set.images.logo
+          : typeof card.set?.images?.logo === 'string'
+          ? card.set.images.logo
+          : null,
       releaseDate: card.set?.releaseDate ?? null,
     },
     tcgplayer: {
@@ -159,7 +190,6 @@ function normalizeCardFromAPI(card) {
     },
   };
 }
-
 function parseJsonSafe(value, fallback = []) {
   if (typeof value === 'string') {
     try {
@@ -171,14 +201,10 @@ function parseJsonSafe(value, fallback = []) {
   }
   return value ?? fallback;
 }
-
 const getFullPath = filename =>
   filename ? `file://${RNFS.DocumentDirectoryPath}/${filename}` : null;
 
 function normalizeCardFromDb(cardRow) {
-  const getFullPath = filename =>
-    filename ? `file://${RNFS.DocumentDirectoryPath}/${filename}` : null;
-
   return {
     id: cardRow.cardId,
     name: cardRow.name,
@@ -215,6 +241,7 @@ function normalizeCardFromDb(cardRow) {
     },
   };
 }
+
 export {
   getTabIcon,
   Dummy,
@@ -228,4 +255,136 @@ export {
   normalizeCardFromAPI,
   normalizeCardFromDb,
   getFullPath,
+  fetcherSet,
 };
+
+
+// import React from 'react';
+// import {
+//   View,
+//   Text,
+//   FlatList,
+//   StyleSheet,
+//   Dimensions,
+//   TouchableOpacity,
+// } from 'react-native';
+// import { useRoute, useNavigation } from '@react-navigation/native';
+// import SkeletonCard from '../components/skeletons/SkeleteonCard';
+// import useSWR from 'swr';
+// import { fetcherSet } from '../utils';
+// import { Image } from 'react-native';
+// const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
+
+// const MemoizedCardItem = React.memo(({ item, onPress }) => (
+//   <TouchableOpacity
+//     style={styles.cardContainer}
+//     onPress={() => onPress(item.id)}
+//   >
+//     <Image source={{ uri: item.images.small }} style={styles.card} />
+//   </TouchableOpacity>
+// ));
+
+// export default function SetDetailScreen() {
+//   const route = useRoute();
+//   const navigation = useNavigation();
+//   const { setId } = route.params;
+
+//   const { data, error, isLoading } = useSWR(
+//     `https://api.pokemontcg.io/v2/cards?q=set.id:${setId}`,
+//     fetcherSet
+//   );
+
+//   const cards = data?.data || [];
+
+//   const renderItem = ({ item }) => (
+//     <MemoizedCardItem
+//       item={item}
+//       onPress={(id) => navigation.navigate('SingleCardScreen', { cardId: id })}
+//     />
+//   );
+
+//   if (isLoading) {
+//     return (
+//       <View style={styles.container}>
+//         <Text style={styles.title}>Loading cards...</Text>
+//         <FlatList
+//           data={Array.from({ length: 6 })}
+//           keyExtractor={(_, index) => index.toString()}
+//           numColumns={2}
+//           renderItem={() => (
+//             <View style={styles.cardContainer}>
+//               <SkeletonCard />
+//             </View>
+//           )}
+//         />
+//       </View>
+//     );
+//   }
+
+//   if (error) {
+//     return (
+//       <View style={styles.centered}>
+//         <Text>Error loading cards.</Text>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <View style={styles.container}>
+//       <Text style={styles.title}>Cards in Set</Text>
+//       <FlatList
+//         data={cards}
+//         keyExtractor={(item) => item.id}
+//         renderItem={renderItem}
+//         numColumns={2}
+//         contentContainerStyle={styles.grid}
+//         showsVerticalScrollIndicator={false}
+//         initialNumToRender={12}
+//         maxToRenderPerBatch={12}
+//         windowSize={5}
+//         removeClippedSubviews={true}
+//         getItemLayout={(data, index) => ({
+//           length: CARD_WIDTH * 1.4 + 16,
+//           offset: (CARD_WIDTH * 1.4 + 16) * Math.floor(index / 2),
+//           index,
+//         })}
+//       />
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     paddingHorizontal: 16,
+//     paddingTop: 16,
+//     backgroundColor: '#FFFFFF',
+//   },
+//   grid: {
+//     paddingBottom: 80,
+//   },
+//   title: {
+//     fontSize: 20,
+//     fontWeight: 'bold',
+//     marginBottom: 16,
+//     textAlign: 'center',
+//   },
+//   cardContainer: {
+//     width: CARD_WIDTH,
+//     marginBottom: 16,
+//     marginRight: 16,
+//   },
+//   card: {
+//     width: '100%',
+//     height: CARD_WIDTH * 1.4,
+//     resizeMode: 'contain',
+//     borderRadius: 8,
+//     backgroundColor: '#f5f5f5',
+//   },
+//   centered: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     padding: 20,
+//   },
+// });

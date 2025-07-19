@@ -1,38 +1,37 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
-  Animated,
   Image,
   Linking,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import useSWR from 'swr';
 import SkeletonSingleCard from '../components/skeletons/SkeletonSingleCard';
-import { handleImageLoad } from '../utils';
 import { rarityColors } from '../constants';
 import {
   EvolutionChain,
   AnimatedSection,
   LabelRow,
   LabelWithIcon,
-  FullImageModal,
   MarketOverview,
+  SetLabelRow,
+  CollectionHeaderButton,
+  CardSetHeader,
+  CardImageViewer,
 } from '../components/singleCardUi';
-import { fetcher, normalizeCardFromAPI, normalizeCardFromDb } from '../utils';
+import { normalizeCardFromAPI, normalizeCardFromDb } from '../utils';
 import CardCollectionsModal from '../components/collections/CardCollectionsModal';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   getDBConnection,
   getCollectionsForCard,
   getCardsByCollectionId,
 } from '../lib/db';
-
+import { defaultSearchCards } from '../constants';
 const abilityIcon = require('../assets/icons/cardIcons/ability.png');
+import { fetchCardFromSupabase, fetchEvolutions } from '../../supabase/utils';
 
 export default function SingleCardScreen() {
   const route = useRoute();
@@ -40,50 +39,38 @@ export default function SingleCardScreen() {
   const { cardId } = route.params;
 
   const [cardData, setCardData] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const [collectionsModalVisible, setCollectionsModalVisible] = useState(false);
   const [isInCollection, setIsInCollection] = useState(false);
+  const [evolvesFrom, setEvolvesFrom] = useState([]);
+  const [evolvesTo, setEvolvesTo] = useState([]);
+  const [fromData, setFromData] = useState([]);
+  const [toData, setToData] = useState([]);
 
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const imageScale = useRef(new Animated.Value(0.8)).current;
-
-  const { data, error, isLoading } = useSWR(
-    `https://api.pokemontcg.io/v2/cards/${cardId}`,
-    fetcher,
+  const headerRightButton = useCallback(
+    () => (
+      <CollectionHeaderButton
+        isInCollection={isInCollection}
+        onPress={() => setCollectionsModalVisible(true)}
+      />
+    ),
+    [isInCollection],
   );
-
-  const { data: fromData } = useSWR(
-    cardData?.evolvesFrom
-      ? `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(
-          cardData.evolvesFrom,
-        )}`
-      : null,
-    fetcher,
-  );
-
-  const { data: toData } = useSWR(
-    cardData?.evolvesTo?.length
-      ? `https://api.pokemontcg.io/v2/cards?q=name:${encodeURIComponent(
-          cardData.evolvesTo.join('|'),
-        )}`
-      : null,
-    fetcher,
-  );
-
   const loadCard = async () => {
     const db = await getDBConnection();
     const ids = await getCollectionsForCard(db, cardId);
     const isIn = ids.length > 0;
     setIsInCollection(isIn);
 
+    let localCard = null;
+
     if (isIn) {
       const cards = await getCardsByCollectionId(db, ids[0]);
-      const match = cards.find(c => c.cardId === cardId);
 
+      const match = cards.find(c => c.cardId === cardId);
       if (match) {
         try {
-          const normalized = normalizeCardFromDb(match);
-          setCardData(normalized);
+          localCard = normalizeCardFromDb(match);
+          setCardData(localCard);
           return;
         } catch (err) {
           console.log('❌ normalizeCardFromDb error:', err.message);
@@ -91,96 +78,67 @@ export default function SingleCardScreen() {
       }
     }
 
-    // If not in collection or fallback
-    if (data?.data) {
-      const normalized = normalizeCardFromAPI(data.data);
-      setCardData(normalized);
+    const supabaseCard = await fetchCardFromSupabase(cardId);
+
+    if (supabaseCard) {
+      setCardData(supabaseCard.normalized);
+      setEvolvesFrom(supabaseCard.evolvesFrom);
+      setEvolvesTo(supabaseCard.evolvesTo);
+      return;
+    }
+
+    const fallback = defaultSearchCards.find(c => c.id === cardId);
+    if (fallback) {
+      try {
+        setCardData(normalizeCardFromAPI(fallback));
+      } catch (err) {
+        console.log('❌ normalize fallback error:', err.message);
+      }
     }
   };
 
   useEffect(() => {
-    if (cardId) loadCard();
-  }, [cardId, data]);
-
-  if (!cardData) {
-    if (isLoading) return <SkeletonSingleCard />;
-    if (error)
-      return (
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Failed to load card.</Text>
-        </View>
+    const getEvolutions = async () => {
+      if (!cardData) return;
+      const { evolutionFrom, evolutionTo } = await fetchEvolutions(
+        evolvesFrom,
+        evolvesTo,
       );
-    return null;
-  }
+      setFromData(evolutionFrom);
+      setToData(evolutionTo);
+    };
 
-  const openImageModal = () => {
-    setModalVisible(true);
-    Animated.parallel([
-      Animated.timing(backdropOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.spring(imageScale, {
-        toValue: 1,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+    getEvolutions();
+  }, [cardData]);
+
+  useEffect(() => {
+    if (cardId) loadCard();
+  }, [cardId]);
+
+  useEffect(() => {
+    navigation.setOptions({ headerRight: headerRightButton });
+  }, [headerRightButton, navigation]);
+
+  if (!cardData) return <SkeletonSingleCard />;
 
   const navigateTo = id => navigation.push('SingleCardScreen', { cardId: id });
-
+console.log(cardData,"dataaa");
 
   return (
     <>
       <ScrollView style={styles.screen}>
-        <TouchableOpacity
-          style={styles.collectionIcon}
-          onPress={() => setCollectionsModalVisible(true)}
-        >
-          <Ionicons
-            name={isInCollection ? 'heart' : 'heart-outline'}
-            size={24}
-            color={isInCollection ? '#e11d48' : '#888'}
-          />
-        </TouchableOpacity>
-
         <EvolutionChain
           title="Evolves From"
-          cards={fromData?.data}
+          cards={fromData}
           onCardPress={navigateTo}
         />
         <EvolutionChain
           title="Evolves To"
-          cards={toData?.data}
+          cards={toData}
           onCardPress={navigateTo}
         />
-
-        <AnimatedSection style={styles.headerCard}>
-          <Text style={styles.cardName}>{cardData?.name}</Text>
-          <View style={styles.setInfo}>
-            {cardData?.set?.logo && (
-              <Image
-                source={{ uri: cardData?.set?.logo }}
-                style={styles.setLogo}
-                resizeMode="contain"
-              />
-            )}
-            <Text style={styles.setName}>{cardData?.set?.name}</Text>
-          </View>
-        </AnimatedSection>
-
-        <AnimatedSection style={styles.imageCard}>
-          <TouchableOpacity onPress={openImageModal} activeOpacity={0.9}>
-            <Animated.Image
-              source={{ uri: cardData?.image }}
-              style={styles.cardImage}
-              onLoadEnd={handleImageLoad(backdropOpacity, imageScale)}
-            />
-          </TouchableOpacity>
-        </AnimatedSection>
-
+        <CardSetHeader cardData={cardData} />
+        <CardImageViewer imageSource={cardData.image} />
         <AnimatedSection style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Market Overview</Text>
           <MarketOverview
@@ -233,7 +191,7 @@ export default function SingleCardScreen() {
           {cardData.subtypes?.[0] && (
             <LabelRow label="Subtype" value={cardData.subtypes[0]} />
           )}
-          <LabelRow label="Set" value={cardData.set?.name} />
+          <SetLabelRow set={cardData.set} />
           {cardData.artist && (
             <LabelRow label="Illustrator" value={cardData.artist} />
           )}
@@ -280,15 +238,6 @@ export default function SingleCardScreen() {
           )}
         </AnimatedSection>
       </ScrollView>
-
-      <FullImageModal
-        cardImage={cardData?.image}
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        backdropOpacity={backdropOpacity}
-        imageScale={imageScale}
-      />
-
       <CardCollectionsModal
         visible={collectionsModalVisible}
         onClose={() => setCollectionsModalVisible(false)}
@@ -300,42 +249,9 @@ export default function SingleCardScreen() {
 }
 
 const styles = StyleSheet.create({
-  collectionIcon: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        shadowOffset: { width: 0, height: 2 },
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
   screen: { flex: 1, backgroundColor: '#eef2f5', padding: 12 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { color: '#a00', fontSize: 16 },
-  headerCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  setInfo: { flexDirection: 'row', alignItems: 'center' },
-  setLogo: { width: 80, height: 32 },
-  setName: { fontSize: 16, color: '#555', marginLeft: 8, fontWeight: '500' },
-  imageCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardImage: { width: '100%', height: 470, borderRadius: 12 },
   sectionCard: {
     backgroundColor: '#fff',
     borderRadius: 12,

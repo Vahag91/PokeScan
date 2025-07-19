@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
   Animated,
   Easing,
@@ -21,6 +20,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import CollectionCard from '../components/collections/CollectionCard';
 import { CollectionHeader } from '../components/collections/CollectionHeader';
+import { globalStyles } from '../../globalStyles';
 
 export default function CollectionsScreen({ navigation }) {
   const [collections, setCollections] = useState([]);
@@ -29,6 +29,7 @@ export default function CollectionsScreen({ navigation }) {
   const [editingCollection, setEditingCollection] = useState(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0.9))[0];
+
 
   const loadCollections = useCallback(async () => {
     const db = await getDBConnection();
@@ -42,25 +43,26 @@ export default function CollectionsScreen({ navigation }) {
     }, [loadCollections]),
   );
 
-useEffect(() => {
-  loadCollections();
-}, [loadCollections]);
+  useEffect(() => {
+    loadCollections();
+  }, [loadCollections]);
 
-useEffect(() => {
-  Animated.parallel([
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }),
-    Animated.timing(scaleAnim, {
-      toValue: 1,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }),
-  ]).start();
-}, [fadeAnim, scaleAnim]);
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, scaleAnim]);
+  
   const openEditModal = collection => {
     setEditingCollection(collection);
     setEditModalVisible(true);
@@ -112,7 +114,6 @@ useEffect(() => {
 
   const dataWithAdd = [...collections, { id: 'add-card', isAddCard: true }];
 
-
   return (
     <Animated.View
       style={[
@@ -121,7 +122,7 @@ useEffect(() => {
       ]}
     >
       <CollectionHeader collections={collections} />
-       <FlatList
+      <FlatList
         data={dataWithAdd}
         keyExtractor={item => item.id}
         renderItem={renderItem}
@@ -163,11 +164,11 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 8,
     paddingBottom: 100,
-    paddingTop:25
+    paddingTop: 25,
   },
-renderItem: {
-width:"100%"
-},
+  renderItem: {
+    width: '100%',
+  },
   emptyContainer: {
     alignItems: 'center',
     marginTop: 60,

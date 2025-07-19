@@ -11,7 +11,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './app/screens/HomeScreen';
+import SetScreen from './app/screens/SetScreen';
 import SetDetailScreen from './app/screens/SetDetail';
 import SingleCardScreen from './app/screens/SingleCardScreen';
 import SearchScreen from './app/screens/SearchScreen';
@@ -66,7 +66,7 @@ function Tabs({ setIsDrawerOpen }) {
           tabBarStyle: { display: 'none' },
         }}
       />
-      <Tab.Screen name="Sets" component={HomeScreen} />
+      <Tab.Screen name="Sets" component={SetScreen} />
       <Tab.Screen name="History" component={Dummy} />
     </Tab.Navigator>
   );
@@ -82,13 +82,13 @@ export default function App() {
       <MenuProvider>
         <View style={styles.flex}>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="MainTabs">
+            <Stack.Screen name="All Sets">
               {() => <Tabs setIsDrawerOpen={setIsDrawerOpen} />}
             </Stack.Screen>
             <Stack.Screen
               name="SetDetail"
               component={SetDetailScreen}
-              options={{ headerShown: true, title: 'Card Set' }}
+              options={{ headerShown: true, title: 'Set Cards' }}
             />
             <Stack.Screen
               name="SingleCardScreen"

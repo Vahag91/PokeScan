@@ -12,9 +12,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   getDBConnection,
   getAllCollections,
-  getCollectionCountsForCard, // ✅ NEW
+  getCollectionCountsForCard, 
   addCardToCollection,
-  removeCardFromCollectionByRowId, // ✅ NEW
+  removeCardFromCollectionByRowId, 
 } from '../../lib/db';
 
 export default function CardCollectionsModal({
@@ -48,10 +48,7 @@ export default function CardCollectionsModal({
 
   const increment = async (collectionId) => {
     try {
-      const db = await getDBConnection();
-      await addCardToCollection(card, collectionId);
-      console.log(card,collectionId,"sinfleeeeee");
-      
+      await addCardToCollection(card, collectionId);      
       setCollectionCounts((prev) => ({
         ...prev,
         [collectionId]: (prev[collectionId] || 0) + 1,

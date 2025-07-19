@@ -110,7 +110,6 @@ export async function createCollection(db, name) {
     `,
       [id, name, createdAt, updatedAt],
     );
-    console.log('✅ Collection created:', name);
     return { id, name, createdAt, updatedAt };
   } catch (error) {
     console.error('❌ Failed to create collection:', error);
@@ -462,7 +461,6 @@ export async function deleteDatabase() {
       name: 'collections.db',
       location: 'default',
     });
-    console.log('🧹 Database deleted successfully.');
   } catch (error) {
     console.error('❌ Failed to delete database:', error);
   }

@@ -1,4 +1,4 @@
-import { View, Image, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet,Image } from 'react-native';
 import { typeIcons } from '../../constants';
 
 export default function LabelWithIcon({ types, text }) {

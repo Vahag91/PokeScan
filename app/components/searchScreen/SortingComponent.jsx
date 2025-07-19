@@ -46,11 +46,6 @@ export default function SortingComponent({ sortKey, setSortKey }) {
     <View style={styles.container}>
       {/* Sort controls with colored icons */}
       <View style={sortKey && styles.controlGroup}>
-        <HeaderActionButton
-          icon="sort"
-          label={label}
-          onPress={() => setVisible(true)}
-        />
         {sortKey && (
           <View style={styles.actionsContainer}>
             <TouchableOpacity
@@ -81,6 +76,11 @@ export default function SortingComponent({ sortKey, setSortKey }) {
             </TouchableOpacity>
           </View>
         )}
+        <HeaderActionButton
+          icon="sort"
+          label={label}
+          onPress={() => setVisible(true)}
+        />
       </View>
 
       {/* Modal with consistent icon colors */}
@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
     alignSelf: 'flex-start',
+    marginTop: 2,
   },
   controlGroup: {
     flexDirection: 'row',

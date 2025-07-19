@@ -6,16 +6,13 @@ import {
   StyleSheet,
   Linking,
   Animated,
-  Image,
   FlatList,
   Modal,
 } from 'react-native';
 import { foilOrder } from '../../constants';
 import { getPriceColor } from '../../utils';
-const icons = {
-  tcgplayer: require('../../assets/cards/other/tcgplayer.webp'),
-  cardmarket: require('../../assets/cards/other/cardmarket.webp'),
-};
+import MarketSegmentedControl from './MarketSegmentedControl';
+
 
 function formatFoilLabel(key) {
   if (!key) return '';
@@ -38,8 +35,6 @@ function StatCard({ label, value, textColor = styles.defaultColor }) {
     </View>
   );
 }
-
-
 
 export default function MarketOverview({
   tcgplayer,
@@ -154,24 +149,11 @@ export default function MarketOverview({
 
   return (
     <View style={styles.container}>
-      <View style={styles.segmentedControl}>
-        {available.map(src => (
-          <TouchableOpacity
-            key={src}
-            style={[styles.segment, activeTab === src && styles.segmentActive]}
-            onPress={() => setActiveTab(src)}
-          >
-            <Image
-              source={icons[src]}
-              style={[
-                styles.tabIcon,
-                activeTab === src && styles.tabIconActive,
-              ]}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-
+      <MarketSegmentedControl
+        available={available}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
       {isTCG && availableFoils.length > 1 && (
         <TouchableOpacity
           onPress={() => setFoilPickerVisible(true)}
@@ -226,17 +208,16 @@ export default function MarketOverview({
 
       <View style={styles.subCardsContainer}>
         {subStats.map(([l, v]) => (
-      <StatCard
-  key={l}
-  label={l}
-  value={v}
-  textColor={getPriceColor(
-    l,
-    v,
-    activeTab === 'tcgplayer' ? prices[selectedFoil] : prices,
-  )}
-/>
-
+          <StatCard
+            key={l}
+            label={l}
+            value={v}
+            textColor={getPriceColor(
+              l,
+              v,
+              activeTab === 'tcgplayer' ? prices[selectedFoil] : prices,
+            )}
+          />
         ))}
       </View>
 
@@ -266,30 +247,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: BG,
     borderRadius: 12,
-  },
-  segmentedControl: {
-    flexDirection: 'row',
-    backgroundColor: '#EEE',
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  segmentActive: {
-    backgroundColor: CARD_BG,
-  },
-  tabIcon: {
-    width: 20,
-    height: 20,
-    marginBottom: 4,
-    tintColor: MUTED,
-  },
-  tabIconActive: {
-    tintColor: PRIMARY,
   },
   foilSelector: {
     marginBottom: 8,

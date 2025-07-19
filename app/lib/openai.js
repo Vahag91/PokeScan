@@ -286,7 +286,6 @@ export async function fetchCardByNameAndNumber(name, number, hp = null) {
 //   }
 // }
 export async function classifyImageWithOpenAI(imageUrl) {
-  const startTime = Date.now(); // Start timer
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -359,8 +358,6 @@ STRICT OUTPUT:
       }),
     });
 
-    const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`⏱️ OpenAI response time: ${durationSec}s`);
     const raw = await response.text();
 
     if (!response.ok) {

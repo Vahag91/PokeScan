@@ -13,8 +13,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Text,
 } from 'react-native';
-import { POKEMON_TCG_API_KEY } from '@env';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
   RenderSearchSingleCard,
@@ -23,6 +23,9 @@ import {
   FilterComponent,
 } from '../components/searchScreen';
 import { getCardPrice } from '../utils';
+import { defaultSearchCards } from '../constants';
+import { searchCardsInSupabase } from '../../supabase/utils';
+
 export default function SearchScreen() {
   const [term, setTerm] = useState('');
   const [results, setResults] = useState([]);
@@ -38,9 +41,9 @@ export default function SearchScreen() {
   const [errorType, setErrorType] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [sortKey, setSortKey] = useState(null);
+  const [hasFetched, setHasFetched] = useState(false);
   const loaderTimeoutRef = useRef(null);
   const flatListRef = useRef(null);
-  const isValidInput = input => /^[\p{L}\p{N} ':.-]+$/u.test(input.trim());
 
   const fetchResults = useCallback(() => {
     let isCancelled = false;
@@ -50,35 +53,15 @@ export default function SearchScreen() {
       setResults([]);
       setErrorType(null);
       setErrorMessage(null);
-
-      if (!trimmed) return;
-      if (!isValidInput(trimmed)) {
-        setErrorType('invalidInput');
-        setErrorMessage('Please use only Latin letters and numbers.');
-        return;
-      }
-
       clearTimeout(loaderTimeoutRef.current);
       setShowLoader(false);
       loaderTimeoutRef.current = setTimeout(() => setShowLoader(true), 200);
 
       try {
-        // Build a single wildcard query on the name field,
-        // so "koraidon ex" becomes name:*koraidon*ex*
-        const cleaned = trimmed.replace(/[^\w\s]/g, '');
-        const pattern = cleaned.split(/\s+/).join('*') + '*';
-        const esQuery = `name:*${pattern}`;
-
-        const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(
-          esQuery,
-        )}`;
-        const res = await fetch(url, {
-          headers: { 'X-Api-Key': POKEMON_TCG_API_KEY },
-        });
-        if (!res.ok) throw new Error('Network response was not ok');
-        const { data } = await res.json();
+        const data = await searchCardsInSupabase(trimmed);
 
         if (!isCancelled) {
+          setHasFetched(true);
           if (!data || data.length === 0) {
             setErrorType('noResults');
             setErrorMessage(`No results for “${trimmed}”.`);
@@ -125,11 +108,19 @@ export default function SearchScreen() {
     setResults([]);
     setErrorType(null);
     setErrorMessage(null);
+    setHasFetched(false);
   };
 
+  useEffect(() => {
+    setHasFetched(false);
+  }, [term]);
+
   const retryFetch = () => fetchResults();
+
+  const dataToSort = term.trim() ? results : defaultSearchCards;
+
   const sortedResults = useMemo(() => {
-    if (!results.length || !sortKey) return results;
+    if (!dataToSort.length || !sortKey) return dataToSort;
 
     const [base, direction = 'desc'] = sortKey.split('-');
     const isAsc = direction === 'asc';
@@ -149,7 +140,7 @@ export default function SearchScreen() {
       }
     };
 
-    return [...results].sort((a, b) => {
+    return [...dataToSort].sort((a, b) => {
       const aVal = getVal(a);
       const bVal = getVal(b);
 
@@ -159,10 +150,11 @@ export default function SearchScreen() {
 
       return isAsc ? aVal - bVal : bVal - aVal;
     });
-  }, [results, sortKey]);
+  }, [dataToSort, sortKey]);
 
   const filteredAndSortedResults = useMemo(() => {
-    const filtered = sortedResults.filter(card => {
+    const baseResults = sortedResults;
+    const filtered = baseResults.filter(card => {
       const matchesRarity =
         filters.rarity.length === 0 || filters.rarity.includes(card.rarity);
       const matchesType =
@@ -176,11 +168,11 @@ export default function SearchScreen() {
           ),
         );
       const hpValue = parseInt(card.hp, 10);
+      const hpRange = Array.isArray(filters.hp) ? filters.hp : [0, 999];
       const matchesHp =
-        filters.hp?.length !== 2 ||
-        (Number.isFinite(hpValue) &&
-          hpValue >= filters.hp[0] &&
-          hpValue <= filters.hp[1]);
+        Number.isFinite(hpValue) &&
+        hpValue >= hpRange[0] &&
+        hpValue <= hpRange[1];
       const matchesRegulation =
         filters.regulation.length === 0 ||
         (card.regulationMark &&
@@ -205,9 +197,11 @@ export default function SearchScreen() {
     return filtered;
   }, [sortedResults, filters]);
 
+  const resultsCount = filteredAndSortedResults.length;
+
   return (
-    <View style={styles.container}>
-      <View style={styles.searchBar}>
+    <View style={styles.container} accessible accessibilityLabel="Search screen">
+      <View style={styles.searchBar} accessible accessibilityRole="search">
         <Icon
           name="search"
           size={24}
@@ -223,28 +217,49 @@ export default function SearchScreen() {
           value={term}
           onChangeText={setTerm}
           returnKeyType="search"
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+            fetchResults();
+          }}
+          accessibilityLabel="Search input"
+          accessibilityHint="Type a keyword and press Enter to search"
         />
-        {!!term && (
-          <TouchableOpacity
-            onPress={clearSearch}
-            style={styles.clearIcon}
-            accessibilityLabel="Clear search input"
-            accessibilityRole="button"
-            accessible
-          >
-            <Icon name="close" size={20} color="#555" />
-          </TouchableOpacity>
+        {!!term && hasFetched && !showLoader && (
+          <View style={styles.rightInfoContainer}>
+            <Text
+              style={styles.resultBadge}
+              accessibilityLabel={`${resultsCount} results found`}
+            >
+              results: {resultsCount}
+            </Text>
+            <TouchableOpacity
+              onPress={clearSearch}
+              accessibilityLabel="Clear search input"
+              accessibilityRole="button"
+              style={styles.clearBtn}
+            >
+              <Icon name="close" size={20} color="#555" />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
-      <View style={styles.filterSection}>
+      <View
+        style={styles.filterSection}
+        accessible
+        accessibilityLabel="Filter and sorting section"
+      >
         <SortingComponent setSortKey={setSortKey} sortKey={sortKey} />
         <FilterComponent filters={filters} setFilters={setFilters} />
       </View>
 
       {showLoader && (
-        <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color="#007AFF" />
+        <View
+          style={styles.loaderOverlay}
+          accessible
+          accessibilityLabel="Loading search results"
+        >
+          <ActivityIndicator size="large" color="#2bb060ff" />
         </View>
       )}
 
@@ -267,6 +282,7 @@ export default function SearchScreen() {
         windowSize={5}
         contentContainerStyle={styles.listContainer}
         keyboardShouldPersistTaps="handled"
+        accessibilityLabel="Search results"
       />
     </View>
   );
@@ -306,5 +322,22 @@ const styles = StyleSheet.create({
   filterSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  rightInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+    gap: 4,
+  },
+  resultBadge: {
+    fontSize: 11,
+    fontWeight: '300',
+    color: '#1E293B',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    overflow: 'hidden',
+  },
+  clearBtn: {
+    padding: 2,
   },
 });

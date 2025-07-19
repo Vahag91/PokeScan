@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-
+import { globalStyles } from '../../../globalStyles';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.52;
 const CARD_HEIGHT = 90;
@@ -73,7 +73,7 @@ export function CollectionHeader({ collections }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>My Collections</Text>
+      <Text style={globalStyles.text}>My Collections</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -130,7 +130,6 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 21,
-    fontWeight: '700',
     color: '#111827',
     marginLeft: 20,
     marginBottom: 12,

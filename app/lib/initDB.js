@@ -4,7 +4,6 @@ export async function initDatabase() {
   try {
     const db = await getDBConnection();
     await createTables(db);
-    console.log('✅ Database initialized');
   } catch (error) {
     console.error('❌ Failed to initialize DB:', error);
   }
@@ -42,12 +41,6 @@ export async function testDatabase() {
       ]
     );
 
-    // Query and log results
-    const [collectionsResult] = await db.executeSql(`SELECT * FROM collections`);
-    const [cardsResult] = await db.executeSql(`SELECT * FROM collection_cards`);
-
-    console.log('📦 Collections:', collectionsResult.rows.raw());
-    console.log('🃏 Collection Cards:', cardsResult.rows.raw());
   } catch (error) {
     console.error('❌ DB Test Failed:', error);
   }

@@ -7,7 +7,6 @@ export default function CardPreview({ cardName, cardData }) {
 
   if (!cardName && !cardData) return null;
 
-  console.log(cardData, 'cardddd');
   const handlePress = () => {
     if (cardData?.id) {
       navigation.navigate('SingleCardScreen', { cardId: cardData.id });

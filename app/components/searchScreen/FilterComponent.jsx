@@ -19,7 +19,7 @@ import {
   RegulationMarkOptions,
   CardLegalityOptions,
   HeaderActionButton,
-  BottomSheetHeader
+  BottomSheetHeader,
 } from './filter';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { typeIcons, rarityColors } from '../../constants';
@@ -146,11 +146,26 @@ export default function FilterComponent({ filters, setFilters }) {
 
   return (
     <View style={styles.container}>
-      <HeaderActionButton
-        icon="filter-list"
-        label="Filters"
-        onPress={() => setVisible(true)}
-      />
+      <View style={styles.headerRow}>
+        {(filters.rarity.length ||
+          filters.type.length ||
+          filters.attack.length ||
+          filters.hp !== null ||
+          filters.regulation.length ||
+          filters.legality.length) > 0 && (
+          <HeaderActionButton
+            icon="close"
+            label=""
+            variant="icon"
+            onPress={handleClear}
+          />
+        )}
+        <HeaderActionButton
+          icon="filter-list"
+          label="Filters"
+          onPress={() => setVisible(true)}
+        />
+      </View>
       <Modal
         visible={visible}
         animationType="slide"
@@ -159,11 +174,11 @@ export default function FilterComponent({ filters, setFilters }) {
       >
         <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
           <Pressable style={styles.sheet}>
-<BottomSheetHeader
-  title="Filters"
-  onClose={() => setVisible(false)}
-  iconSize={24}
-/>
+            <BottomSheetHeader
+              title="Filters"
+              onClose={() => setVisible(false)}
+              iconSize={24}
+            />
 
             <ScrollView style={styles.optionsContainer}>
               {/* Rarity */}
@@ -364,4 +379,10 @@ const styles = StyleSheet.create({
     color: '#334155',
   },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 0,
+  },
 });
