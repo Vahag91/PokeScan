@@ -7,20 +7,18 @@ import {
   SafeAreaView,
   Dimensions,
   TouchableOpacity,
+  Image,
+  ScrollView,
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
-// import TextRecognition, {
-//   TextRecognitionScript,
-// } from '@react-native-ml-kit/text-recognition';
 import PhotoManipulator from 'react-native-photo-manipulator';
-import {
-  fetchCardByNameAndNumber,
-  classifyImageWithOpenAI,
-} from '../../lib/openai';
 import ScanButton from './ScanButton';
 import CardPreview from './CardPreview';
 import CameraView from './CameraView';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { fetchScannerCardFromSupabase } from '../../../supabase/utils';
+import { supabase } from '../../../supabase/supabase';
+import RNFS from 'react-native-fs';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -28,10 +26,10 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 export default function ScannerScreen({ navigation }) {
   const [permission, setPermission] = useState(null);
   const [loading, setLoading] = useState(false);
-  // const [recognizedText, setRecognizedText] = useState(null);
   const [overlayLayout, setOverlayLayout] = useState(null);
   const [cardName, setCardName] = useState(null);
   const [cardData, setCardData] = useState(null);
+  const [cardResults, setCardResults] = useState([]);
   const [croppedImageUri, setCroppedImageUri] = useState(null);
 
   const device = useCameraDevice('back');
@@ -46,26 +44,23 @@ export default function ScannerScreen({ navigation }) {
 
     try {
       setLoading(true);
-      // setRecognizedText(null);
       setCardName(null);
       setCardData(null);
+      setCardResults([]);
+      setCroppedImageUri(null);
 
-      const photo = await cameraRef.current.takePhoto({
-        // avoid motion blur from flash lag
-      });
-
+      const photo = await cameraRef.current.takePhoto();
       const uri = photo.path.startsWith('file://')
         ? photo.path
         : `file://${photo.path}`;
 
-      const scaleX = (photo.width / SCREEN_WIDTH) *0.9;
-      const scaleY = (photo.height / SCREEN_HEIGHT);
-
+      const scaleX = (photo.width / SCREEN_WIDTH) * 0.8;
+      const scaleY = photo.height / SCREEN_HEIGHT;
       const box = {
-        x: Math.round(overlayLayout.x * scaleX) * 0.05,
-        y: Math.round(overlayLayout.y * scaleY) * 1.5,
+        x: Math.round(overlayLayout.x * scaleX) * 0.4,
+        y: -Math.round(overlayLayout.y * scaleY) * 0.8 + 900,
         width: Math.round(overlayLayout.width * scaleX * 0.85),
-        height: Math.round(overlayLayout.height * scaleY) * 2,
+        height: Math.round(overlayLayout.height * scaleY) * 1.7 + 100,
       };
 
       const targetWidth = 700;
@@ -75,38 +70,45 @@ export default function ScannerScreen({ navigation }) {
         uri,
         box,
         { width: targetWidth, height: targetHeight },
-        { format: 'jpeg', quality: "100%"},
+        { format: 'webp', quality: '50%' }
       );
-      setCroppedImageUri(croppedPath);
-      // const ocr = await TextRecognition.recognize(
-      //   croppedPath,
-      //   TextRecognitionScript.LATIN,
-      // );
-      // setRecognizedText(ocr.text);
 
-      // const data = await classifyWithOpenAI(ocr.text);
-      // setCardName(data.name);
-      // const card = await fetchCardByNameAndHp(data.name, data.hp);
-      const data = await classifyImageWithOpenAI('https://relentlessdragon.com/wp-content/uploads/2019/10/Charizard-Legendary-Collection3.jpg');
+      setCroppedImageUri(`file://${croppedPath}`);
 
-      setCardName(data.name);
-      const card = await fetchCardByNameAndNumber(
-        data.name,
-        data.number,
-        data.hp,
+      const fileExt = croppedPath.split('.').pop();
+      const fileName = `scan-${Date.now()}.${fileExt}`;
+      const fileData = await RNFS.readFile(croppedPath, 'base64');
+
+      const { data: dataFromEdge, error } = await supabase.functions.invoke(
+        'classify-card',
+        {
+          body: {
+            fileName,
+            base64Image: fileData,
+          },
+        }
       );
-      if (card) {
-        setCardData(card);
-      } else {
-        console.log(
-          `No card found matching ${data.name}${
-            data.hp ? ` @ ${data.hp} HP` : ''
-          }`,
-        );
+
+      if (error) throw error;
+
+      setCardName(dataFromEdge.name);
+
+      const matches = await fetchScannerCardFromSupabase(
+        dataFromEdge.name,
+        dataFromEdge.number,
+        dataFromEdge.hp,
+        dataFromEdge.illustrator
+      );
+
+      if (matches?.length === 1) {
+        setCardData(matches[0]);
+        setCardResults([]);
+      } else if (matches?.length > 1) {
+        setCardData(null);
+        setCardResults(matches);
       }
     } catch (e) {
       console.error('Scan error:', e);
-      // setRecognizedText('Error');
       setCardName('Error');
     } finally {
       setLoading(false);
@@ -121,6 +123,7 @@ export default function ScannerScreen({ navigation }) {
       </View>
     );
   }
+
   if (permission !== 'granted') {
     return (
       <View style={styles.center}>
@@ -136,7 +139,7 @@ export default function ScannerScreen({ navigation }) {
         device={device}
         onOverlayLayout={setOverlayLayout}
       />
-      {/* 🔙 Close Button */}
+
       <View style={styles.closeButtonContainer}>
         <TouchableOpacity onPress={() => navigation.navigate('Collections')}>
           <Ionicons name="close" size={32} color={'#10B981'} />
@@ -144,14 +147,35 @@ export default function ScannerScreen({ navigation }) {
       </View>
 
       <View style={styles.overlay}>
-        {/* {croppedImageUri && (
-          <Image
-            source={{ uri: croppedImageUri }}
-            style={styles.previewImage}
-            resizeMode="contain"
-          />
-        )} */}
-        <CardPreview cardName={cardName} cardData={cardData} />
+        {croppedImageUri && (
+          <View style={styles.imagePreviewWrapper}>
+            <Text style={styles.previewLabel}>Scanned Preview</Text>
+            <Image
+              source={{ uri: croppedImageUri }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          </View>
+        )}
+
+        {cardData ? (
+          <CardPreview cardName={cardName} cardData={cardData} />
+        ) : cardResults.length > 0 ? (
+          <ScrollView
+            style={styles.scrollContainer}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            {cardResults.map(card => (
+              <View key={card.id} style={styles.resultItem}>
+                <CardPreview cardName={card.name} cardData={card} />
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <CardPreview cardName={cardName} cardData={null} />
+        )}
+
         <ScanButton loading={loading} onPress={onScan} />
       </View>
     </SafeAreaView>
@@ -194,5 +218,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#10B981',
+  },
+  scrollContainer: {
+    maxHeight: 220,
+    marginBottom: 12,
+  },
+  resultItem: {
+    marginHorizontal: 6,
   },
 });

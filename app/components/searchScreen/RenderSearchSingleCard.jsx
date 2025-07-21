@@ -5,13 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Image
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { rarityColors, typeIcons } from '../../constants';
 import { getCardPrice } from '../../utils';
 import { FasterImageView } from '@rraut/react-native-faster-image';
-
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
@@ -22,7 +21,6 @@ function RenderSearchSingleCard({ item, showCardNumber = false }) {
   const rarityColor = rarityColors[item.rarity] || '#bdbdbd';
   const price = getCardPrice(item);
 
-console.log(item,"item");
 
   return (
     <TouchableOpacity
@@ -34,14 +32,15 @@ console.log(item,"item");
         <View style={styles.card}>
           {/* Card Image */}
           <View style={styles.imageBox}>
-            <FasterImageView
-              source={
-                typeof item.images.small === 'string'
-                  ? { uri: item.images.small }
-                  : item.images.small
-              }
-              style={styles.cardImage}
-            />
+            {typeof item.images.small === 'string' ? (
+              <FasterImageView
+                source={{ uri: item.images.small }}
+                style={styles.cardImage}
+              />
+            ) : (
+              <Image source={item.images.small} style={styles.cardImage} />
+            )}
+
             {item.rarity && (
               <View
                 style={[styles.rarityBadge, { backgroundColor: rarityColor }]}
@@ -54,14 +53,14 @@ console.log(item,"item");
           {/* Card Info */}
           <View style={styles.infoSection}>
             <View style={styles.nameNumber}>
-            <Text style={styles.cardName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {showCardNumber && (
-              <Text style={styles.cardNumber}>
-                #{item.number}/{item.set.total}
+              <Text style={styles.cardName} numberOfLines={1}>
+                {item.name}
               </Text>
-            )}
+              {showCardNumber && (
+                <Text style={styles.cardNumber}>
+                  #{item.number}/{item.set.total}
+                </Text>
+              )}
             </View>
 
             <View style={styles.footerRow}>
@@ -121,10 +120,10 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'contain',
   },
-  nameNumber:{
-flexDirection:"row",
-justifyContent:"space-between",
-alignItems:"center"
+  nameNumber: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   rarityBadge: {
     position: 'absolute',

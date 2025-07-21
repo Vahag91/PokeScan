@@ -1,6 +1,5 @@
 import AnimatedSection from './AnimatedSection';
-import { Text, StyleSheet, View } from 'react-native';
-import { FasterImageView } from '@rraut/react-native-faster-image';
+import { Text, StyleSheet, View, Image } from 'react-native';
 
 export default function CardSetHeader({ cardData }) {
   return (
@@ -8,7 +7,7 @@ export default function CardSetHeader({ cardData }) {
       <View style={styles.inner}>
         {cardData?.set?.logo && (
           <View style={styles.logoWrapper}>
-            <FasterImageView
+            <Image
               source={
                 typeof cardData.set.logo === 'number'
                   ? cardData.set.logo

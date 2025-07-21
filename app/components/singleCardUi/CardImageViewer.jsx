@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, Image } from 'react-native';
 import AnimatedSection from './AnimatedSection';
 import FullImageModal from './FullImageModal';
-import { FasterImageView } from '@rraut/react-native-faster-image';
 
 export default function CardImageViewer({ imageSource }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -15,7 +14,7 @@ export default function CardImageViewer({ imageSource }) {
     <>
       <AnimatedSection style={styles.container}>
         <TouchableOpacity onPress={openImageModal} activeOpacity={0.9}>
-          <FasterImageView
+          <Image
             source={
               typeof imageSource === 'number'
                 ? imageSource
