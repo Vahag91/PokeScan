@@ -1,9 +1,14 @@
-import { TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useEffect, useRef, useCallback } from 'react';
 import { BlurView } from '@react-native-community/blur';
-
+import { ThemeContext } from '../../context/ThemeContext';
 export default function CollectionHeaderButton({ isInCollection, onPress }) {
+  const { theme } = useContext(ThemeContext);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const animate = useCallback(() => {
@@ -25,17 +30,21 @@ export default function CollectionHeaderButton({ isInCollection, onPress }) {
       }),
     ]).start();
   }, [scaleAnim]);
+
   useEffect(() => {
     if (isInCollection !== undefined) animate();
   }, [isInCollection, animate]);
 
   return (
     <Animated.View
-      style={[styles.wrapper, { transform: [{ scale: scaleAnim }] }]}
+      style={[
+        styles.wrapper,
+        { transform: [{ scale: scaleAnim }], backgroundColor: theme.inputBackground },
+      ]}
     >
       <BlurView
         style={StyleSheet.absoluteFill}
-        blurType="light"
+        blurType={theme.mode === 'dark' ? 'dark' : 'light'}
         blurAmount={10}
       />
       <TouchableOpacity
@@ -46,7 +55,7 @@ export default function CollectionHeaderButton({ isInCollection, onPress }) {
         <Ionicons
           name={isInCollection ? 'star-sharp' : 'star-outline'}
           size={28}
-          color={isInCollection ? '#eab956ff' : '#eab956ff'}
+          color="#eab956ff"
         />
       </TouchableOpacity>
     </Animated.View>
@@ -62,7 +71,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   button: {
     flex: 1,

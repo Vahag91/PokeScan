@@ -4,6 +4,7 @@ import React, {
   useRef,
   useCallback,
   useMemo,
+  useContext,
 } from 'react';
 import {
   Keyboard,
@@ -25,8 +26,11 @@ import {
 import { getCardPrice } from '../utils';
 import { defaultSearchCards } from '../constants';
 import { searchCardsInSupabase } from '../../supabase/utils';
+import { ThemeContext } from '../context/ThemeContext';
+import { globalStyles } from '../../globalStyles';
 
 export default function SearchScreen() {
+  const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
   const [results, setResults] = useState([]);
   const [filters, setFilters] = useState({
@@ -47,7 +51,6 @@ export default function SearchScreen() {
 
   const fetchResults = useCallback(() => {
     let isCancelled = false;
-
     const doFetch = async () => {
       const trimmed = term.trim();
       setResults([]);
@@ -56,10 +59,8 @@ export default function SearchScreen() {
       clearTimeout(loaderTimeoutRef.current);
       setShowLoader(false);
       loaderTimeoutRef.current = setTimeout(() => setShowLoader(true), 200);
-
       try {
         const data = await searchCardsInSupabase(trimmed);
-
         if (!isCancelled) {
           setHasFetched(true);
           if (!data || data.length === 0) {
@@ -81,7 +82,6 @@ export default function SearchScreen() {
         }
       }
     };
-
     doFetch();
     return () => {
       isCancelled = true;
@@ -98,7 +98,6 @@ export default function SearchScreen() {
     const delayDebounce = setTimeout(() => {
       if (term.trim()) fetchResults();
     }, 400);
-
     return () => clearTimeout(delayDebounce);
   }, [term, fetchResults]);
 
@@ -116,15 +115,12 @@ export default function SearchScreen() {
   }, [term]);
 
   const retryFetch = () => fetchResults();
-
   const dataToSort = term.trim() ? results : defaultSearchCards;
 
   const sortedResults = useMemo(() => {
     if (!dataToSort.length || !sortKey) return dataToSort;
-
     const [base, direction = 'desc'] = sortKey.split('-');
     const isAsc = direction === 'asc';
-
     const getVal = item => {
       switch (base) {
         case 'name':
@@ -139,16 +135,16 @@ export default function SearchScreen() {
           return '';
       }
     };
-
     return [...dataToSort].sort((a, b) => {
       const aVal = getVal(a);
       const bVal = getVal(b);
-
-      if (typeof aVal === 'string') {
-        return isAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-      }
-
-      return isAsc ? aVal - bVal : bVal - aVal;
+      return typeof aVal === 'string'
+        ? isAsc
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal)
+        : isAsc
+        ? aVal - bVal
+        : bVal - aVal;
     });
   }, [dataToSort, sortKey]);
 
@@ -183,7 +179,6 @@ export default function SearchScreen() {
           filters.legality.some(
             format => card.legalities[format.toLowerCase()] === 'Legal',
           ));
-
       return (
         matchesRarity &&
         matchesType &&
@@ -193,27 +188,28 @@ export default function SearchScreen() {
         matchesLegality
       );
     });
-
     return filtered;
   }, [sortedResults, filters]);
 
   const resultsCount = filteredAndSortedResults.length;
 
   return (
-    <View style={styles.container} accessible accessibilityLabel="Search screen">
-      <View style={styles.searchBar} accessible accessibilityRole="search">
-        <Icon
-          name="search"
-          size={24}
-          color="#555"
-          style={styles.searchIcon}
-          accessibilityLabel="Search icon"
-          accessible
-        />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.searchBar,
+          {
+            backgroundColor: theme.inputBackground,
+            borderColor: theme.border,
+            shadowColor: theme.text,
+          },
+        ]}
+      >
+        <Icon name="search" size={24} color={theme.mutedText} style={styles.searchIcon} />
         <TextInput
-          style={styles.input}
+          style={[globalStyles.body, styles.input, { color: theme.text }]}
           placeholder="Search"
-          placeholderTextColor="#aaa"
+          placeholderTextColor={theme.placeholder}
           value={term}
           onChangeText={setTerm}
           returnKeyType="search"
@@ -221,45 +217,27 @@ export default function SearchScreen() {
             Keyboard.dismiss();
             fetchResults();
           }}
-          accessibilityLabel="Search input"
-          accessibilityHint="Type a keyword and press Enter to search"
         />
         {!!term && hasFetched && !showLoader && (
           <View style={styles.rightInfoContainer}>
-            <Text
-              style={styles.resultBadge}
-              accessibilityLabel={`${resultsCount} results found`}
-            >
+            <Text style={[globalStyles.smallText, styles.resultBadge, { color: theme.secondaryText }]}>
               results: {resultsCount}
             </Text>
-            <TouchableOpacity
-              onPress={clearSearch}
-              accessibilityLabel="Clear search input"
-              accessibilityRole="button"
-              style={styles.clearBtn}
-            >
-              <Icon name="close" size={20} color="#555" />
+            <TouchableOpacity onPress={clearSearch} style={styles.clearBtn}>
+              <Icon name="close" size={20} color={theme.text} />
             </TouchableOpacity>
           </View>
         )}
       </View>
 
-      <View
-        style={styles.filterSection}
-        accessible
-        accessibilityLabel="Filter and sorting section"
-      >
+      <View style={styles.filterSection}>
         <SortingComponent setSortKey={setSortKey} sortKey={sortKey} />
         <FilterComponent filters={filters} setFilters={setFilters} />
       </View>
 
       {showLoader && (
-        <View
-          style={styles.loaderOverlay}
-          accessible
-          accessibilityLabel="Loading search results"
-        >
-          <ActivityIndicator size="large" color="#2bb060ff" />
+        <View style={styles.loaderOverlay}>
+          <ActivityIndicator size="large" color={theme.text} />
         </View>
       )}
 
@@ -282,14 +260,13 @@ export default function SearchScreen() {
         windowSize={5}
         contentContainerStyle={styles.listContainer}
         keyboardShouldPersistTaps="handled"
-        accessibilityLabel="Search results"
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
+  container: { flex: 1 },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,19 +274,18 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#fff',
     borderRadius: 32,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#94A3B8',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
   },
   searchIcon: { marginRight: 8 },
-  input: { flex: 1, fontSize: 16, paddingVertical: 4, color: '#333' },
-  clearIcon: { marginLeft: 8 },
+  input: {
+    flex: 1,
+    paddingVertical: 4,
+  },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255,255,255,0.6)',
@@ -322,6 +298,7 @@ const styles = StyleSheet.create({
   filterSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingVertical: 4,
   },
   rightInfoContainer: {
     flexDirection: 'row',
@@ -330,9 +307,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   resultBadge: {
-    fontSize: 11,
-    fontWeight: '300',
-    color: '#1E293B',
     paddingHorizontal: 8,
     paddingVertical: 2,
     overflow: 'hidden',

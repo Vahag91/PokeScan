@@ -1,29 +1,33 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { ThemeContext } from '../../context/ThemeContext';
 
 const icons = {
   tcgplayer: require('../../assets/cards/other/tcgplayericon.png'),
   cardmarket: require('../../assets/cards/other/cardmarket.webp'),
 };
 
-const PRIMARY = '#0EA5E9'; // Sky-500
-const BG = '#F1F5F9'; // slate-100
-const ACTIVE_BG = '#FFFFFF';
-const MUTED = '#94A3B8';
-
 export default function MarketSegmentedControl({
   available,
   activeTab,
   setActiveTab,
 }) {
+  const { theme } = useContext(ThemeContext);
+
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: theme.inputBackground }]}>
       {available.map((src) => {
         const isActive = activeTab === src;
         return (
           <TouchableOpacity
             key={src}
-            style={[styles.segment, isActive && styles.activeSegment]}
+            style={[
+              styles.segment,
+              isActive && {
+                backgroundColor: theme.background,
+                shadowColor: theme.text,
+              },
+            ]}
             onPress={() => setActiveTab(src)}
             activeOpacity={0.8}
           >
@@ -31,8 +35,7 @@ export default function MarketSegmentedControl({
               source={icons[src]}
               style={[
                 styles.icon,
-                src === 'cardmarket' && styles.monochrome,
-                src === 'cardmarket' && isActive && styles.monochromeActive,
+                src === 'cardmarket' && { tintColor: isActive ? theme.text : theme.mutedText },
               ]}
               resizeMode="contain"
             />
@@ -46,7 +49,6 @@ export default function MarketSegmentedControl({
 const styles = StyleSheet.create({
   wrapper: {
     flexDirection: 'row',
-    backgroundColor: BG,
     padding: 6,
     borderRadius: 999,
     justifyContent: 'center',
@@ -57,27 +59,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     marginHorizontal: 4,
-    backgroundColor: 'transparent',
     borderRadius: 999,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  activeSegment: {
-    backgroundColor: ACTIVE_BG,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
   icon: {
-    width: "100%",
+    width: '100%',
     height: 28,
-  },
-  monochrome: {
-    tintColor: MUTED,
-  },
-  monochromeActive: {
-    tintColor: PRIMARY,
   },
 });

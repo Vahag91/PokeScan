@@ -1,11 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { Animated, StyleSheet, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { ThemeContext } from '../../context/ThemeContext';
 
 const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
 
 export default function SkeletonCard() {
   const shimmerAnim = useRef(new Animated.Value(-1)).current;
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     Animated.loop(
@@ -23,7 +25,12 @@ export default function SkeletonCard() {
   });
 
   return (
-    <Animated.View style={[styles.card, styles.skeleton]}>
+    <Animated.View
+      style={[
+        styles.card,
+        { backgroundColor: theme.cardBackground },
+      ]}
+    >
       <Animated.View style={[styles.shimmerWrapper, { transform: [{ translateX }] }]}>
         <LinearGradient
           colors={['transparent', 'rgba(255,255,255,0.3)', 'transparent']}
@@ -42,11 +49,7 @@ const styles = StyleSheet.create({
     height: CARD_WIDTH * 1.4,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#ddd',
     marginBottom: 16,
-  },
-  skeleton: {
-    backgroundColor: '#e0e0e0',
   },
   shimmerWrapper: {
     ...StyleSheet.absoluteFillObject,

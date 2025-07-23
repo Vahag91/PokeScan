@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   Modal,
   View,
@@ -12,11 +12,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   getDBConnection,
   getAllCollections,
-  getCollectionCountsForCard, 
+  getCollectionCountsForCard,
   addCardToCollection,
-  removeCardFromCollectionByRowId, 
+  removeCardFromCollectionByRowId,
 } from '../../lib/db';
-
+import { ThemeContext } from '../../context/ThemeContext';
 export default function CardCollectionsModal({
   visible,
   onClose,
@@ -26,6 +26,7 @@ export default function CardCollectionsModal({
   const [collections, setCollections] = useState([]);
   const [collectionCounts, setCollectionCounts] = useState({});
   const [loading, setLoading] = useState(false);
+  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     if (visible) {
@@ -39,8 +40,7 @@ export default function CardCollectionsModal({
     setLoading(true);
     const db = await getDBConnection();
     const all = await getAllCollections(db);
-    const counts = await getCollectionCountsForCard(db, card?.id); // ✅ Get map {collectionId: quantity}
-
+    const counts = await getCollectionCountsForCard(db, card?.id);
     setCollections(all);
     setCollectionCounts(counts);
     setLoading(false);
@@ -48,7 +48,7 @@ export default function CardCollectionsModal({
 
   const increment = async (collectionId) => {
     try {
-      await addCardToCollection(card, collectionId);      
+      await addCardToCollection(card, collectionId);
       setCollectionCounts((prev) => ({
         ...prev,
         [collectionId]: (prev[collectionId] || 0) + 1,
@@ -71,7 +71,7 @@ export default function CardCollectionsModal({
         );
         const row = results[0].rows.item(0);
         if (row?.rowid) {
-          await removeCardFromCollectionByRowId(db, row.rowid,collectionId);
+          await removeCardFromCollectionByRowId(db, row.rowid, collectionId);
           setCollectionCounts((prev) => ({
             ...prev,
             [collectionId]: prev[collectionId] - 1,
@@ -89,7 +89,7 @@ export default function CardCollectionsModal({
 
     return (
       <View style={styles.item}>
-        <Text style={styles.itemText}>
+        <Text style={[styles.itemText, { color: theme.text }]}>
           {item.name} {count > 0 ? `x${count}` : ''}
         </Text>
         <View style={styles.counter}>
@@ -100,10 +100,12 @@ export default function CardCollectionsModal({
             <Ionicons
               name="remove-circle-outline"
               size={24}
-              color={count > 0 ? '#EF4444' : '#ccc'}
+              color={count > 0 ? '#EF4444' : theme.mutedText}
             />
           </TouchableOpacity>
-          <Text style={styles.countText}>x{count}</Text>
+          <Text style={[styles.countText, { color: theme.text }]}>
+            x{count}
+          </Text>
           <TouchableOpacity onPress={() => increment(item.id)}>
             <Ionicons name="add-circle-outline" size={24} color="#10B981" />
           </TouchableOpacity>
@@ -116,10 +118,19 @@ export default function CardCollectionsModal({
     <Modal transparent visible={visible} animationType="slide">
       <View style={styles.modalWrapper}>
         <Pressable style={styles.overlay} onPress={onClose} />
-        <View style={styles.modal}>
-          <Text style={styles.title}>Add to Collections</Text>
+        <View
+          style={[
+            styles.modal,
+            { backgroundColor: theme.inputBackground, borderTopColor: theme.border },
+          ]}
+        >
+          <Text style={[styles.title, { color: theme.text }]}>
+            Add to Collections
+          </Text>
           {loading ? (
-            <Text style={styles.loadingText}>Loading...</Text>
+            <Text style={[styles.loadingText, { color: theme.mutedText }]}>
+              Loading...
+            </Text>
           ) : (
             <FlatList
               data={collections}
@@ -151,11 +162,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modal: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
     padding: 20,
     maxHeight: '70%',
+    borderTopWidth: 1,
   },
   title: {
     fontSize: 18,
@@ -169,18 +180,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomColor: '#eee',
     borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   itemText: {
     fontSize: 16,
-    color: '#333',
   },
   loadingText: {
     textAlign: 'center',
     marginVertical: 20,
     fontSize: 16,
-    color: '#666',
   },
   counter: {
     flexDirection: 'row',
@@ -190,7 +199,6 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#444',
     minWidth: 28,
     textAlign: 'center',
   },

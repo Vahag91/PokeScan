@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   Animated,
-  Easing,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CreateCollectionModal from '../components/collections/CreateCollectionModal';
@@ -20,16 +19,17 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import CollectionCard from '../components/collections/CollectionCard';
 import { CollectionHeader } from '../components/collections/CollectionHeader';
+import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
-
 export default function CollectionsScreen({ navigation }) {
+  const { theme } = useContext(ThemeContext);
+
   const [collections, setCollections] = useState([]);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingCollection, setEditingCollection] = useState(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
-  const scaleAnim = useState(new Animated.Value(0.9))[0];
-
+  const scaleAnim = useState(new Animated.Value(0.95))[0];
 
   const loadCollections = useCallback(async () => {
     const db = await getDBConnection();
@@ -40,7 +40,7 @@ export default function CollectionsScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       loadCollections();
-    }, [loadCollections]),
+    }, [loadCollections])
   );
 
   useEffect(() => {
@@ -54,21 +54,20 @@ export default function CollectionsScreen({ navigation }) {
         duration: 300,
         useNativeDriver: true,
       }),
-      Animated.timing(scaleAnim, {
+      Animated.spring(scaleAnim, {
         toValue: 1,
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
+        friction: 6,
         useNativeDriver: true,
       }),
     ]).start();
-  }, [fadeAnim, scaleAnim]);
-  
-  const openEditModal = collection => {
+  }, []);
+
+  const openEditModal = (collection) => {
     setEditingCollection(collection);
     setEditModalVisible(true);
   };
 
-  const handleEditSave = async newName => {
+  const handleEditSave = async (newName) => {
     if (!newName.trim()) return;
     const db = await getDBConnection();
     await renameCollection(db, editingCollection.id, newName.trim());
@@ -77,7 +76,7 @@ export default function CollectionsScreen({ navigation }) {
     loadCollections();
   };
 
-  const handleDelete = async collection => {
+  const handleDelete = async (collection) => {
     const db = await getDBConnection();
     await deleteCollection(db, collection.id);
     setEditModalVisible(false);
@@ -85,7 +84,7 @@ export default function CollectionsScreen({ navigation }) {
     loadCollections();
   };
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({ item }) => {
     if (item.isAddCard) {
       return (
         <View style={styles.renderItem}>
@@ -98,7 +97,6 @@ export default function CollectionsScreen({ navigation }) {
       <View style={styles.renderItem}>
         <CollectionCard
           item={item}
-          index={index}
           onPress={() =>
             navigation.navigate('CollectionDetail', {
               collectionId: item.id,
@@ -118,21 +116,31 @@ export default function CollectionsScreen({ navigation }) {
     <Animated.View
       style={[
         styles.container,
-        { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+        {
+          backgroundColor: theme.background,
+          opacity: fadeAnim,
+          transform: [{ scale: scaleAnim }],
+        },
       ]}
     >
       <CollectionHeader collections={collections} />
       <FlatList
         data={dataWithAdd}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderItem}
         numColumns={1}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="folder-open-outline" size={60} color="#CBD5E1" />
-            <Text style={styles.emptyText}>Nothing here yet...</Text>
-            <Text style={styles.emptySubtext}>
+            <Ionicons
+              name="folder-open-outline"
+              size={64}
+              color={theme.mutedText}
+            />
+            <Text style={[globalStyles.text, styles.emptyText, { color: theme.text }]}>Nothing here yet...</Text>
+            <Text
+              style={[globalStyles.text, styles.emptySubtext, { color: theme.mutedText }]}
+            >
               Tap the + button to create your first collection.
             </Text>
           </View>
@@ -159,50 +167,28 @@ export default function CollectionsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   list: {
-    paddingHorizontal: 8,
-    paddingBottom: 100,
-    paddingTop: 25,
+    paddingHorizontal: 12,
+    paddingTop: 24,
+    paddingBottom: 120,
   },
   renderItem: {
     width: '100%',
   },
   emptyContainer: {
+    marginTop: 80,
     alignItems: 'center',
-    marginTop: 60,
+    paddingHorizontal: 24,
   },
-
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#64748B',
-    marginTop: 16,
+    textAlign: 'center',
   },
-
   emptySubtext: {
     fontSize: 14,
-    color: '#94A3B8',
     marginTop: 6,
     textAlign: 'center',
-    paddingHorizontal: 24,
-  },
-
-  fab: {
-    position: 'absolute',
-    right: 24,
-    bottom: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
   },
 });

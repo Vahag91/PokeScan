@@ -1,6 +1,16 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CARD_WIDTH = SCREEN_WIDTH * 0.8;
 
 export default function CardPreview({ cardName, cardData }) {
   const navigation = useNavigation();
@@ -15,64 +25,63 @@ export default function CardPreview({ cardName, cardData }) {
 
   return (
     <TouchableOpacity style={styles.container} onPress={handlePress}>
+      {cardName && !cardData && (
+        <View style={styles.detectionBadge}>
+          <Text style={styles.detectionText}>Detected:</Text>
+          <Text style={styles.detectionHighlight}>{cardName}</Text>
+        </View>
+      )}
 
-        {cardName && !cardData && (
-          <View style={styles.detectionBadge}>
-            <Text style={styles.detectionText}>Detected:</Text>
-            <Text style={styles.detectionHighlight}>{cardName}</Text>
-          </View>
-        )}
+      {cardData && (
+        <View style={styles.card}>
+          <View style={styles.accentBar} />
 
-        {cardData && (
-          <View style={styles.card}>
-            <View style={styles.accentBar} />
+          <Image
+            source={{ uri: cardData.images.small }}
+            style={styles.image}
+            resizeMode="cover"
+          />
 
-            <Image
-              source={{ uri: cardData.images.small }}
-              style={styles.image}
-              resizeMode="cover"
-            />
+          <View style={styles.info}>
+            <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+              {cardData.name}
+            </Text>
 
-            <View style={styles.info}>
-              <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-                {cardData.name}
-              </Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>HP:</Text>
+              <Text style={styles.value}>{cardData.hp}</Text>
+            </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>HP:</Text>
-                <Text style={styles.value}>{cardData.hp}</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Type:</Text>
+              <View style={styles.badgesWrapper}>
+                {cardData.types?.map(type => (
+                  <View key={type} style={styles.typeBadge}>
+                    <Text style={styles.badgeText}>{type}</Text>
+                  </View>
+                ))}
               </View>
+            </View>
 
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Type:</Text>
-                <View style={styles.badgesWrapper}>
-                  {cardData.types?.map(type => (
-                    <View key={type} style={styles.typeBadge}>
-                      <Text style={styles.badgeText}>{type}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.label}>Rarity:</Text>
-                <View style={styles.rarityBadge}>
-                  <Text style={styles.badgeText}>
-                    {cardData.rarity || 'Unknown'}
-                  </Text>
-                </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Rarity:</Text>
+              <View style={styles.rarityBadge}>
+                <Text style={styles.badgeText}>
+                  {cardData.rarity || 'Unknown'}
+                </Text>
               </View>
             </View>
           </View>
-        )}
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    paddingVertical: 10,
+    width: CARD_WIDTH,
+    paddingVertical: 2,
     paddingHorizontal: 16,
   },
   detectionBadge: {

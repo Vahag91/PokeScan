@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,15 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import EditCollectionMenu from './EditCollectionMenu';
-
+import { ThemeContext } from '../../context/ThemeContext';
+import { globalStyles } from '../../../globalStyles';
 export default function CollectionCard({
   item,
   onPress,
   onEditPress,
   onDelete,
 }) {
+  const { theme } = useContext(ThemeContext);
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -56,7 +58,14 @@ export default function CollectionCard({
   return (
     <View style={styles.cardContainer}>
       <Animated.View
-        style={[styles.cardWrapper, { transform: [{ scale }], opacity }]}
+        style={[
+          styles.cardWrapper,
+          {
+            backgroundColor: theme.cardCollectionBackground,
+            transform: [{ scale }],
+            opacity,
+          },
+        ]}
       >
         <View style={styles.topRightMenu}>
           <EditCollectionMenu
@@ -96,16 +105,19 @@ export default function CollectionCard({
                 />
               ))
             ) : (
-              <View style={styles.noPreview}>
-                <Ionicons name="image-outline" size={22} color="#CBD5E1" />
+              <View
+                style={[
+                  styles.noPreview,
+                  { backgroundColor: theme.inputBackground },
+                ]}
+              >
+                <Ionicons name="image-outline" size={22} color={theme.border} />
               </View>
             )}
 
             {item.previewCards?.length > 3 && (
               <View style={styles.extraBadge}>
-                <Text style={styles.extraText}>
-                  +{item.previewCards.length - 3}
-                </Text>
+                <Text style={styles.extraText}>+{item.previewCards.length - 3}</Text>
               </View>
             )}
           </View>
@@ -118,29 +130,36 @@ export default function CollectionCard({
                 color="#6366F1"
                 style={{ marginRight: 8 }}
               />
-              <Text style={styles.titleText} numberOfLines={1}>
+              <Text
+                style={[globalStyles.subheading, styles.titleText, { color: theme.text }]}
+                numberOfLines={1}
+              >
                 {item.name}
               </Text>
             </View>
 
-            <Text style={styles.timestamp}>
+            <Text
+              style={[globalStyles.caption, styles.timestamp, { color: theme.mutedText }]}
+            >
               Last updated: {getDaysAgo(item.updatedAt || item.createdAt)}
             </Text>
 
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
-                <Ionicons name="layers-outline" size={14} color="#94A3B8" />
-                <Text style={styles.metaText}>
+                <Ionicons name="layers-outline" size={14} color={theme.mutedText} />
+                <Text
+                  style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
+                >
                   {item.cardCount} {item.cardCount === 1 ? 'card' : 'cards'}
                 </Text>
               </View>
 
               <View style={styles.metaItem}>
-                <Ionicons name="pricetag-outline" size={14} color="#94A3B8" />
-                <Text style={styles.metaText}>
-                  {item.totalValue
-                    ? `$${item.totalValue.toFixed(2)}`
-                    : 'No value'}
+                <Ionicons name="pricetag-outline" size={14} color={theme.mutedText} />
+                <Text
+                  style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
+                >
+                  {item.totalValue ? `$${item.totalValue.toFixed(2)}` : 'No value'}
                 </Text>
               </View>
             </View>
@@ -158,7 +177,6 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     borderRadius: 18,
-    backgroundColor: '#ffffff',
     shadowColor: '#000',
     shadowOpacity: 0.07,
     shadowOffset: { width: 0, height: 4 },
@@ -186,7 +204,7 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     zIndex: 999,
-    padding: 6, // expands click area
+    padding: 6,
   },
   previewSection: {
     width: 100,
@@ -220,7 +238,6 @@ const styles = StyleSheet.create({
   noPreview: {
     width: 48,
     height: 66,
-    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -234,14 +251,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   titleText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
     flex: 1,
   },
   timestamp: {
-    fontSize: 12,
-    color: '#94A3B8',
     marginBottom: 6,
   },
   metaRow: {
@@ -255,7 +267,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   metaText: {
-    fontSize: 13,
-    color: '#64748B',
+    marginLeft: 4,
   },
 });

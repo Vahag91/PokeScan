@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,10 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { categories as originalCategories } from '../constants';
 import AnimatedRow from '../components/setSearch/AnimatedRow';
-
+import { ThemeContext } from '../context/ThemeContext';
+import { globalStyles } from '../../globalStyles';
 
 export default function SetScreen() {
   const navigation = useNavigation();
+  const { theme } = useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState('');
   const listRef = useRef(null);
 
@@ -57,8 +59,9 @@ export default function SetScreen() {
     if (item.type === 'header') {
       return (
         <View style={styles.stickyHeader}>
-          <Text style={styles.sectionTitle}>{item.title}</Text>
-          <View style={styles.headerUnderline} />
+          <Text style={[globalStyles.subheading, styles.sectionTitle, { color: theme.text }]}>
+            {item.title}
+          </Text>
         </View>
       );
     }
@@ -74,25 +77,102 @@ export default function SetScreen() {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Icon name="sad-outline" size={48} color="#bbb" />
-      <Text style={styles.emptyText}>No results found</Text>
+      <Icon name="sad-outline" size={48} color={theme.placeholder} />
+      <Text style={[globalStyles.body, styles.emptyText, { color: theme.placeholder }]}>
+        No results found
+      </Text>
     </View>
   );
 
+  const styles = useMemo(() =>
+    StyleSheet.create({
+      container: {
+        flex: 1,
+        backgroundColor: theme.background,
+      },
+      topBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingTop: 8,
+        paddingBottom: 12,
+      },
+      pageTitle: {
+        color: theme.text,
+      },
+      searchBox: {
+        flexDirection: 'row',
+        backgroundColor: theme.inputBackground,
+        marginHorizontal: 16,
+        marginBottom: 8,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        alignItems: 'center',
+      },
+      searchIcon: {
+        marginRight: 6,
+      },
+      clearIcon: {
+        marginLeft: 8,
+      },
+      input: {
+        color: theme.inputText,
+        paddingVertical: 10,
+        flex: 1,
+        fontSize: 15,
+        fontFamily: 'Lato-Regular',
+      },
+      resultLabel: {
+        marginLeft: 16,
+        marginBottom: 8,
+      },
+      resultHighlight: {
+        fontFamily: 'Lato-Bold',
+        color: theme.text,
+      },
+      stickyHeader: {
+        backgroundColor: theme.background,
+        paddingHorizontal: 16,
+        paddingTop: 20,
+        paddingBottom: 8,
+      },
+      sectionTitle: {
+        fontSize: 17,
+      },
+      gridContent: {
+        paddingBottom: 60,
+      },
+      emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 100,
+      },
+      emptyText: {
+        marginTop: 8,
+      },
+
+    }), [theme]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.pageTitle}>Search Card Sets</Text>
+      <View style={styles.topBar}>
+        <Text style={[globalStyles.heading, styles.pageTitle, { color: theme.text }]}>
+          Search Card Sets
+        </Text>
+      </View>
 
       <View style={styles.searchBox}>
         <Icon
           name="search-outline"
           size={18}
-          color="#aaa"
+          color={theme.placeholder}
           style={styles.searchIcon}
         />
         <TextInput
           placeholder="Search by set name..."
-          placeholderTextColor="#999"
+          placeholderTextColor={theme.placeholder}
           style={styles.input}
           value={searchTerm}
           onChangeText={setSearchTerm}
@@ -102,7 +182,7 @@ export default function SetScreen() {
             <Icon
               name="close-circle"
               size={20}
-              color="#999"
+              color={theme.placeholder}
               style={styles.clearIcon}
             />
           </TouchableOpacity>
@@ -110,7 +190,7 @@ export default function SetScreen() {
       </View>
 
       {searchTerm.trim().length > 0 && flatData.length > 0 && (
-        <Text style={styles.resultLabel}>
+        <Text style={[globalStyles.smallText, styles.resultLabel, { color: theme.mutedText }]}>
           Showing results for:{' '}
           <Text style={styles.resultHighlight}>"{searchTerm.trim()}"</Text>
         </Text>
@@ -131,79 +211,3 @@ export default function SetScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  pageTitle: {
-    fontSize: 24,
-    color: '#111827',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    fontFamily: 'Lato-Bold',
-  },
-  searchBox: {
-    flexDirection: 'row',
-    backgroundColor: '#E5E7EB',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-  },
-  searchIcon: {
-    marginRight: 6,
-  },
-  clearIcon: {
-    marginLeft: 8,
-  },
-  input: {
-    color: '#111827',
-    paddingVertical: 10,
-    flex: 1,
-    fontSize: 15,
-  },
-  resultLabel: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginLeft: 16,
-    marginBottom: 8,
-  },
-  resultHighlight: {
-    fontWeight: '600',
-    color: '#111827',
-  },
-  stickyHeader: {
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  headerUnderline: {
-    marginTop: 6,
-    height: 1,
-    width: '100%',
-    backgroundColor: '#E5E7EB',
-  },
-  gridContent: {
-    paddingBottom: 60,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 100,
-  },
-  emptyText: {
-    marginTop: 8,
-    fontSize: 16,
-    color: '#999',
-  },
-});

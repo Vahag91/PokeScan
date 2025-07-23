@@ -1,18 +1,25 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-
+import { ThemeContext } from '../../../context/ThemeContext';
+import { globalStyles } from '../../../../globalStyles';
 export default function HPRangeSlider({ hpRange, setHpRange }) {
-  // Validate hpRange
+  const { theme } = useContext(ThemeContext);
+
   const isValidRange =
     Array.isArray(hpRange) &&
     hpRange.length === 2 &&
     hpRange.every(v => typeof v === 'number');
 
-  // Fallback to default range
   const safeRange = isValidRange ? hpRange : [0, 340];
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.cardCollectionBackground },
+      ]}
+    >
       <MultiSlider
         values={safeRange}
         sliderLength={280}
@@ -20,14 +27,18 @@ export default function HPRangeSlider({ hpRange, setHpRange }) {
         min={0}
         max={340}
         step={10}
-        selectedStyle={styles.selectedTrack}
-        unselectedStyle={styles.unselectedTrack}
+        selectedStyle={{ backgroundColor: '#10B981' }}
+        unselectedStyle={{ backgroundColor: theme.border }}
         markerStyle={styles.marker}
         containerStyle={styles.slider}
       />
       <View style={styles.rangeText}>
-        <Text style={styles.value}>{safeRange[0]} HP</Text>
-        <Text style={styles.value}>{safeRange[1]} HP</Text>
+        <Text style={[globalStyles.smallText, styles.value, { color: theme.text }]}>
+          {safeRange[0]} HP
+        </Text>
+        <Text style={[globalStyles.smallText, styles.value, { color: theme.text }]}>
+          {safeRange[1]} HP
+        </Text>
       </View>
     </View>
   );
@@ -35,7 +46,6 @@ export default function HPRangeSlider({ hpRange, setHpRange }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 18,
@@ -48,12 +58,6 @@ const styles = StyleSheet.create({
   },
   slider: {
     alignSelf: 'center',
-  },
-  selectedTrack: {
-    backgroundColor: '#10B981', // emerald
-  },
-  unselectedTrack: {
-    backgroundColor: '#E5E7EB',
   },
   marker: {
     backgroundColor: '#10B981',
@@ -74,8 +78,6 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   value: {
-    fontSize: 14,
     fontWeight: '600',
-    color: '#0F172A',
   },
 });

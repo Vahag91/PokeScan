@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,7 @@ import {
 import { foilOrder } from '../../constants';
 import { getPriceColor } from '../../utils';
 import MarketSegmentedControl from './MarketSegmentedControl';
-
-
+import { ThemeContext } from '../../context/ThemeContext';
 function formatFoilLabel(key) {
   if (!key) return '';
   return key
@@ -27,10 +26,10 @@ function formatFoilLabel(key) {
     .replace(/^promo Holofoil/, 'Promo Holofoil');
 }
 
-function StatCard({ label, value, textColor = styles.defaultColor }) {
+function StatCard({ label, value, textColor, theme }) {
   return (
-    <View style={styles.statCard}>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View style={[styles.statCard, { backgroundColor: theme.card }]}>
+      <Text style={[styles.statLabel, { color: theme.mutedText }]}>{label}</Text>
       <Text style={[styles.statValue, textColor]}>{value}</Text>
     </View>
   );
@@ -41,11 +40,10 @@ export default function MarketOverview({
   cardmarket,
   loading = false,
 }) {
+  const { theme } = useContext(ThemeContext);
   const scale = useRef(new Animated.Value(1)).current;
-  const onPressIn = () =>
-    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
-  const onPressOut = () =>
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
+  const onPressIn = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
+  const onPressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
 
   const available = [];
   if (tcgplayer?.prices) available.push('tcgplayer');
@@ -57,9 +55,7 @@ export default function MarketOverview({
   const isTCG = activeTab === 'tcgplayer';
 
   const availableFoils = useMemo(() => {
-    return activeTab === 'tcgplayer'
-      ? foilOrder.filter(key => prices[key])
-      : [];
+    return activeTab === 'tcgplayer' ? foilOrder.filter(key => prices[key]) : [];
   }, [activeTab, prices]);
 
   const [selectedFoil, setSelectedFoil] = useState(availableFoils[0] || '');
@@ -75,65 +71,38 @@ export default function MarketOverview({
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         {[...Array(4)].map((_, i) => (
-          <View key={i} style={styles.skeletonCard} />
+          <View key={i} style={[styles.skeletonCard, { backgroundColor: theme.inputBackground }]} />
         ))}
       </View>
     );
   }
 
-  const stats =
-    activeTab === 'tcgplayer'
-      ? (() => {
-          const tier = prices[selectedFoil] || {};
-          return [
-            ['Mid Price', tier.mid != null ? `$${tier.mid.toFixed(2)}` : '–'],
-            ['Low Price', tier.low != null ? `$${tier.low.toFixed(2)}` : '–'],
-            [
-              'High Price',
-              tier.high != null ? `$${tier.high.toFixed(2)}` : '–',
-            ],
-            [
-              'Market Price',
-              tier.market != null ? `$${tier.market.toFixed(2)}` : '–',
-            ],
-            [
-              'Direct Low',
-              tier.directLow != null ? `$${tier.directLow.toFixed(2)}` : '–',
-            ],
-          ];
-        })()
-      : (() => {
-          const cm = market.prices;
-          return [
-            [
-              'Avg Sell',
-              cm.averageSellPrice != null
-                ? `$${cm.averageSellPrice.toFixed(2)}`
-                : '–',
-            ],
-            [
-              'Low Price',
-              cm.lowPrice != null ? `$${cm.lowPrice.toFixed(2)}` : '–',
-            ],
-            [
-              'Trend',
-              cm.trendPrice != null ? `$${cm.trendPrice.toFixed(2)}` : '–',
-            ],
-            ['1D Avg', cm.avg1 != null ? `$${cm.avg1.toFixed(2)}` : '–'],
-            ['7D Avg', cm.avg7 != null ? `$${cm.avg7.toFixed(2)}` : '–'],
-            ['30D Avg', cm.avg30 != null ? `$${cm.avg30.toFixed(2)}` : '–'],
-            [
-              'German Low',
-              cm.germanProLow != null ? `$${cm.germanProLow.toFixed(2)}` : '–',
-            ],
-            [
-              'Suggested',
-              cm.suggestedPrice > 0 ? `$${cm.suggestedPrice.toFixed(2)}` : '–',
-            ],
-          ];
-        })();
+  const stats = activeTab === 'tcgplayer'
+    ? (() => {
+        const tier = prices[selectedFoil] || {};
+        return [
+          ['Mid Price', tier.mid != null ? `$${tier.mid.toFixed(2)}` : '–'],
+          ['Low Price', tier.low != null ? `$${tier.low.toFixed(2)}` : '–'],
+          ['High Price', tier.high != null ? `$${tier.high.toFixed(2)}` : '–'],
+          ['Market Price', tier.market != null ? `$${tier.market.toFixed(2)}` : '–'],
+          ['Direct Low', tier.directLow != null ? `$${tier.directLow.toFixed(2)}` : '–'],
+        ];
+      })()
+    : (() => {
+        const cm = market.prices;
+        return [
+          ['Avg Sell', cm.averageSellPrice != null ? `$${cm.averageSellPrice.toFixed(2)}` : '–'],
+          ['Low Price', cm.lowPrice != null ? `$${cm.lowPrice.toFixed(2)}` : '–'],
+          ['Trend', cm.trendPrice != null ? `$${cm.trendPrice.toFixed(2)}` : '–'],
+          ['1D Avg', cm.avg1 != null ? `$${cm.avg1.toFixed(2)}` : '–'],
+          ['7D Avg', cm.avg7 != null ? `$${cm.avg7.toFixed(2)}` : '–'],
+          ['30D Avg', cm.avg30 != null ? `$${cm.avg30.toFixed(2)}` : '–'],
+          ['German Low', cm.germanProLow != null ? `$${cm.germanProLow.toFixed(2)}` : '–'],
+          ['Suggested', cm.suggestedPrice > 0 ? `$${cm.suggestedPrice.toFixed(2)}` : '–'],
+        ];
+      })();
 
   const mainIndex = activeTab === 'tcgplayer' ? 3 : 2;
   const [label, value] = stats[mainIndex];
@@ -141,14 +110,13 @@ export default function MarketOverview({
   const mainValue = value;
   const subStats = stats.filter((_, i) => i !== mainIndex).slice(0, 3);
 
-  const highlightColor = styles.positiveColor;
   const trendColor =
     mainLabel === 'Price Trend' || mainLabel === 'Market Price'
-      ? highlightColor
-      : styles.defaultColor;
+      ? { color: '#4CAF50' }
+      : { color: theme.text };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <MarketSegmentedControl
         available={available}
         activeTab={activeTab}
@@ -157,9 +125,9 @@ export default function MarketOverview({
       {isTCG && availableFoils.length > 1 && (
         <TouchableOpacity
           onPress={() => setFoilPickerVisible(true)}
-          style={styles.foilSelector}
+          style={[styles.foilSelector, { backgroundColor: theme.inputBackground }]}
         >
-          <Text style={styles.foilSelectorText}>
+          <Text style={[styles.foilSelectorText, { color: theme.text }]}>
             {formatFoilLabel(selectedFoil)} ▼
           </Text>
         </TouchableOpacity>
@@ -172,7 +140,7 @@ export default function MarketOverview({
         onRequestClose={() => setFoilPickerVisible(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet}>
+          <View style={[styles.modalSheet, { backgroundColor: theme.card }]}>
             <FlatList
               data={availableFoils}
               keyExtractor={item => item}
@@ -184,7 +152,7 @@ export default function MarketOverview({
                     setFoilPickerVisible(false);
                   }}
                 >
-                  <Text style={styles.modalItemText}>
+                  <Text style={[styles.modalItemText, { color: theme.text }]}>
                     {formatFoilLabel(item)}
                   </Text>
                 </TouchableOpacity>
@@ -194,14 +162,14 @@ export default function MarketOverview({
         </View>
       </Modal>
 
-      <Animated.View style={[styles.mainCard, { transform: [{ scale }] }]}>
+      <Animated.View style={[styles.mainCard, { backgroundColor: theme.card, transform: [{ scale }] }]}>
         <TouchableOpacity
           activeOpacity={1}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           style={styles.mainPressable}
         >
-          <Text style={styles.mainStatLabel}>{mainLabel}</Text>
+          <Text style={[styles.mainStatLabel, { color: theme.text }]}>{mainLabel}</Text>
           <Text style={[styles.mainStatValue, trendColor]}>{mainValue}</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -212,46 +180,39 @@ export default function MarketOverview({
             key={l}
             label={l}
             value={v}
+            theme={theme}
             textColor={getPriceColor(
               l,
               v,
-              activeTab === 'tcgplayer' ? prices[selectedFoil] : prices,
+              activeTab === 'tcgplayer' ? prices[selectedFoil] : prices
             )}
           />
         ))}
       </View>
 
-      <Text style={styles.updatedAt}>Last updated: {market.updatedAt}</Text>
+      <Text style={[styles.updatedAt, { color: theme.mutedText }]}>
+        Last updated: {market.updatedAt}
+      </Text>
 
       <TouchableOpacity
-        style={styles.actionButton}
+        style={[styles.actionButton, { backgroundColor: theme.primary }]}
         onPress={() => Linking.openURL(market.url)}
       >
-        <Text style={styles.actionText}>
-          View on {activeTab === 'cardmarket' ? 'Cardmarket' : 'TCGPlayer'}
-        </Text>
+        <Text style={styles.actionText}>View on {activeTab === 'cardmarket' ? 'Cardmarket' : 'TCGPlayer'}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-const PRIMARY = '#007AFF';
-const BG = '#F9F9FB';
-const CARD_BG = '#FFFFFF';
-const TEXT = '#333333';
-const MUTED = '#888888';
-
 const styles = StyleSheet.create({
   container: {
     marginVertical: 16,
     padding: 12,
-    backgroundColor: BG,
     borderRadius: 12,
   },
   foilSelector: {
     marginBottom: 8,
     alignSelf: 'flex-start',
-    backgroundColor: '#EEE',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 6,
@@ -259,17 +220,15 @@ const styles = StyleSheet.create({
   foilSelectorText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
   },
   mainCard: {
     marginVertical: 8,
-    backgroundColor: CARD_BG,
     borderRadius: 8,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 4,
   },
   mainPressable: {
     padding: 20,
@@ -279,7 +238,6 @@ const styles = StyleSheet.create({
   mainStatLabel: {
     fontSize: 18,
     fontWeight: '600',
-    color: TEXT,
     marginBottom: 6,
   },
   mainStatValue: {
@@ -295,18 +253,12 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     padding: 12,
-    backgroundColor: CARD_BG,
     borderRadius: 8,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
     elevation: 3,
   },
   statLabel: {
     fontSize: 12,
-    color: MUTED,
     marginBottom: 4,
   },
   statValue: {
@@ -315,20 +267,14 @@ const styles = StyleSheet.create({
   },
   updatedAt: {
     fontSize: 10,
-    color: MUTED,
     textAlign: 'right',
     marginTop: 8,
   },
   actionButton: {
     marginTop: 12,
     paddingVertical: 12,
-    backgroundColor: PRIMARY,
     borderRadius: 8,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
     elevation: 2,
   },
   actionText: {
@@ -338,7 +284,6 @@ const styles = StyleSheet.create({
   },
   skeletonCard: {
     height: 80,
-    backgroundColor: '#DDD',
     borderRadius: 8,
     marginBottom: 8,
   },
@@ -348,7 +293,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalSheet: {
-    backgroundColor: '#fff',
     paddingVertical: 16,
     paddingHorizontal: 12,
     borderTopLeftRadius: 12,
@@ -363,11 +307,5 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: 14,
-    color: TEXT,
   },
-  positiveColor: { color: '#4CAF50' },
-  negativeColor: { color: '#E53935' },
-  warningColor: { color: '#FF9800' },
-  specialColor: { color: '#2196F3' },
-  defaultColor: { color: TEXT },
 });

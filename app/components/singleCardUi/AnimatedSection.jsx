@@ -1,7 +1,9 @@
+import React, { useRef, useEffect, useContext } from 'react';
 import { Animated, StyleSheet } from 'react-native';
-import { useRef, useEffect } from 'react';
+import { ThemeContext } from '../../context/ThemeContext';
 
 export default function AnimatedSection({ children }) {
+  const { theme } = useContext(ThemeContext);
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(30)).current;
 
@@ -23,7 +25,7 @@ export default function AnimatedSection({ children }) {
   return (
     <Animated.View
       style={[
-        styles.sectionBox,
+        getStyles(theme).sectionBox,
         {
           opacity,
           transform: [{ translateY }],
@@ -35,15 +37,16 @@ export default function AnimatedSection({ children }) {
   );
 }
 
-const styles = StyleSheet.create({
-  sectionBox: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-});
+const getStyles = (theme) =>
+  StyleSheet.create({
+    sectionBox: {
+      backgroundColor: theme.inputBackground,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 20,
+      shadowColor: '#000',
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+  });

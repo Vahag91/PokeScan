@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,11 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import { ThemeContext } from '../../../context/ThemeContext';
+import { globalStyles } from '../../../../globalStyles';
 export default function FilterBtns({ handleClear, handleApply }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const { theme } = useContext(ThemeContext);
 
   const onPressIn = () => {
     Animated.spring(scaleAnim, {
@@ -35,23 +37,47 @@ export default function FilterBtns({ handleClear, handleApply }) {
   };
 
   return (
-    <View style={styles.footerButtons}>
+    <View style={[styles.footerButtons, { backgroundColor: theme.background }]}>
       <TouchableOpacity
         onPress={handleClear}
         activeOpacity={0.7}
-        style={styles.clearBtn}
+        style={[styles.clearBtn, { backgroundColor: theme.inputBackground }]}
       >
-        <Icon name="close" size={18} color="#64748B" style={styles.icon} />
-        <Text style={styles.clearBtnText}>Clear</Text>
+        <Icon name="close" size={18} color={theme.secondaryText} style={styles.icon} />
+        <Text
+          style={[
+            styles.clearBtnText,
+            { color: theme.secondaryText },
+            globalStyles.smallText,
+          ]}
+        >
+          Clear
+        </Text>
       </TouchableOpacity>
 
       <TouchableWithoutFeedback
         onPressIn={onPressIn}
         onPressOut={handleApplyWithAnim}
       >
-        <Animated.View style={[styles.applyBtn, { transform: [{ scale: scaleAnim }] }]}>
+        <Animated.View
+          style={[
+            styles.applyBtn,
+            {
+              backgroundColor: '#10B981',
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
           <Icon name="check" size={18} color="#FFFFFF" style={styles.icon} />
-          <Text style={styles.applyBtnText}>Apply</Text>
+          <Text
+            style={[
+              styles.applyBtnText,
+              globalStyles.smallText,
+              { color: '#FFFFFF', fontFamily: 'Lato-Bold' },
+            ]}
+          >
+            Apply
+          </Text>
         </Animated.View>
       </TouchableWithoutFeedback>
     </View>
@@ -64,7 +90,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 18,
-    backgroundColor: '#fff',
   },
   clearBtn: {
     flexDirection: 'row',
@@ -73,14 +98,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 100,
-    backgroundColor: '#F8FAFC',
     flex: 1,
     marginRight: 10,
   },
   clearBtnText: {
-    color: '#64748B',
-    fontWeight: '600',
     fontSize: 15,
+    fontWeight: '600',
   },
   applyBtn: {
     flexDirection: 'row',
@@ -89,7 +112,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 100,
-    backgroundColor: '#10B981', // Change this to your preferred color (e.g. emerald)
     flex: 1,
     marginLeft: 10,
     ...Platform.select({
@@ -105,9 +127,8 @@ const styles = StyleSheet.create({
     }),
   },
   applyBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
     fontSize: 15,
+    fontWeight: '600',
   },
   icon: {
     marginRight: 8,

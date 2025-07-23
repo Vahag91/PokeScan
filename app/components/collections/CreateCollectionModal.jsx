@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   Modal,
   View,
@@ -10,8 +10,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import { getDBConnection, createCollection } from '../../lib/db';
-
+import { ThemeContext } from '../../context/ThemeContext';
+import { globalStyles } from '../../../globalStyles';
 export default function CreateCollectionModal({ visible, onClose, onCreated }) {
+  const { theme } = useContext(ThemeContext);
   const [newName, setNewName] = useState('');
   const [error, setError] = useState(false);
 
@@ -39,32 +41,41 @@ export default function CreateCollectionModal({ visible, onClose, onCreated }) {
       <TouchableWithoutFeedback onPress={handleBackdropPress}>
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={styles.container}>
-              <Text style={styles.title}>New Collection</Text>
+            <View style={[styles.container, { backgroundColor: theme.cardCollectionBackground }]}>
+              <Text style={[globalStyles.subheading, styles.title, { color: theme.text }]}>
+                New Collection
+              </Text>
 
               <TextInput
                 placeholder="Enter collection name"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={theme.placeholder}
                 value={newName}
                 onChangeText={(text) => {
                   setNewName(text);
                   if (error && text.trim()) setError(false);
                 }}
                 style={[
+                  globalStyles.body,
                   styles.input,
-                  error && styles.inputError,
+                  {
+                    backgroundColor: theme.background,
+                    color: theme.inputText,
+                    borderColor: error ? '#EF4444' : theme.border,
+                  },
                 ]}
               />
               {error && (
-                <Text style={styles.errorText}>Collection name is required.</Text>
+                <Text style={[globalStyles.smallText, styles.errorText]}>
+                  Collection name is required.
+                </Text>
               )}
 
               <View style={styles.buttons}>
                 <TouchableOpacity onPress={onClose} style={styles.btnSecondary}>
-                  <Text style={styles.btnSecondaryText}>Cancel</Text>
+                  <Text style={[globalStyles.body, { color: theme.mutedText }]}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleCreate} style={styles.btnPrimary}>
-                  <Text style={styles.btnPrimaryText}>Create</Text>
+                  <Text style={[globalStyles.body, styles.btnPrimaryText]}>Create</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -83,7 +94,6 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   container: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
@@ -93,27 +103,16 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
     textAlign: 'center',
     marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    fontSize: 15,
-    color: '#1E293B',
-    backgroundColor: '#F9FAFB',
-  },
-  inputError: {
-    borderColor: '#EF4444',
   },
   errorText: {
-    fontSize: 13,
     color: '#EF4444',
     marginTop: 6,
     marginBottom: 4,
@@ -129,11 +128,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
-  btnSecondaryText: {
-    color: '#64748B',
-    fontSize: 15,
-    fontWeight: '600',
-  },
   btnPrimary: {
     backgroundColor: '#10B981',
     borderRadius: 10,
@@ -142,7 +136,5 @@ const styles = StyleSheet.create({
   },
   btnPrimaryText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
   },
 });

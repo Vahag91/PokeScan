@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,15 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.52;
 const CARD_HEIGHT = 90;
 
 export function CollectionHeader({ collections }) {
+  const { theme } = useContext(ThemeContext);
+
   const scaleAnims = useRef([
     new Animated.Value(1),
     new Animated.Value(1),
@@ -24,22 +27,13 @@ export function CollectionHeader({ collections }) {
 
   const summary = useMemo(() => {
     const totalCollections = collections.length;
-    const totalCards = collections.reduce(
-      (sum, c) => sum + (c.cardCount || 0),
-      0,
-    );
-    const totalValue = collections.reduce(
-      (sum, c) => sum + (c.totalValue || 0),
-      0,
-    );
+    const totalCards = collections.reduce((sum, c) => sum + (c.cardCount || 0), 0);
+    const totalValue = collections.reduce((sum, c) => sum + (c.totalValue || 0), 0);
     return { totalCollections, totalCards, totalValue };
   }, [collections]);
 
-  const formatValue = value => {
-    return `$${new Intl.NumberFormat('en-US').format(value.toFixed(0))}`;
-  };
-
-  const formatNumber = num => new Intl.NumberFormat('en-US').format(num);
+  const formatValue = (value) => `$${new Intl.NumberFormat('en-US').format(value.toFixed(0))}`;
+  const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
   const cards = [
     {
@@ -73,7 +67,9 @@ export function CollectionHeader({ collections }) {
 
   return (
     <View style={styles.container}>
-      <Text style={globalStyles.text}>My Collections</Text>
+      <Text style={[globalStyles.heading, styles.headerText, { color: theme.text }]}>
+        My Collections
+      </Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -93,6 +89,7 @@ export function CollectionHeader({ collections }) {
                 {
                   width: CARD_WIDTH,
                   height: CARD_HEIGHT,
+                  backgroundColor: theme.cardCollectionBackground,
                   transform: [{ scale: scaleAnims[index] }],
                 },
               ]}
@@ -107,14 +104,12 @@ export function CollectionHeader({ collections }) {
               </LinearGradient>
 
               <View style={styles.cardText}>
-                <Text
-                  style={styles.value}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
+                <Text style={[globalStyles.subheading, styles.value, { color: theme.text }]}>
                   {card.value}
                 </Text>
-                <Text style={styles.label}>{card.label}</Text>
+                <Text style={[globalStyles.caption, styles.label, { color: theme.secondaryText }]}>
+                  {card.label}
+                </Text>
               </View>
             </Animated.View>
           </TouchableWithoutFeedback>
@@ -129,8 +124,6 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   headerText: {
-    fontSize: 21,
-    color: '#111827',
     marginLeft: 20,
     marginBottom: 12,
   },
@@ -139,7 +132,6 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 14,
     marginRight: 16,
@@ -163,14 +155,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   value: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111827',
+    marginBottom: 2,
   },
   label: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
     marginTop: 2,
   },
 });

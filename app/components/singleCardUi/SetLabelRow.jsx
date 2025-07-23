@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-
+import { ThemeContext } from '../../context/ThemeContext';
+import { globalStyles } from '../../../globalStyles';
 export default function SetLabelRow({ set }) {
+  const { theme } = useContext(ThemeContext);
+  const styles = getStyles(theme);
+
   if (!set?.name) return null;
 
   const logoSource =
@@ -13,10 +17,16 @@ export default function SetLabelRow({ set }) {
 
   return (
     <View style={styles.row}>
-      <Text style={styles.label}>Set</Text>
+      <Text style={[globalStyles.body, styles.label, { color: theme.secondaryText }]}>
+        Set
+      </Text>
       <View style={styles.valueWrapper}>
         {logoSource && <Image source={logoSource} style={styles.logo} />}
-        <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+        <Text
+          style={[globalStyles.body, styles.name, { color: theme.text }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {set.name}
         </Text>
       </View>
@@ -24,37 +34,32 @@ export default function SetLabelRow({ set }) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    marginBottom: 6,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#475569',
-    width: '30%',
-  },
-  valueWrapper: {
-    flexDirection: 'row',
-    justifyContent:"flex-end",
-    alignItems: 'center',
-    maxWidth: '70%',
-    flex: 1,
-    marginLeft: 8,
-  },
-  logo: {
-    width: 40,
-    height: 20,
-    resizeMode: 'contain',
-    marginRight: 6,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#1e293b',
-    flexShrink: 1,
-  },
-});
+const getStyles = (theme) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      marginBottom: 6,
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    label: {
+      width: '30%',
+    },
+    valueWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      maxWidth: '70%',
+      flex: 1,
+      marginLeft: 8,
+    },
+    logo: {
+      width: 40,
+      height: 20,
+      resizeMode: 'contain',
+      marginRight: 6,
+    },
+    name: {
+      flexShrink: 1,
+    },
+  });

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -14,11 +14,13 @@ import SkeletonCard from '../components/skeletons/SkeleteonCard';
 import { RenderSearchSingleCard } from '../components/searchScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { supabase } from '../../supabase/supabase';
-
+import { ThemeContext } from '../context/ThemeContext';
+import { globalStyles } from '../../globalStyles';
 const CARD_SPACING = 12;
 const CARD_WIDTH = (Dimensions.get('window').width - CARD_SPACING * 3) / 2;
 
 export default function SetDetailScreen() {
+  const { theme } = useContext(ThemeContext);
   const route = useRoute();
   const { setId } = route.params;
 
@@ -73,10 +75,7 @@ export default function SetDetailScreen() {
   }, [setId, sortAsc]);
 
   const toggleSort = () => setSortAsc(prev => !prev);
-
-  const scrollToTop = () => {
-    flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-  };
+  const scrollToTop = () => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
 
   const handleScroll = event => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -95,15 +94,17 @@ export default function SetDetailScreen() {
     const setName = cards?.[0]?.set?.name || 'Cards in Set';
     return (
       <View style={styles.header}>
-        <Text style={styles.title}>{setName}</Text>
+        <Text style={[globalStyles.subheading, styles.title, { color: theme.text }]}>
+          {setName}
+        </Text>
         <TouchableOpacity onPress={toggleSort} style={styles.sortButton}>
           <View style={styles.sortButtonInner}>
             <Ionicons
               name={sortAsc ? 'arrow-down' : 'arrow-up'}
               size={16}
-              color="#4B5563"
+              color={theme.secondaryText}
             />
-            <Text style={styles.sortText}>
+            <Text style={[globalStyles.smallText, styles.sortText, { color: theme.secondaryText }]}>
               {sortAsc ? 'Low to High' : 'High to Low'}
             </Text>
           </View>
@@ -115,14 +116,16 @@ export default function SetDetailScreen() {
   const renderFooter = () =>
     isFetching ? (
       <View style={styles.footer}>
-        <ActivityIndicator size="small" color="#10B981" />
+        <ActivityIndicator size="small" color={theme.accent} />
       </View>
     ) : null;
 
   if (initialLoading) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Loading cards...</Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={[globalStyles.subheading, styles.title, { color: theme.text }]}>
+          Loading cards...
+        </Text>
         <FlatList
           data={Array.from({ length: 8 })}
           keyExtractor={(_, index) => `skeleton-${index}`}
@@ -141,14 +144,14 @@ export default function SetDetailScreen() {
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text>Error loading cards.</Text>
+      <View style={[styles.centered, { backgroundColor: theme.background }]}>
+        <Text style={[globalStyles.body, { color: theme.text }]}>Error loading cards.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
         ref={flatListRef}
         data={cards}
@@ -164,7 +167,13 @@ export default function SetDetailScreen() {
         ListFooterComponent={renderFooter}
       />
       <Animated.View
-        style={[styles.scrollTopButton, { opacity: scrollTopOpacity }]}
+        style={[
+          styles.scrollTopButton,
+          {
+            opacity: scrollTopOpacity,
+            backgroundColor: theme.accent,
+          },
+        ]}
       >
         <TouchableOpacity onPress={scrollToTop}>
           <Ionicons name="chevron-up" size={24} color="#fff" />
@@ -175,7 +184,7 @@ export default function SetDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1 },
   grid: {
     paddingBottom: 80,
     paddingHorizontal: CARD_SPACING,
@@ -190,9 +199,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -207,10 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   sortText: {
-    fontSize: 14,
-    color: '#4B5563',
     marginLeft: 6,
-    fontWeight: '500',
   },
   cardContainer: {
     width: CARD_WIDTH,
@@ -228,7 +231,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 24,
     bottom: 32,
-    backgroundColor: '#10B981',
     padding: 12,
     borderRadius: 24,
     shadowColor: '#000',

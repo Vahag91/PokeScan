@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { sortOptions } from '../../constants';
 import { HeaderActionButton, BottomSheetHeader } from './filter';
+import { ThemeContext } from '../../context/ThemeContext';
+import { globalStyles } from '../../../globalStyles';
 
 const sortLabels = {
   price: 'Price',
@@ -20,6 +22,7 @@ const sortLabels = {
 
 export default function SortingComponent({ sortKey, setSortKey }) {
   const [visible, setVisible] = useState(false);
+  const { theme } = useContext(ThemeContext);
 
   const baseKey = sortKey?.split('-').slice(0, 2).join('-') ?? null;
   const directionFromKey = sortKey?.split('-')[1] ?? 'desc';
@@ -44,7 +47,6 @@ export default function SortingComponent({ sortKey, setSortKey }) {
 
   return (
     <View style={styles.container}>
-      {/* Sort controls with colored icons */}
       <View style={sortKey && styles.controlGroup}>
         {sortKey && (
           <View style={styles.actionsContainer}>
@@ -83,7 +85,6 @@ export default function SortingComponent({ sortKey, setSortKey }) {
         />
       </View>
 
-      {/* Modal with consistent icon colors */}
       <Modal
         visible={visible}
         animationType="slide"
@@ -91,7 +92,9 @@ export default function SortingComponent({ sortKey, setSortKey }) {
         onRequestClose={() => setVisible(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
-          <Pressable style={styles.sheet}>
+          <Pressable
+            style={[styles.sheet, { backgroundColor: theme.background }]}
+          >
             <BottomSheetHeader
               title="Sort By"
               onClose={() => setVisible(false)}
@@ -116,10 +119,18 @@ export default function SortingComponent({ sortKey, setSortKey }) {
                         isSelected ? 'check-circle' : 'radio-button-unchecked'
                       }
                       size={22}
-                      color={isSelected ? '#10B981' : '#CBD5E1'}
+                      color={isSelected ? '#10B981' : theme.border}
                       style={styles.optionIcon}
                     />
-                    <Text style={styles.optionText}>{option.label}</Text>
+                    <Text
+                      style={[
+                        globalStyles.body,
+                        styles.optionText,
+                        { color: theme.text },
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
                     {isSelected && (
                       <Icon
                         name={
@@ -128,7 +139,7 @@ export default function SortingComponent({ sortKey, setSortKey }) {
                             : 'arrow-downward'
                         }
                         size={18}
-                        color="#3B82F6" // Blue in modal too
+                        color="#10B981"
                         style={styles.directionIcon}
                       />
                     )}
@@ -152,11 +163,11 @@ const styles = StyleSheet.create({
   controlGroup: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   actionsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 12,
     gap: 7,
   },
   actionButton: {
@@ -164,24 +175,19 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
     borderRadius: 6,
   },
-  // Modal styles
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#FFFFFF',
     paddingTop: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: Platform.OS === 'ios' ? 34 : 24,
     maxHeight: '60%',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 10,
@@ -198,14 +204,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   selectedOptionRow: {
-    backgroundColor: '#ECFDF5', // soft emerald tint
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#10B981',
   },
   optionText: {
-    fontSize: 16,
-    color: '#1E293B',
     flex: 1,
     marginLeft: 12,
   },
@@ -214,6 +217,5 @@ const styles = StyleSheet.create({
   },
   directionIcon: {
     marginLeft: 8,
-    color: '#10B981',
   },
 });

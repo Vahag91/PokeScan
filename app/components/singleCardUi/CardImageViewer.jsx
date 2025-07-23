@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { TouchableOpacity, StyleSheet, Image } from 'react-native';
 import AnimatedSection from './AnimatedSection';
 import FullImageModal from './FullImageModal';
-
+import { ThemeContext } from '../../context/ThemeContext';
 export default function CardImageViewer({ imageSource }) {
   const [modalVisible, setModalVisible] = useState(false);
+  const { theme } = useContext(ThemeContext);
 
   const openImageModal = () => {
     setModalVisible(true);
@@ -12,7 +13,7 @@ export default function CardImageViewer({ imageSource }) {
 
   return (
     <>
-      <AnimatedSection style={styles.container}>
+      <AnimatedSection style={[styles.container, { backgroundColor: theme.inputBackground }]}>
         <TouchableOpacity onPress={openImageModal} activeOpacity={0.9}>
           <Image
             source={
@@ -36,7 +37,6 @@ export default function CardImageViewer({ imageSource }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     alignItems: 'center',
     marginBottom: 16,

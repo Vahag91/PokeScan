@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import {
   Text,
   StyleSheet,
@@ -8,8 +8,10 @@ import {
   Easing,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import { ThemeContext } from '../../../context/ThemeContext';
+import { globalStyles } from '../../../../globalStyles';
 export default function FilterSectionToggle({ label, expanded, onPress }) {
+  const { theme } = useContext(ThemeContext);
   const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -19,22 +21,36 @@ export default function FilterSectionToggle({ label, expanded, onPress }) {
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
     }).start();
-  }, [expanded,rotation]);
+  }, [expanded, rotation]);
 
   const rotateInterpolate = rotation.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '180deg']
+    outputRange: ['0deg', '180deg'],
   });
 
   return (
-    <View style={[styles.card, expanded && styles.cardActive]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme.inputBackground },
+        expanded && styles.cardActive,
+      ]}
+    >
       <Pressable onPress={onPress} style={styles.toggle}>
-        <Text style={styles.label}>{label}</Text>
+        <Text
+          style={[
+            globalStyles.subheading,
+            styles.label,
+            { color: theme.text },
+          ]}
+        >
+          {label}
+        </Text>
         <Animated.View style={{ transform: [{ rotate: rotateInterpolate }] }}>
-          <Icon 
-            name="keyboard-arrow-down" 
-            size={24} 
-            color={expanded ? "#10B981" : "#64748B"} 
+          <Icon
+            name="keyboard-arrow-down"
+            size={24}
+            color={expanded ? '#10B981' : theme.secondaryText}
           />
         </Animated.View>
       </Pressable>
@@ -44,7 +60,6 @@ export default function FilterSectionToggle({ label, expanded, onPress }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     marginVertical: 10,
     shadowColor: '#cbd5e1',
@@ -67,14 +82,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
   },
-  pressed: {
-    opacity: 0.9,
-  },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '',
     letterSpacing: 0.15,
   },
 });
-

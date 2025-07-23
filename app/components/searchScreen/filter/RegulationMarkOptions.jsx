@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-
+import { ThemeContext } from '../../../context/ThemeContext';
+import { globalStyles } from '../../../../globalStyles';
 const REGULATION_MARKS = ['D', 'E', 'F', 'G', 'H'];
 
 export default function RegulationMarkOptions({ selected, setSelected }) {
+  const { theme } = useContext(ThemeContext);
+
   const toggle = mark => {
     setSelected(prev =>
-      prev.includes(mark) ? prev.filter(m => m !== mark) : [...prev, mark],
+      prev.includes(mark) ? prev.filter(m => m !== mark) : [...prev, mark]
     );
   };
 
@@ -18,10 +21,23 @@ export default function RegulationMarkOptions({ selected, setSelected }) {
           <TouchableOpacity
             key={mark}
             onPress={() => toggle(mark)}
-            style={[styles.badge, isSelected && styles.activeBadge]}
+            style={[
+              styles.badge,
+              {
+                backgroundColor: theme.cardCollectionBackground,
+                borderColor: isSelected ? '#10B981' : theme.border,
+                borderWidth: isSelected ? 1.2 : 1,
+              },
+            ]}
             activeOpacity={0.85}
           >
-            <Text style={[styles.text, isSelected && styles.activeText]}>
+            <Text
+              style={[
+                globalStyles.body,
+                styles.text,
+                { color: isSelected ? theme.text : theme.secondaryText },
+              ]}
+            >
               {mark}
             </Text>
           </TouchableOpacity>
@@ -42,22 +58,11 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  activeBadge: {
-    borderColor: '#10B981',
-    borderWidth: 1,
   },
   text: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#334155',
-  },
-  activeText: {
-    color: 'black',
   },
 });

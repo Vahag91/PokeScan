@@ -1,10 +1,12 @@
-// components/searchScreen/filter/CardLegalityOptions.js
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-
+import { ThemeContext } from '../../../context/ThemeContext';
+import { globalStyles } from '../../../../globalStyles';
 const LEGALITY_OPTIONS = ['Standard', 'Expanded', 'Unlimited'];
 
 export default function CardLegalityOptions({ selected, setSelected }) {
+  const { theme } = useContext(ThemeContext);
+
   const toggle = value => {
     setSelected(prev =>
       prev.includes(value)
@@ -21,10 +23,22 @@ export default function CardLegalityOptions({ selected, setSelected }) {
           <TouchableOpacity
             key={option}
             onPress={() => toggle(option)}
-            style={[styles.chip, isSelected && styles.chipActive]}
+            style={[
+              styles.chip,
+              { backgroundColor: isSelected ? '#10B981' : theme.inputBackground },
+              isSelected && styles.chipActive,
+            ]}
             activeOpacity={0.85}
           >
-            <Text style={[styles.text, isSelected && styles.textActive]}>
+            <Text
+              style={[
+                globalStyles.smallText,
+                {
+                  color: isSelected ? '#FFFFFF' : theme.secondaryText,
+                  fontWeight: isSelected ? '600' : '500',
+                },
+              ]}
+            >
               {option}
             </Text>
           </TouchableOpacity>
@@ -44,27 +58,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
   },
   chip: {
-    backgroundColor: '#F1F5F9',
     borderRadius: 100,
     paddingVertical: 8,
     paddingHorizontal: 14,
     marginBottom: 10,
   },
   chipActive: {
-    backgroundColor: '#10B981',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 3,
     elevation: 2,
-  },
-  text: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#475569',
-  },
-  textActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
 });

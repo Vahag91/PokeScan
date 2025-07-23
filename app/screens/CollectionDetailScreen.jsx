@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useContext } from 'react';
 import {
   View,
   Text,
@@ -24,8 +24,11 @@ import {
 import CardGridItem from '../components/collections/CardGridItem';
 import AddCardItem from '../components/collections/AddCardItem';
 import { normalizeCardFromDb } from '../utils';
+import { ThemeContext } from '../context/ThemeContext';
+import { globalStyles } from '../../globalStyles';
 
 export default function CollectionDetailScreen() {
+  const { theme } = useContext(ThemeContext);
   const route = useRoute();
   const navigation = useNavigation();
   const { collectionId, collection } = route.params;
@@ -143,7 +146,7 @@ export default function CollectionDetailScreen() {
   const renderHeader = () => (
     <View>
       <View style={styles.headerWrapper}>
-        <Text style={styles.collectionTitle} numberOfLines={1}>
+        <Text style={[globalStyles.subheading, { color: theme.text }]}> 
           {collectionInfo.name}
         </Text>
       </View>
@@ -158,7 +161,7 @@ export default function CollectionDetailScreen() {
           >
             <Ionicons name="layers-outline" size={16} color="#fff" />
           </LinearGradient>
-          <Text style={styles.iconText}>
+          <Text style={[globalStyles.smallText, { color: theme.text }]}> 
             {cards.length} {cards.length === 1 ? 'card' : 'cards'}
           </Text>
         </View>
@@ -172,7 +175,7 @@ export default function CollectionDetailScreen() {
           >
             <Ionicons name="cash-outline" size={16} color="#fff" />
           </LinearGradient>
-          <Text style={styles.iconText}>
+          <Text style={[globalStyles.smallText, { color: theme.text }]}> 
             {collectionInfo.totalValue > 0
               ? `$${collectionInfo.totalValue.toFixed(2)}`
               : 'No value'}
@@ -190,10 +193,7 @@ export default function CollectionDetailScreen() {
           {uniqueSeries.map(series => (
             <TouchableOpacity
               key={series}
-              style={[
-                styles.filterBadge,
-                selectedSeries === series && styles.activeFilter,
-              ]}
+              style={[styles.filterBadge, selectedSeries === series && styles.activeFilter]}
               onPress={() => {
                 setSelectedSeries(prev => {
                   const newSeries = prev === series ? null : series;
@@ -202,12 +202,7 @@ export default function CollectionDetailScreen() {
                 });
               }}
             >
-              <Text
-                style={[
-                  styles.filterText,
-                  selectedSeries === series && styles.activeFilterText,
-                ]}
-              >
+              <Text style={[globalStyles.smallText, styles.filterText, selectedSeries === series && styles.activeFilterText]}> 
                 {series}
               </Text>
             </TouchableOpacity>
@@ -225,20 +220,10 @@ export default function CollectionDetailScreen() {
           {uniqueSets.map(set => (
             <TouchableOpacity
               key={set}
-              style={[
-                styles.filterBadge,
-                selectedSet === set && styles.activeFilter,
-              ]}
-              onPress={() =>
-                setSelectedSet(prev => (prev === set ? null : set))
-              }
+              style={[styles.filterBadge, selectedSet === set && styles.activeFilter]}
+              onPress={() => setSelectedSet(prev => (prev === set ? null : set))}
             >
-              <Text
-                style={[
-                  styles.filterText,
-                  selectedSet === set && styles.activeFilterText,
-                ]}
-              >
+              <Text style={[globalStyles.smallText, styles.filterText, selectedSet === set && styles.activeFilterText]}> 
                 {set}
               </Text>
             </TouchableOpacity>
@@ -249,7 +234,7 @@ export default function CollectionDetailScreen() {
       {(selectedSet || selectedSeries) && (
         <TouchableOpacity style={styles.clearBtn} onPress={clearFilters}>
           <Ionicons name="close-outline" size={18} color="#fff" />
-          <Text style={styles.clearText}>Clear filters</Text>
+          <Text style={[globalStyles.smallText, styles.clearText]}>Clear filters</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -257,11 +242,7 @@ export default function CollectionDetailScreen() {
 
   const renderItem = ({ item }) => {
     if (item.type === 'add-button') {
-      return (
-        <AddCardItem
-          onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })}
-        />
-      );
+      return <AddCardItem onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })} />;
     }
 
     const isSelected = selectedCardId === item.cardId;
@@ -282,24 +263,33 @@ export default function CollectionDetailScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}> 
       {groupedCards.length === 0 ? (
-       <View style={styles.emptyContainer}>
-  <Ionicons name="albums-outline" size={64} color="#CBD5E1" style={styles.emptyIcon} />
-  <Text style={styles.emptyTitle}>No cards yet</Text>
-  <Text style={styles.emptySubtitle}>Start building your collection by adding cards.</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons
+            name="albums-outline"
+            size={64}
+            color={theme.border}
+            style={styles.emptyIcon}
+          />
+          <Text style={[globalStyles.subheading, styles.emptyTitle, { color: theme.text }]}> 
+            No cards yet
+          </Text>
+          <Text style={[globalStyles.smallText, styles.emptySubtitle, { color: theme.mutedText }]}> 
+            Start building your collection by adding cards.
+          </Text>
 
-  <TouchableOpacity
-    style={styles.emptyButton}
-    onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })}
-  >
-    <Ionicons name="search" size={16} color="#fff" />
-    <Text style={styles.emptyButtonText}>Find Cards</Text>
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity
+            style={styles.emptyButton}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })}
+          >
+            <Ionicons name="search" size={16} color="#fff" />
+            <Text style={[globalStyles.smallText, styles.emptyButtonText]}>Find Cards</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
-          data={[...groupedCards, { type: 'add-button' }]} // add "AddCardItem" as last item
+          data={[...groupedCards, { type: 'add-button' }]}
           keyExtractor={item => item.cardId || 'add-button'}
           renderItem={renderItem}
           numColumns={2}
@@ -313,14 +303,14 @@ export default function CollectionDetailScreen() {
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB', padding: 16 },
+  container: { flex: 1, padding: 16 },
   list: { paddingBottom: 100 },
   gridRow: { justifyContent: 'space-between' },
   collectionTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#111827',
     marginBottom: 12,
   },
   headerWrapper: {
@@ -349,7 +339,6 @@ const styles = StyleSheet.create({
   iconText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B',
   },
   filterScroll: {
     marginBottom: 8,
@@ -389,59 +378,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
   },
-  emptyText: {
-    marginTop: 40,
-    textAlign: 'center',
-    color: '#64748B',
-    fontSize: 16,
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 30,
-    backgroundColor: '#10B981',
-    borderRadius: 30,
-    padding: 16,
-    elevation: 6,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
   emptyContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginTop: 80,
-  paddingHorizontal: 24,
-},
-emptyIcon: {
-  marginBottom: 12,
-},
-emptyTitle: {
-  fontSize: 20,
-  fontWeight: '700',
-  color: '#1E293B',
-  marginBottom: 6,
-},
-emptySubtitle: {
-  fontSize: 14,
-  color: '#64748B',
-  textAlign: 'center',
-  marginBottom: 16,
-},
-emptyButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#10B981',
-  paddingHorizontal: 16,
-  paddingVertical: 10,
-  borderRadius: 24,
-},
-emptyButtonText: {
-  marginLeft: 6,
-  color: '#fff',
-  fontWeight: '600',
-  fontSize: 14,
-},
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 80,
+    paddingHorizontal: 24,
+  },
+  emptyIcon: {
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  emptyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10B981',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+  },
+  emptyButtonText: {
+    marginLeft: 6,
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });

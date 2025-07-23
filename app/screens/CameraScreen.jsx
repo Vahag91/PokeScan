@@ -1,28 +1,28 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Text, 
-  ActivityIndicator
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
 } from 'react-native';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { globalStyles } from '../../../globalStyles';
 
-const CameraScreen = ({ navigation }) => {
+export default function CameraScreen({ navigation }) {
   const camera = useRef(null);
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
+
   const [isActive, setIsActive] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [flashMode, setFlashMode] = useState('off');
 
   useEffect(() => {
-    // Handle camera activity when tab changes
     const unsubscribeFocus = navigation.addListener('focus', () => {
       setIsActive(true);
     });
-    
     const unsubscribeBlur = navigation.addListener('blur', () => {
       setIsActive(false);
     });
@@ -34,21 +34,20 @@ const CameraScreen = ({ navigation }) => {
   }, [navigation]);
 
   const handleFlashToggle = () => {
-    setFlashMode(prev => prev === 'off' ? 'on' : 'off');
+    setFlashMode(prev => (prev === 'off' ? 'on' : 'off'));
   };
 
   const handleTakePicture = async () => {
     if (!camera.current || isLoading) return;
-    
+
     setIsLoading(true);
     try {
       const photo = await camera.current.takePhoto({
         qualityPrioritization: 'quality',
         flash: flashMode,
       });
-      
+
       console.log('Photo taken:', photo.path);
-      // Navigate to card details with the photo path
       navigation.navigate('SingleCardScreen', { photoPath: photo.path });
     } catch (error) {
       console.error('Failed to take photo:', error);
@@ -62,7 +61,9 @@ const CameraScreen = ({ navigation }) => {
     return (
       <View style={styles.permissionContainer}>
         <ActivityIndicator size="large" color="#D21312" />
-        <Text style={styles.permissionText}>Requesting camera permission...</Text>
+        <Text style={[globalStyles.body, styles.permissionText]}>
+          Requesting camera permission...
+        </Text>
       </View>
     );
   }
@@ -71,7 +72,9 @@ const CameraScreen = ({ navigation }) => {
     return (
       <View style={styles.permissionContainer}>
         <Ionicons name="camera-off" size={40} color="#D21312" />
-        <Text style={styles.permissionText}>Camera device not found</Text>
+        <Text style={[globalStyles.body, styles.permissionText]}>
+          Camera device not found
+        </Text>
       </View>
     );
   }
@@ -86,8 +89,8 @@ const CameraScreen = ({ navigation }) => {
         photo={true}
         enableZoomGesture={true}
       />
-      
-      {/* Overlay elements */}
+
+      {/* Overlay */}
       <View style={styles.overlay}>
         <View style={styles.scanFrame}>
           <View style={styles.cornerTL} />
@@ -95,24 +98,23 @@ const CameraScreen = ({ navigation }) => {
           <View style={styles.cornerBL} />
           <View style={styles.cornerBR} />
         </View>
-        <Text style={styles.instructionText}>Align the Pokemon card within the frame</Text>
+        <Text style={[globalStyles.body, styles.instructionText]}>
+          Align the Pokémon card within the frame
+        </Text>
       </View>
-      
-      {/* Top controls */}
-      <TouchableOpacity 
-        style={styles.flashButton}
-        onPress={handleFlashToggle}
-      >
-        <Ionicons 
-          name={flashMode === 'on' ? 'flash' : 'flash-off'} 
-          size={24} 
-          color="white" 
+
+      {/* Flash toggle */}
+      <TouchableOpacity style={styles.flashButton} onPress={handleFlashToggle}>
+        <Ionicons
+          name={flashMode === 'on' ? 'flash' : 'flash-off'}
+          size={24}
+          color="white"
         />
       </TouchableOpacity>
-      
-      {/* Bottom controls */}
+
+      {/* Scan button */}
       <View style={styles.bottomControls}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.scanButton}
           onPress={handleTakePicture}
           disabled={isLoading}
@@ -128,9 +130,7 @@ const CameraScreen = ({ navigation }) => {
       </View>
     </View>
   );
-};
-export default CameraScreen;
-// ... keep your existing styles ...
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -146,7 +146,6 @@ const styles = StyleSheet.create({
   permissionText: {
     color: 'white',
     marginTop: 16,
-    fontSize: 16,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -204,19 +203,10 @@ const styles = StyleSheet.create({
   instructionText: {
     color: 'white',
     marginTop: 20,
-    fontSize: 16,
     fontWeight: '500',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
-    padding: 8,
   },
   flashButton: {
     position: 'absolute',
@@ -256,4 +246,3 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
 });
-

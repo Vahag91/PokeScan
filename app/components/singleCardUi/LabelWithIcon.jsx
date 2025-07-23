@@ -1,7 +1,12 @@
-import { View, Text, StyleSheet,Image } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { typeIcons } from '../../constants';
-
+import { ThemeContext } from '../../context/ThemeContext';
+import { globalStyles } from '../../../globalStyles';
 export default function LabelWithIcon({ types, text }) {
+  const { theme } = useContext(ThemeContext);
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.iconRow}>
       {types?.map((type, i) => {
@@ -15,24 +20,23 @@ export default function LabelWithIcon({ types, text }) {
           />
         ) : null;
       })}
-      <Text style={styles.labelText}>{text}</Text>
+      <Text style={[globalStyles.body, styles.labelText]}>{text}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  iconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconImage: {
-    width: 18,
-    height: 18,
-    marginRight: 4,
-  },
-  labelText: {
-    color: '#444',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-});
+const getStyles = (theme) =>
+  StyleSheet.create({
+    iconRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    iconImage: {
+      width: 18,
+      height: 18,
+      marginRight: 4,
+    },
+    labelText: {
+      color: theme.text,
+    },
+  });

@@ -7,13 +7,13 @@ import {
   SafeAreaView,
   Dimensions,
   TouchableOpacity,
-  Image,
   ScrollView,
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import PhotoManipulator from 'react-native-photo-manipulator';
 import ScanButton from './ScanButton';
 import CardPreview from './CardPreview';
+import CardCarouselPreview from './CardCarouselPreview';
 import CameraView from './CameraView';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fetchScannerCardFromSupabase } from '../../../supabase/utils';
@@ -30,7 +30,6 @@ export default function ScannerScreen({ navigation }) {
   const [cardName, setCardName] = useState(null);
   const [cardData, setCardData] = useState(null);
   const [cardResults, setCardResults] = useState([]);
-  const [croppedImageUri, setCroppedImageUri] = useState(null);
 
   const device = useCameraDevice('back');
   const cameraRef = useRef(null);
@@ -47,7 +46,6 @@ export default function ScannerScreen({ navigation }) {
       setCardName(null);
       setCardData(null);
       setCardResults([]);
-      setCroppedImageUri(null);
 
       const photo = await cameraRef.current.takePhoto();
       const uri = photo.path.startsWith('file://')
@@ -70,11 +68,8 @@ export default function ScannerScreen({ navigation }) {
         uri,
         box,
         { width: targetWidth, height: targetHeight },
-        { format: 'webp', quality: '50%' }
+        { format: 'webp', quality: '50%' },
       );
-
-      setCroppedImageUri(`file://${croppedPath}`);
-
       const fileExt = croppedPath.split('.').pop();
       const fileName = `scan-${Date.now()}.${fileExt}`;
       const fileData = await RNFS.readFile(croppedPath, 'base64');
@@ -86,7 +81,7 @@ export default function ScannerScreen({ navigation }) {
             fileName,
             base64Image: fileData,
           },
-        }
+        },
       );
 
       if (error) throw error;
@@ -97,7 +92,7 @@ export default function ScannerScreen({ navigation }) {
         dataFromEdge.name,
         dataFromEdge.number,
         dataFromEdge.hp,
-        dataFromEdge.illustrator
+        dataFromEdge.illustrator,
       );
 
       if (matches?.length === 1) {
@@ -147,36 +142,22 @@ export default function ScannerScreen({ navigation }) {
       </View>
 
       <View style={styles.overlay}>
-        {croppedImageUri && (
-          <View style={styles.imagePreviewWrapper}>
-            <Text style={styles.previewLabel}>Scanned Preview</Text>
-            <Image
-              source={{ uri: croppedImageUri }}
-              style={styles.previewImage}
-              resizeMode="contain"
-            />
-          </View>
-        )}
+        <ScrollView
+          contentContainerStyle={styles.scrollArea}
+          showsVerticalScrollIndicator={false}
+        >
+          {cardData ? (
+            <CardPreview cardName={cardName} cardData={cardData} />
+          ) : cardResults.length > 0 ? (
+            <CardCarouselPreview cards={cardResults} />
+          ) : (
+            <CardPreview cardName={cardName} cardData={null} />
+          )}
+        </ScrollView>
 
-        {cardData ? (
-          <CardPreview cardName={cardName} cardData={cardData} />
-        ) : cardResults.length > 0 ? (
-          <ScrollView
-            style={styles.scrollContainer}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          >
-            {cardResults.map(card => (
-              <View key={card.id} style={styles.resultItem}>
-                <CardPreview cardName={card.name} cardData={card} />
-              </View>
-            ))}
-          </ScrollView>
-        ) : (
-          <CardPreview cardName={cardName} cardData={null} />
-        )}
-
-        <ScanButton loading={loading} onPress={onScan} />
+        <View style={{ marginTop: 12 }}>
+          <ScanButton loading={loading} onPress={onScan} />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -220,10 +201,24 @@ const styles = StyleSheet.create({
     borderColor: '#10B981',
   },
   scrollContainer: {
-    maxHeight: 220,
+    maxHeight: 240,
     marginBottom: 12,
   },
-  resultItem: {
+  resultItemWrapper: {
     marginHorizontal: 6,
+    alignItems: 'center',
+  },
+  optionLabel: {
+    color: '#CBD5E1',
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  resultItem: {
+    transform: [{ scale: 0.95 }],
+    opacity: 0.9,
+  },
+  scrollArea: {
+    paddingBottom: 2,
+    alignItems: 'center',
   },
 });

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { typeIcons } from '../../../constants';
+import { ThemeContext } from '../../../context/ThemeContext';
 
 export default function IconOptions({
   options,
@@ -8,6 +9,8 @@ export default function IconOptions({
   setList,
   toggleSelection,
 }) {
+  const { theme } = useContext(ThemeContext);
+
   return (
     <View style={styles.iconOptionsWrap}>
       {options.map(t => {
@@ -16,7 +19,14 @@ export default function IconOptions({
           <TouchableOpacity
             key={t}
             onPress={() => toggleSelection(selectedList, setList, t)}
-            style={[styles.iconBadge, selected && styles.activeIconBadge]}
+            style={[
+              styles.iconBadge,
+              {
+                backgroundColor: theme.cardCollectionBackground,
+                borderColor: selected ? '#10B981' : theme.border,
+                borderWidth: selected ? 1.5 : 1,
+              },
+            ]}
           >
             <Image
               source={typeIcons[t]}
@@ -40,15 +50,8 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  activeIconBadge: {
-    borderColor: '#10B981',
-    borderWidth: 1.5,
   },
   icon: {
     width: 24,

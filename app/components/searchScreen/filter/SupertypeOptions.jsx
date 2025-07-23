@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ThemeContext } from '../../../context/ThemeContext';
 
 const supertypes = [
   { label: 'Pokémon', icon: 'pokeball' },
@@ -9,6 +10,8 @@ const supertypes = [
 ];
 
 export default function SupertypeOptions({ selected, setSelected }) {
+  const { theme } = useContext(ThemeContext);
+
   const toggle = value => {
     setSelected(prev =>
       prev.includes(value)
@@ -25,17 +28,33 @@ export default function SupertypeOptions({ selected, setSelected }) {
           <TouchableOpacity
             key={label}
             onPress={() => toggle(label)}
-            style={[styles.chip, active && styles.chipActive]}
+            style={[
+              styles.chip,
+              {
+                backgroundColor: active ? '#10B981' : theme.cardCollectionBackground,
+                shadowColor: active ? '#000' : 'transparent',
+                shadowOpacity: active ? 0.1 : 0,
+                elevation: active ? 2 : 0,
+              },
+            ]}
             activeOpacity={0.85}
           >
             <View style={styles.content}>
               <Icon
                 name={icon}
                 size={16}
-                color={active ? '#fff' : '#475569'}
+                color={active ? '#fff' : theme.secondaryText}
                 style={styles.icon}
               />
-              <Text style={[styles.text, active && styles.textActive]}>
+              <Text
+                style={[
+                  styles.text,
+                  {
+                    color: active ? '#fff' : theme.secondaryText,
+                    fontWeight: active ? '600' : '500',
+                  },
+                ]}
+              >
                 {label}
               </Text>
             </View>
@@ -57,19 +76,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   chip: {
-    backgroundColor: '#F1F5F9',
     borderRadius: 100,
     paddingVertical: 8,
     paddingHorizontal: 14,
     marginBottom: 10,
-  },
-  chipActive: {
-    backgroundColor: '#10B981',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 3,
-    elevation: 2,
   },
   content: {
     flexDirection: 'row',
@@ -81,11 +91,5 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#475569',
-  },
-  textActive: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
 });

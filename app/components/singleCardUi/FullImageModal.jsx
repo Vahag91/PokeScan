@@ -1,3 +1,4 @@
+import React, { useContext } from 'react';
 import {
   Modal,
   TouchableOpacity,
@@ -7,12 +8,15 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { FasterImageView } from '@rraut/react-native-faster-image';
+import { ThemeContext } from '../../context/ThemeContext';
 
 export default function FullImageModal({
   cardImage,
   modalVisible,
   setModalVisible,
 }) {
+  const { theme } = useContext(ThemeContext);
+
   const closeImageModal = () => {
     setModalVisible(false);
   };
@@ -25,7 +29,12 @@ export default function FullImageModal({
       statusBarTranslucent
       onRequestClose={closeImageModal}
     >
-      <View style={styles.modalBackdrop}>
+      <View
+        style={[
+          styles.modalBackdrop,
+          { backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.95)' : 'rgba(0,0,0,0.9)' },
+        ]}
+      >
         <TouchableOpacity
           style={styles.modalContainer}
           activeOpacity={1}
@@ -37,10 +46,22 @@ export default function FullImageModal({
             resizeMode="contain"
           />
           <TouchableOpacity
-            style={styles.closeButton}
+            style={[
+              styles.closeButton,
+              {
+                backgroundColor:
+                  theme === 'dark'
+                    ? 'rgba(255,255,255,0.15)'
+                    : 'rgba(255,255,255,0.3)',
+              },
+            ]}
             onPress={closeImageModal}
           >
-            <Ionicons name="close-sharp" size={30} color="white" />
+            <Ionicons
+              name="close-sharp"
+              size={30}
+              color={theme === 'dark' ? '#fff' : '#fff'}
+            />
           </TouchableOpacity>
         </TouchableOpacity>
       </View>
@@ -51,7 +72,6 @@ export default function FullImageModal({
 const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -69,7 +89,6 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     bottom: StatusBar.currentHeight + 45,
-    backgroundColor: 'rgba(255,255,255,0.3)',
     padding: 8,
     borderRadius: 20,
   },

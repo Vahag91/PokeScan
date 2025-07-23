@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import {
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -9,10 +9,13 @@ import {
   Platform,
   UIManager,
   Animated,
+  Appearance,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getFullPath } from '../../utils';
 import { BlurView } from '@react-native-community/blur';
+import { ThemeContext } from '../../context/ThemeContext';
+import { globalStyles } from '../../../globalStyles';
 
 if (
   Platform.OS === 'android' &&
@@ -31,6 +34,7 @@ export default function CardGridItem({
   onDelete,
   onClose,
 }) {
+  const { theme } = useContext(ThemeContext);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const closeAnim = useRef(new Animated.Value(20)).current;
@@ -78,7 +82,7 @@ export default function CardGridItem({
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.cardCollectionBackground }]}
         onPress={onPress}
         onLongPress={onLongPress}
         delayLongPress={300}
@@ -89,7 +93,10 @@ export default function CardGridItem({
           style={styles.cardImage}
           resizeMode="cover"
         />
-        <Text style={styles.cardName} numberOfLines={1}>
+        <Text
+          style={[globalStyles.smallText, styles.cardName, { color: theme.text }]}
+          numberOfLines={1}
+        >
           {item.customName || item.name}
         </Text>
 
@@ -108,25 +115,25 @@ export default function CardGridItem({
 
           <BlurView
             style={StyleSheet.absoluteFill}
-            blurType="light"
+            blurType={Appearance.getColorScheme() === 'dark' ? 'dark' : 'light'}
             blurAmount={18}
-            reducedTransparencyFallbackColor="#ffffffcc"
+            reducedTransparencyFallbackColor={theme.inputBackground}
           />
 
           <Animated.View
             style={[
               styles.editorContainer,
-              { transform: [{ scale: scaleAnim }] },
+              {
+                backgroundColor: `${theme.inputBackground}CC`,
+                transform: [{ scale: scaleAnim }],
+              },
             ]}
           >
             <Animated.View
-              style={[
-                styles.closeButton,
-                { transform: [{ translateY: closeAnim }] },
-              ]}
+              style={[styles.closeButton, { transform: [{ translateY: closeAnim }] }]}
             >
               <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={20} color="#334155" />
+                <Ionicons name="close" size={20} color="#16A34A" />
               </TouchableOpacity>
             </Animated.View>
 
@@ -134,14 +141,16 @@ export default function CardGridItem({
               <Ionicons name="remove" size={22} color="#DC2626" />
             </TouchableOpacity>
 
-            <Text style={styles.editQty}>{item.quantity}</Text>
+            <Text style={[globalStyles.body, styles.editQty, { color: theme.text }]}>
+              {item.quantity}
+            </Text>
 
             <TouchableOpacity onPress={onIncrease} style={styles.editButton}>
               <Ionicons name="add" size={22} color="#16A34A" />
             </TouchableOpacity>
 
             <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
-              <Ionicons name="trash" size={18} color="#475569" />
+              <Ionicons name="trash" size={18} color={theme.secondaryText} />
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
@@ -156,7 +165,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   card: {
-    backgroundColor: '#F8FAFC',
     borderRadius: 16,
     alignItems: 'center',
     padding: 10,
@@ -173,9 +181,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1E293B',
     textAlign: 'center',
   },
   quantityBadge: {
@@ -202,7 +207,6 @@ const styles = StyleSheet.create({
   editorContainer: {
     width: '95%',
     flexDirection: 'row',
-    backgroundColor: '#FFFFFFCC',
     padding: 12,
     borderRadius: 14,
     alignItems: 'center',
@@ -221,9 +225,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   editQty: {
-    fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
   },
   closeButton: {
     position: 'absolute',
