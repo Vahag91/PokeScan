@@ -25,10 +25,12 @@ export default function AddCollectionCard({ onPress }) {
       onPress={onPress}
       activeOpacity={0.85}
     >
-      <View style={[styles.iconWrapper, { backgroundColor: '#ECFDF5' }]}>
-        <Ionicons name="add" size={28} color="#10B981" />
+      <View style={styles.iconWrapper}>
+        <Ionicons name="add" size={36} color="#10B981" />
       </View>
-      <Text style={[globalStyles.smallText, styles.text, { color: theme.text }]}>
+      <Text
+        style={[globalStyles.smallText, styles.text, { color: theme.text }]}
+      >
         New Collection
       </Text>
     </TouchableOpacity>
@@ -37,8 +39,8 @@ export default function AddCollectionCard({ onPress }) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 100,
     marginHorizontal: 12,
+    padding: 16,
     marginTop: 16,
     borderRadius: 16,
     justifyContent: 'center',
@@ -57,9 +59,8 @@ const styles = StyleSheet.create({
     }),
   },
   iconWrapper: {
-    padding: 10,
     borderRadius: 50,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   text: {
     fontWeight: '600',

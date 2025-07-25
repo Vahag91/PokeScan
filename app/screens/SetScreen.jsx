@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef, useEffect, useContext } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useContext, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -14,8 +15,11 @@ import { categories as originalCategories } from '../constants';
 import AnimatedRow from '../components/setSearch/AnimatedRow';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
+import { getOwnedCardCountsBySet } from '../lib/db';
 
 export default function SetScreen() {
+  const [setStats, setSetStats] = useState({}); // setId => count
+
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,11 +59,25 @@ export default function SetScreen() {
     }
   }, [flatData]);
 
+useFocusEffect(
+  useCallback(() => {
+    getOwnedCardCountsBySet().then(set => {
+      setSetStats(set);
+    });
+  }, [])
+);
+
   const renderFlatItem = ({ item }) => {
     if (item.type === 'header') {
       return (
         <View style={styles.stickyHeader}>
-          <Text style={[globalStyles.subheading, styles.sectionTitle, { color: theme.text }]}>
+          <Text
+            style={[
+              globalStyles.subheading,
+              styles.sectionTitle,
+              { color: theme.text },
+            ]}
+          >
             {item.title}
           </Text>
         </View>
@@ -67,98 +85,113 @@ export default function SetScreen() {
     }
 
     return (
-      <AnimatedRow
-        itemPair={item.pair}
-        index={item.index}
-        onPress={setId => navigation.navigate('SetDetail', { setId })}
-      />
+  <AnimatedRow
+  itemPair={item.pair}
+  index={item.index}
+  onPress={setId => navigation.navigate('SetDetail', { setId })}
+  setStats={setStats}
+/>
     );
   };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Icon name="sad-outline" size={48} color={theme.placeholder} />
-      <Text style={[globalStyles.body, styles.emptyText, { color: theme.placeholder }]}>
+      <Text
+        style={[
+          globalStyles.body,
+          styles.emptyText,
+          { color: theme.placeholder },
+        ]}
+      >
         No results found
       </Text>
     </View>
   );
 
-  const styles = useMemo(() =>
-    StyleSheet.create({
-      container: {
-        flex: 1,
-        backgroundColor: theme.background,
-      },
-      topBar: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingTop: 8,
-        paddingBottom: 12,
-      },
-      pageTitle: {
-        color: theme.text,
-      },
-      searchBox: {
-        flexDirection: 'row',
-        backgroundColor: theme.inputBackground,
-        marginHorizontal: 16,
-        marginBottom: 8,
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        alignItems: 'center',
-      },
-      searchIcon: {
-        marginRight: 6,
-      },
-      clearIcon: {
-        marginLeft: 8,
-      },
-      input: {
-        color: theme.inputText,
-        paddingVertical: 10,
-        flex: 1,
-        fontSize: 15,
-        fontFamily: 'Lato-Regular',
-      },
-      resultLabel: {
-        marginLeft: 16,
-        marginBottom: 8,
-      },
-      resultHighlight: {
-        fontFamily: 'Lato-Bold',
-        color: theme.text,
-      },
-      stickyHeader: {
-        backgroundColor: theme.background,
-        paddingHorizontal: 16,
-        paddingTop: 20,
-        paddingBottom: 8,
-      },
-      sectionTitle: {
-        fontSize: 17,
-      },
-      gridContent: {
-        paddingBottom: 60,
-      },
-      emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: 100,
-      },
-      emptyText: {
-        marginTop: 8,
-      },
-
-    }), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: theme.background,
+        },
+        topBar: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 12,
+        },
+        pageTitle: {
+          color: theme.text,
+        },
+        searchBox: {
+          flexDirection: 'row',
+          backgroundColor: theme.inputBackground,
+          marginHorizontal: 16,
+          marginBottom: 8,
+          borderRadius: 12,
+          paddingHorizontal: 12,
+          alignItems: 'center',
+        },
+        searchIcon: {
+          marginRight: 6,
+        },
+        clearIcon: {
+          marginLeft: 8,
+        },
+        input: {
+          color: theme.inputText,
+          paddingVertical: 10,
+          flex: 1,
+          fontSize: 15,
+          fontFamily: 'Lato-Regular',
+        },
+        resultLabel: {
+          marginLeft: 16,
+          marginBottom: 8,
+        },
+        resultHighlight: {
+          fontFamily: 'Lato-Bold',
+          color: theme.text,
+        },
+        stickyHeader: {
+          backgroundColor: theme.background,
+          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingBottom: 8,
+        },
+        sectionTitle: {
+          fontSize: 17,
+        },
+        gridContent: {
+          paddingBottom: 60,
+        },
+        emptyContainer: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingTop: 100,
+        },
+        emptyText: {
+          marginTop: 8,
+        },
+      }),
+    [theme],
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
-        <Text style={[globalStyles.heading, styles.pageTitle, { color: theme.text }]}>
+        <Text
+          style={[
+            globalStyles.heading,
+            styles.pageTitle,
+            { color: theme.text },
+          ]}
+        >
           Search Card Sets
         </Text>
       </View>
@@ -190,7 +223,13 @@ export default function SetScreen() {
       </View>
 
       {searchTerm.trim().length > 0 && flatData.length > 0 && (
-        <Text style={[globalStyles.smallText, styles.resultLabel, { color: theme.mutedText }]}>
+        <Text
+          style={[
+            globalStyles.smallText,
+            styles.resultLabel,
+            { color: theme.mutedText },
+          ]}
+        >
           Showing results for:{' '}
           <Text style={styles.resultHighlight}>"{searchTerm.trim()}"</Text>
         </Text>

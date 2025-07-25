@@ -1,14 +1,12 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   TouchableOpacity,
   StyleSheet,
   Animated,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { BlurView } from '@react-native-community/blur';
-import { ThemeContext } from '../../context/ThemeContext';
+
 export default function CollectionHeaderButton({ isInCollection, onPress }) {
-  const { theme } = useContext(ThemeContext);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const animate = useCallback(() => {
@@ -39,14 +37,9 @@ export default function CollectionHeaderButton({ isInCollection, onPress }) {
     <Animated.View
       style={[
         styles.wrapper,
-        { transform: [{ scale: scaleAnim }], backgroundColor: theme.inputBackground },
+        { transform: [{ scale: scaleAnim }] },
       ]}
     >
-      <BlurView
-        style={StyleSheet.absoluteFill}
-        blurType={theme.mode === 'dark' ? 'dark' : 'light'}
-        blurAmount={10}
-      />
       <TouchableOpacity
         onPress={onPress}
         style={styles.button}

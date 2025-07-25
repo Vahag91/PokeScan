@@ -21,6 +21,7 @@ import CollectionCard from '../components/collections/CollectionCard';
 import { CollectionHeader } from '../components/collections/CollectionHeader';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
+
 export default function CollectionsScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
 

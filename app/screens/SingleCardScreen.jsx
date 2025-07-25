@@ -5,8 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Image,
-  Linking,
-  TouchableOpacity,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import SkeletonSingleCard from '../components/skeletons/SkeletonSingleCard';
@@ -21,6 +19,7 @@ import {
   CollectionHeaderButton,
   CardSetHeader,
   CardImageViewer,
+  ExternalLinksSection,
 } from '../components/singleCardUi';
 import { normalizeCardFromAPI, normalizeCardFromDb } from '../utils';
 import CardCollectionsModal from '../components/collections/CardCollectionsModal';
@@ -33,6 +32,7 @@ import { defaultSearchCards } from '../constants';
 import { ThemeContext } from '../context/ThemeContext';
 import { fetchCardFromSupabase, fetchEvolutions } from '../../supabase/utils';
 import { globalStyles } from '../../globalStyles';
+
 const abilityIcon = require('../assets/icons/cardIcons/ability.png');
 
 export default function SingleCardScreen() {
@@ -70,6 +70,7 @@ export default function SingleCardScreen() {
     if (isIn) {
       const cards = await getCardsByCollectionId(db, ids[0]);
       const match = cards.find(c => c.cardId === cardId);
+
       if (match) {
         try {
           localCard = normalizeCardFromDb(match);
@@ -129,9 +130,20 @@ export default function SingleCardScreen() {
   return (
     <>
       <ScrollView style={styles.screen}>
-        <EvolutionChain title="Evolves From" cards={fromData} onCardPress={navigateTo} />
-        <EvolutionChain title="Evolves To" cards={toData} onCardPress={navigateTo} />
-        <CardSetHeader cardData={cardData} />
+        <EvolutionChain
+          title="Evolves From"
+          cards={fromData}
+          onCardPress={navigateTo}
+        />
+        <EvolutionChain
+          title="Evolves To"
+          cards={toData}
+          onCardPress={navigateTo}
+        />
+        <CardSetHeader
+          cardData={cardData}
+          onPress={setId => navigation.navigate('SetDetail', { setId })}
+        />
         <CardImageViewer imageSource={cardData.image} />
 
         <AnimatedSection style={styles.sectionCard}>
@@ -155,7 +167,9 @@ export default function SingleCardScreen() {
                 label={
                   <View style={styles.iconLabel}>
                     <Image source={abilityIcon} style={styles.abilityIcon} />
-                    <Text style={[globalStyles.body, styles.labelText]}>{ab.name}</Text>
+                    <Text style={[globalStyles.body, styles.labelText]}>
+                      {ab.name}
+                    </Text>
                   </View>
                 }
                 subtext={ab.text}
@@ -195,13 +209,19 @@ export default function SingleCardScreen() {
             <LabelRow label="Subtype" value={cardData.subtypes[0]} />
           )}
           <SetLabelRow set={cardData.set} />
-          {cardData.artist && <LabelRow label="Illustrator" value={cardData.artist} />}
+          {cardData.artist && (
+            <LabelRow label="Illustrator" value={cardData.artist} />
+          )}
           <LabelRow label="Number" value={cardData.number} />
           <LabelRow
             label="Rarity"
             value={
               <Text
-                style={[globalStyles.body, styles.rarityText, { color: rarityColors[cardData.rarity] }]}
+                style={[
+                  globalStyles.body,
+                  styles.rarityText,
+                  { color: rarityColors[cardData.rarity] },
+                ]}
               >
                 {cardData.rarity}
               </Text>
@@ -218,29 +238,7 @@ export default function SingleCardScreen() {
             </Text>
           </AnimatedSection>
         )}
-
-        <AnimatedSection style={styles.sectionCard}>
-          {cardData.tcgplayer?.url && (
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() => Linking.openURL(cardData.tcgplayer.url)}
-            >
-              <Text style={[globalStyles.body, styles.linkButtonText]}>
-                View on TCGPlayer
-              </Text>
-            </TouchableOpacity>
-          )}
-          {cardData.cardmarket?.url && (
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() => Linking.openURL(cardData.cardmarket.url)}
-            >
-              <Text style={[globalStyles.body, styles.linkButtonText]}>
-                View on Cardmarket
-              </Text>
-            </TouchableOpacity>
-          )}
-        </AnimatedSection>
+        <ExternalLinksSection cardData={cardData} theme={theme} />
       </ScrollView>
 
       <CardCollectionsModal
@@ -253,14 +251,12 @@ export default function SingleCardScreen() {
   );
 }
 
-const getStyles = (theme) =>
+const getStyles = theme =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: theme.background, padding: 12 },
     sectionCard: {
       backgroundColor: theme.inputBackground,
       borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
     },
     sectionTitle: {
       marginBottom: 12,

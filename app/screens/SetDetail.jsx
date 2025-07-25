@@ -1,4 +1,11 @@
-import React, { useEffect, useRef, useState, useContext } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useContext,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -11,11 +18,14 @@ import {
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import SkeletonCard from '../components/skeletons/SkeleteonCard';
+import SetHeaderSkeleton from '../components/skeletons/SetHeaderSkeleton';
 import { RenderSearchSingleCard } from '../components/searchScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { supabase } from '../../supabase/supabase';
-import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
+import SetHeader from '../components/setSearch/SetHeader';
+import { ThemeContext } from '../context/ThemeContext';
+
 const CARD_SPACING = 12;
 const CARD_WIDTH = (Dimensions.get('window').width - CARD_SPACING * 3) / 2;
 
@@ -38,27 +48,14 @@ export default function SetDetailScreen() {
     setIsFetching(true);
 
     try {
-      const { data } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('cards')
         .select('*')
         .filter('set->>id', 'eq', setId);
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
-      const sorted = [...data].sort((a, b) => {
-        const aNum = parseInt(a.number, 10);
-        const bNum = parseInt(b.number, 10);
-
-        if (isNaN(aNum) || isNaN(bNum)) {
-          return sortAsc
-            ? a.number.localeCompare(b.number)
-            : b.number.localeCompare(a.number);
-        }
-
-        return sortAsc ? aNum - bNum : bNum - aNum;
-      });
-
-      setCards(sorted);
+      setCards(data);
     } catch (err) {
       console.error('Failed to fetch cards:', err.message);
       setError(err);
@@ -72,10 +69,27 @@ export default function SetDetailScreen() {
     setCards([]);
     setInitialLoading(true);
     fetchCards();
-  }, [setId, sortAsc]);
+  }, [setId]);
+
+  const sortedCards = useMemo(() => {
+    const sorted = [...cards].sort((a, b) => {
+      const aNum = parseInt(a.number, 10);
+      const bNum = parseInt(b.number, 10);
+
+      if (isNaN(aNum) || isNaN(bNum)) {
+        return sortAsc
+          ? a.number.localeCompare(b.number)
+          : b.number.localeCompare(a.number);
+      }
+
+      return sortAsc ? aNum - bNum : bNum - aNum;
+    });
+    return sorted;
+  }, [cards, sortAsc]);
 
   const toggleSort = () => setSortAsc(prev => !prev);
-  const scrollToTop = () => flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+  const scrollToTop = () =>
+    flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
 
   const handleScroll = event => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -86,32 +100,34 @@ export default function SetDetailScreen() {
     }).start();
   };
 
-  const renderItem = ({ item }) => (
-    <RenderSearchSingleCard item={item} showCardNumber />
+  const renderItem = useCallback(
+    ({ item }) => <RenderSearchSingleCard item={item} showCardNumber />,
+    [],
   );
 
-  const renderHeader = () => {
-    const setName = cards?.[0]?.set?.name || 'Cards in Set';
-    return (
-      <View style={styles.header}>
-        <Text style={[globalStyles.subheading, styles.title, { color: theme.text }]}>
-          {setName}
-        </Text>
-        <TouchableOpacity onPress={toggleSort} style={styles.sortButton}>
-          <View style={styles.sortButtonInner}>
-            <Ionicons
-              name={sortAsc ? 'arrow-down' : 'arrow-up'}
-              size={16}
-              color={theme.secondaryText}
-            />
-            <Text style={[globalStyles.smallText, styles.sortText, { color: theme.secondaryText }]}>
-              {sortAsc ? 'Low to High' : 'High to Low'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const renderHeader = () => (
+    <View>
+      <SetHeader cards={cards} />
+      <TouchableOpacity onPress={toggleSort} style={styles.sortButton}>
+        <View style={styles.sortButtonInner}>
+          <Ionicons
+            name={sortAsc ? 'arrow-down' : 'arrow-up'}
+            size={16}
+            color={theme.secondaryText}
+          />
+          <Text
+            style={[
+              globalStyles.smallText,
+              styles.sortText,
+              { color: theme.secondaryText },
+            ]}
+          >
+            {sortAsc ? 'Low to High' : 'High to Low'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
 
   const renderFooter = () =>
     isFetching ? (
@@ -123,9 +139,7 @@ export default function SetDetailScreen() {
   if (initialLoading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <Text style={[globalStyles.subheading, styles.title, { color: theme.text }]}>
-          Loading cards...
-        </Text>
+        <SetHeaderSkeleton />
         <FlatList
           data={Array.from({ length: 8 })}
           keyExtractor={(_, index) => `skeleton-${index}`}
@@ -145,7 +159,9 @@ export default function SetDetailScreen() {
   if (error) {
     return (
       <View style={[styles.centered, { backgroundColor: theme.background }]}>
-        <Text style={[globalStyles.body, { color: theme.text }]}>Error loading cards.</Text>
+        <Text style={[globalStyles.body, { color: theme.text }]}>
+          Error loading cards.
+        </Text>
       </View>
     );
   }
@@ -154,7 +170,7 @@ export default function SetDetailScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <FlatList
         ref={flatListRef}
-        data={cards}
+        data={sortedCards}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         renderItem={renderItem}
         numColumns={2}
@@ -165,6 +181,9 @@ export default function SetDetailScreen() {
         scrollEventThrottle={16}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={5}
       />
       <Animated.View
         style={[
@@ -193,23 +212,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  header: {
-    paddingTop: 24,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-  },
   title: {
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 4,
   },
   sortButton: {
     alignSelf: 'center',
-    marginBottom: 8,
+    // marginTop: 10,
   },
   sortButtonInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 12,
     paddingHorizontal: 12,
   },
   sortText: {

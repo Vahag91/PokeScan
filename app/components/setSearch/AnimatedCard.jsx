@@ -9,10 +9,12 @@ import {
 } from 'react-native';
 import { ThemeContext } from '../../context/ThemeContext';
 
-export default function AnimatedCard({ item, delay, onPress }) {
+export default function AnimatedCard({ item, delay, onPress, setStats }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const { theme } = useContext(ThemeContext);
+
+  const ownedCount = setStats?.[item.id] || 0;
 
   useEffect(() => {
     Animated.parallel([
@@ -53,13 +55,19 @@ export default function AnimatedCard({ item, delay, onPress }) {
       borderRadius: 12,
       resizeMode: 'contain',
       marginBottom: 10,
-      // backgroundColor: theme.inputBackground,
     },
     cardText: {
       textAlign: 'center',
       color: theme.text,
       fontWeight: '600',
       fontSize: 15,
+    },
+    countText: {
+      marginTop: 4,
+      fontSize: 13,
+      textAlign: 'center',
+      color: theme.mutedText,
+      fontFamily: 'Lato-Regular',
     },
   }), [theme]);
 
@@ -73,6 +81,9 @@ export default function AnimatedCard({ item, delay, onPress }) {
       <TouchableOpacity onPress={() => onPress(item.id)} activeOpacity={0.85}>
         <Image source={item.image} style={styles.image} />
         <Text style={styles.cardText}>{item.title}</Text>
+        <Text style={styles.countText}>
+          {ownedCount}  owned
+        </Text>
       </TouchableOpacity>
     </Animated.View>
   );

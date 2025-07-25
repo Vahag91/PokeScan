@@ -86,10 +86,10 @@ function RenderSearchSingleCard({ item, showCardNumber = false }) {
               </View>
               <Text
                 style={[
-                  globalStyles.smallText,
+                  globalStyles.caption,
                   styles.priceText,
                   {
-                    backgroundColor: theme.greenBadgeBackground || '#e8f5e9',
+                    backgroundColor: theme.greenBadgeBackground,
                     color: theme.greenBadgeText || '#388e3c',
                   },
                 ]}
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingVertical: 4,
   },
   nameNumber: {
     flexDirection: 'row',
@@ -192,8 +192,9 @@ const styles = StyleSheet.create({
   },
   priceText: {
     paddingHorizontal: 4,
-    paddingVertical: 4,
+    fontSize: 15,
     borderRadius: 6,
     overflow: 'hidden',
+    lineHeight: 22,
   },
 });

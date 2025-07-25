@@ -26,6 +26,7 @@ import CollectionDetailScreen from './app/screens/CollectionDetailScreen';
 import { getTabIcon, Dummy } from './app/utils';
 import ScannerScreen from './app/components/scanner/Scanner';
 import { initDatabase } from './app/lib/initDB';
+import { deleteDatabase } from './app/lib/db';
 import { MenuProvider } from 'react-native-popup-menu';
 import { ThemeProvider, ThemeContext } from './app/context/ThemeContext';
 import { globalStyles } from './globalStyles';
@@ -60,7 +61,11 @@ function DrawerModal({ visible, onClose }) {
           { backgroundColor: theme.background, borderRightColor: theme.border },
         ]}
       >
-        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>Theme</Text>
+        <Text
+          style={[styles.section, globalStyles.text, { color: theme.text }]}
+        >
+          Theme
+        </Text>
         <View style={styles.themeToggleRow}>
           <View style={styles.drawerItem}>
             <Ionicons
@@ -69,12 +74,24 @@ function DrawerModal({ visible, onClose }) {
               color={theme.text}
               style={styles.drawerIcon}
             />
-            <Text style={[styles.drawerLabel, globalStyles.text, { color: theme.text }]}>Dark Mode</Text>
+            <Text
+              style={[
+                styles.drawerLabel,
+                globalStyles.text,
+                { color: theme.text },
+              ]}
+            >
+              Dark Mode
+            </Text>
           </View>
           <Switch onValueChange={toggleTheme} value={!choosenTheme} />
         </View>
 
-        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>Settings</Text>
+        <Text
+          style={[styles.section, globalStyles.text, { color: theme.text }]}
+        >
+          Settings
+        </Text>
         {drawerItems.map(([icon, label]) => (
           <TouchableOpacity key={label} style={styles.drawerItem}>
             <Ionicons
@@ -83,11 +100,23 @@ function DrawerModal({ visible, onClose }) {
               color={theme.text}
               style={styles.drawerIcon}
             />
-            <Text style={[styles.drawerLabel, globalStyles.text, { color: theme.text }]}>{label}</Text>
+            <Text
+              style={[
+                styles.drawerLabel,
+                globalStyles.text,
+                { color: theme.text },
+              ]}
+            >
+              {label}
+            </Text>
           </TouchableOpacity>
         ))}
 
-        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>Legal</Text>
+        <Text
+          style={[styles.section, globalStyles.text, { color: theme.text }]}
+        >
+          Legal
+        </Text>
         {legalItems.map(([icon, label]) => (
           <TouchableOpacity key={label} style={styles.drawerItem}>
             <Ionicons
@@ -96,11 +125,27 @@ function DrawerModal({ visible, onClose }) {
               color={theme.text}
               style={styles.drawerIcon}
             />
-            <Text style={[styles.drawerLabel, globalStyles.text, { color: theme.text }]}>{label}</Text>
+            <Text
+              style={[
+                styles.drawerLabel,
+                globalStyles.text,
+                { color: theme.text },
+              ]}
+            >
+              {label}
+            </Text>
           </TouchableOpacity>
         ))}
 
-        <Text style={[styles.version, globalStyles.text, { color: theme.mutedText }]}>1.20</Text>
+        <Text
+          style={[
+            styles.version,
+            globalStyles.text,
+            { color: theme.mutedText },
+          ]}
+        >
+          1.20
+        </Text>
       </View>
     </Modal>
   );

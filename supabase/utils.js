@@ -10,6 +10,8 @@ export async function fetchCardFromSupabase(cardId) {
       .single();
 
     if (error) throw new Error(error.message);
+    console.log(data, 'data from Supabase'); // Debugging line
+    
     if (data) {
       return {
         normalized: normalizeCardFromAPI(data),
@@ -73,77 +75,6 @@ export const fetchEvolutions = async (evolvesFrom, evolvesTo = []) => {
 
   return { evolutionFrom, evolutionTo };
 };
-
-// export async function fetchScannerCardFromSupabase(name, number, hp = null, artist = null) {
-//   if (!name) return null;
-
-//   const namePattern = `%${name.trim().split(/\s+/).join('%')}%`;
-
-//   // Extract primary number (e.g., "208/198" -> "208")
-//   let extractedNumber = number;
-//   if (number?.includes('/')) {
-//     extractedNumber = number.split('/')[0].replace(/^0+/, '');
-//   } else if (number) {
-//     extractedNumber = number.replace(/^0+/, '');
-//   }
-
-//   // 1. name + number
-//   if (extractedNumber) {
-//     const { data, error } = await supabase
-//       .from('cards')
-//       .select('*')
-//       .ilike('name', namePattern)
-//       .eq('number', extractedNumber);
-// console.log(data,"data111111");
-
-//     if (!error && data?.length) return data[0];
-//   }
-
-//   // 2. name + hp (+ artist)
-//   if (hp != null) {
-//     const { data, error } = await supabase
-//       .from('cards')
-//       .select('*')
-//       .ilike('name', namePattern)
-//       .eq('hp', hp);
-
-//     if (!error && data?.length) {
-//       if (artist) {
-//         const byArtist = data.find(c =>
-//           c.artist?.toLowerCase().includes(artist.toLowerCase())
-//         );
-//         console.log(byArtist,"byArtist");
-        
-//         if (byArtist) return byArtist;
-//       }
-//       console.log(data,"data222222");
-      
-//       return data[0];
-//     }
-//   }
-
-//   // 3. name only
-//   const { data: looseData, error: looseError } = await supabase
-//     .from('cards')
-//     .select('*')
-//     .ilike('name', namePattern)
-//     .limit(5);
-
-//   if (!looseError && looseData?.length) {
-//     const match = looseData.find(card => {
-//       const hpMatch = hp != null ? String(card.hp) === String(hp) : true;
-//       const artistMatch = artist
-//         ? card.artist?.toLowerCase().includes(artist.toLowerCase())
-//         : true;
-//       return hpMatch && artistMatch;
-//     });
-//     console.log(looseData,"looseData");
-    
-//     return match || looseData[0];
-//   }
-
-//   return null;
-// }
 export async function fetchScannerCardFromSupabase(name, number, hp = null, artist = null) {
   if (!name) return null;
 

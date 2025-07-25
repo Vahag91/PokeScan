@@ -3,6 +3,7 @@ import { TouchableOpacity, StyleSheet, Image } from 'react-native';
 import AnimatedSection from './AnimatedSection';
 import FullImageModal from './FullImageModal';
 import { ThemeContext } from '../../context/ThemeContext';
+
 export default function CardImageViewer({ imageSource }) {
   const [modalVisible, setModalVisible] = useState(false);
   const { theme } = useContext(ThemeContext);

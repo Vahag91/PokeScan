@@ -936,7 +936,6 @@ export const categories = [
     ],
   },
 ];
-
 export const typeIcons = {
   Grass: require('./assets/icons/cardIcons/Grass.png'),
   Fire: require('./assets/icons/cardIcons/Fire.png'),
@@ -2080,92 +2079,5 @@ export const defaultSearchCards = [
         reverseHoloAvg30: 450,
       },
     },
-  },
-];
-
-const failed = [
-  {
-    id: 'mcd18-1',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/01/5f/b7/015fb72ed34a87866de1620f46f9bad30094ce7a98df1cdd76665da38a16d8c9.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/01/5f/b7/015fb72ed34a87866de1620f46f9bad30094ce7a98df1cdd76665da38a16d8c9.jpg',
-  },
-  {
-    id: 'mcd18-2',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/a9/7d/ec/a97dec5f512817ff44f99c94fa246a61d52557b97151ffc4151b3497cfcc9bc5.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/a9/7d/ec/a97dec5f512817ff44f99c94fa246a61d52557b97151ffc4151b3497cfcc9bc5.jpg',
-  },
-  {
-    id: 'mcd18-3',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/cb/81/85/cb81853a517d522275d0a02537c9a62aaadbeb26194208650222a0e70e5763af.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/cb/81/85/cb81853a517d522275d0a02537c9a62aaadbeb26194208650222a0e70e5763af.jpg',
-  },
-  {
-    id: 'mcd18-4',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/ec/e4/70/ece4702bf9e2fe2003e5499613ccbc8b89704dc1909926d05a9cefa04bbc0081.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/ec/e4/70/ece4702bf9e2fe2003e5499613ccbc8b89704dc1909926d05a9cefa04bbc0081.jpg',
-  },
-  {
-    id: 'mcd18-5',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/81/ea/64/81ea64603d3bc1c9cbaa59b98b76e8d988c3680afd8a816ffc4068227be488cf.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/81/ea/64/81ea64603d3bc1c9cbaa59b98b76e8d988c3680afd8a816ffc4068227be488cf.jpg',
-  },
-  {
-    id: 'mcd18-6',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/20/d7/13/20d71367b61ae9edecd407a0644ce52a2cde9f614b8c41a80660ff9190a7442d.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/20/d7/13/20d71367b61ae9edecd407a0644ce52a2cde9f614b8c41a80660ff9190a7442d.jpg',
-  },
-  {
-    id: 'mcd18-7',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/64/a3/aa/64a3aae4063f66af7f375e77c89f70e2d7b21e3320c99b375e5c2b99a1e6d810.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/64/a3/aa/64a3aae4063f66af7f375e77c89f70e2d7b21e3320c99b375e5c2b99a1e6d810.jpg',
-  },
-  {
-    id: 'mcd18-8',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/64/64/97/646497a7d5ae2e2b5f2a06231969b2f04b455d5e8e2dec5fc5883fa40ea9cd8f.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/64/64/97/646497a7d5ae2e2b5f2a06231969b2f04b455d5e8e2dec5fc5883fa40ea9cd8f.jpg',
-  },
-  {
-    id: 'mcd18-9',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/bc/cb/a6/bccba6e6d88d5bd189fd2f7fb10c45eeebe0cef82a68303780f23c122a2c670d.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/bc/cb/a6/bccba6e6d88d5bd189fd2f7fb10c45eeebe0cef82a68303780f23c122a2c670d.jpg',
-  },
-  {
-    id: 'mcd18-10',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/f3/03/7f/f3037f19a66754b1e3e516bd56ffc6cae32ae8b6bcb779ba246b53589c7bbc38.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/f3/03/7f/f3037f19a66754b1e3e516bd56ffc6cae32ae8b6bcb779ba246b53589c7bbc38.jpg',
-  },
-  {
-    id: 'mcd18-11',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/b4/5d/60/b45d6063d43df193ea1613372f0e99ab35281727cd58fc8a6007be6c3b0bb9e0.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/b4/5d/60/b45d6063d43df193ea1613372f0e99ab35281727cd58fc8a6007be6c3b0bb9e0.jpg',
-  },
-  {
-    id: 'mcd18-12',
-    smallImage:
-      'https://static.tcgcollector.com/content/images/e7/54/b8/e754b8f3c0c075e1dec3b3ec8ddad62d88c18764edbf3fc888c9bd8d207fa493.jpg',
-    largeImage:
-      'https://static.tcgcollector.com/content/images/e7/54/b8/e754b8f3c0c075e1dec3b3ec8ddad62d88c18764edbf3fc888c9bd8d207fa493.jpg',
   },
 ];

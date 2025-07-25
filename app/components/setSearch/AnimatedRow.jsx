@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import AnimatedCard from './AnimatedCard';
 import { ThemeContext } from '../../context/ThemeContext';
 
-export default function AnimatedRow({ itemPair, index, onPress }) {
+export default function AnimatedRow({ itemPair, index, onPress, setStats }) {
   const { theme } = useContext(ThemeContext);
 
   const styles = useMemo(() => StyleSheet.create({
@@ -26,12 +26,14 @@ export default function AnimatedRow({ itemPair, index, onPress }) {
         item={itemPair[0]}
         delay={index * 60}
         onPress={onPress}
+        setStats={setStats}
       />
       {itemPair[1] ? (
         <AnimatedCard
           item={itemPair[1]}
           delay={index * 60 + 30}
           onPress={onPress}
+          setStats={setStats}
         />
       ) : (
         <View style={styles.cardPlaceholder} />

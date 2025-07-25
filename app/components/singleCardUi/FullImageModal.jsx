@@ -5,6 +5,7 @@ import {
   StyleSheet,
   StatusBar,
   View,
+  Image,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { FasterImageView } from '@rraut/react-native-faster-image';
@@ -21,6 +22,9 @@ export default function FullImageModal({
     setModalVisible(false);
   };
 
+  const isLocalFile = cardImage?.startsWith('file://');
+  const isDark = theme === 'dark';
+
   return (
     <Modal
       transparent
@@ -32,7 +36,7 @@ export default function FullImageModal({
       <View
         style={[
           styles.modalBackdrop,
-          { backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.95)' : 'rgba(0,0,0,0.9)' },
+          isDark ? styles.backdropDark : styles.backdropLight,
         ]}
       >
         <TouchableOpacity
@@ -40,28 +44,27 @@ export default function FullImageModal({
           activeOpacity={1}
           onPress={closeImageModal}
         >
-          <FasterImageView
-            source={{ uri: cardImage }}
-            style={styles.fullImage}
-            resizeMode="contain"
-          />
+          {isLocalFile ? (
+            <Image
+              source={{ uri: cardImage }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <FasterImageView
+              source={{ uri: cardImage, resizeMode: 'contain' }}
+              style={styles.fullImage}
+            />
+          )}
+
           <TouchableOpacity
             style={[
               styles.closeButton,
-              {
-                backgroundColor:
-                  theme === 'dark'
-                    ? 'rgba(255,255,255,0.15)'
-                    : 'rgba(255,255,255,0.3)',
-              },
+              isDark ? styles.closeButtonDark : styles.closeButtonLight,
             ]}
             onPress={closeImageModal}
           >
-            <Ionicons
-              name="close-sharp"
-              size={30}
-              color={theme === 'dark' ? '#fff' : '#fff'}
-            />
+            <Ionicons name="close-sharp" size={30} color="#fff" />
           </TouchableOpacity>
         </TouchableOpacity>
       </View>
@@ -74,6 +77,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  backdropDark: {
+    backgroundColor: 'rgba(0,0,0,0.95)',
+  },
+  backdropLight: {
+    backgroundColor: 'rgba(0,0,0,0.9)',
   },
   modalContainer: {
     width: '100%',
@@ -91,5 +100,11 @@ const styles = StyleSheet.create({
     bottom: StatusBar.currentHeight + 45,
     padding: 8,
     borderRadius: 20,
+  },
+  closeButtonDark: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  closeButtonLight: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
 });

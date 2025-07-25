@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useMemo,
   useContext,
+  use,
 } from 'react';
 import {
   Keyboard,
@@ -28,7 +29,6 @@ import { defaultSearchCards } from '../constants';
 import { searchCardsInSupabase } from '../../supabase/utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
-
 export default function SearchScreen() {
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
@@ -237,7 +237,7 @@ export default function SearchScreen() {
 
       {showLoader && (
         <View style={styles.loaderOverlay}>
-          <ActivityIndicator size="large" color={theme.text} />
+          <ActivityIndicator size="large" color={'#10B981'} />
         </View>
       )}
 
@@ -285,10 +285,10 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingVertical: 4,
+    lineHeight:20
   },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,

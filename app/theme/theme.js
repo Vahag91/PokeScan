@@ -11,6 +11,9 @@ export const lightTheme = {
   rarityText: '#111827',
   cardBorder: '#e5e7eb',
   shadowColor: '#0000001a',
+  greenBadgeBackground: 'none',
+  skeletonBase: '#d1d5db',
+  skeletonHighlight: 'rgba(255,255,255,0.3)'
 };
 
 export const darkTheme = {
@@ -26,4 +29,7 @@ export const darkTheme = {
   rarityText: '#111827',
   cardBorder: '#374151',
   shadowColor: '#ffffff0d',
+  greenBadgeBackground: '#012204ff',
+  skeletonBase: '#334155',
+  skeletonHighlight: 'rgba(255,255,255,0.2)'
 };

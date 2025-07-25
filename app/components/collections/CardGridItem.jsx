@@ -1,36 +1,33 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import {
-  TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
   Text,
   Image,
   StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Animated,
   Platform,
   UIManager,
-  Animated,
   Appearance,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getFullPath } from '../../utils';
 import { BlurView } from '@react-native-community/blur';
 import { ThemeContext } from '../../context/ThemeContext';
+import { getFullPath } from '../../utils';
 import { globalStyles } from '../../../globalStyles';
 
-if (
-  Platform.OS === 'android' &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 export default function CardGridItem({
   item,
   isSelected,
-  onLongPress,
   onPress,
-  onDecrease,
+  onLongPress,
   onIncrease,
+  onDecrease,
   onDelete,
   onClose,
 }) {
@@ -42,39 +39,15 @@ export default function CardGridItem({
   useEffect(() => {
     if (isSelected) {
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 5,
-          useNativeDriver: true,
-        }),
-        Animated.timing(closeAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, friction: 5, useNativeDriver: true }),
+        Animated.timing(closeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 0.95,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(closeAnim, {
-          toValue: 20,
-          duration: 150,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
+        Animated.timing(scaleAnim, { toValue: 0.95, duration: 150, useNativeDriver: true }),
+        Animated.timing(closeAnim, { toValue: 20, duration: 150, useNativeDriver: true }),
       ]).start();
     }
   }, [isSelected]);
@@ -85,18 +58,14 @@ export default function CardGridItem({
         style={[styles.card, { backgroundColor: theme.cardCollectionBackground }]}
         onPress={onPress}
         onLongPress={onLongPress}
-        delayLongPress={300}
-        activeOpacity={0.95}
+        activeOpacity={0.9}
       >
         <Image
           source={{ uri: getFullPath(item.imagePath) }}
           style={styles.cardImage}
           resizeMode="cover"
         />
-        <Text
-          style={[globalStyles.smallText, styles.cardName, { color: theme.text }]}
-          numberOfLines={1}
-        >
+        <Text style={[globalStyles.smallText, styles.cardName, { color: theme.text }]} numberOfLines={1}>
           {item.customName || item.name}
         </Text>
 
@@ -116,7 +85,7 @@ export default function CardGridItem({
           <BlurView
             style={StyleSheet.absoluteFill}
             blurType={Appearance.getColorScheme() === 'dark' ? 'dark' : 'light'}
-            blurAmount={18}
+            blurAmount={20}
             reducedTransparencyFallbackColor={theme.inputBackground}
           />
 
@@ -129,10 +98,8 @@ export default function CardGridItem({
               },
             ]}
           >
-            <Animated.View
-              style={[styles.closeButton, { transform: [{ translateY: closeAnim }] }]}
-            >
-              <TouchableOpacity onPress={onClose}>
+            <Animated.View style={[styles.closeButton, { transform: [{ translateY: closeAnim }] }]}>
+              <TouchableOpacity onPress={onClose} style={styles.iconButton}>
                 <Ionicons name="close" size={20} color="#16A34A" />
               </TouchableOpacity>
             </Animated.View>
@@ -162,16 +129,17 @@ export default function CardGridItem({
 const styles = StyleSheet.create({
   wrapper: {
     width: '49%',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   card: {
     borderRadius: 16,
     alignItems: 'center',
     padding: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 3,
   },
   cardImage: {
     width: '100%',
@@ -182,15 +150,16 @@ const styles = StyleSheet.create({
   },
   cardName: {
     textAlign: 'center',
+    fontWeight: '600',
   },
   quantityBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
     backgroundColor: '#FBBF24',
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingVertical: 2,
   },
   quantityText: {
     fontSize: 12,
@@ -205,7 +174,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editorContainer: {
-    width: '95%',
+    width: '94%',
     flexDirection: 'row',
     padding: 12,
     borderRadius: 14,
@@ -216,26 +185,29 @@ const styles = StyleSheet.create({
   },
   editButton: {
     padding: 6,
-    backgroundColor: '#E0F2FE',
+    backgroundColor: '#D1FAE5',
     borderRadius: 10,
   },
   deleteButton: {
     padding: 6,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F8FAFC',
     borderRadius: 10,
   },
-  editQty: {
-    fontWeight: '700',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: -40,
-    left: '50%',
-    transform: [{ translateX: -15 }],
+  iconButton: {
     backgroundColor: '#E2E8F0',
     borderRadius: 20,
     padding: 6,
-    elevation: 5,
+    elevation: 6,
+  },
+  editQty: {
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: -38,
+    left: '50%',
+    transform: [{ translateX: -15 }],
     zIndex: 20,
   },
 });

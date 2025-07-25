@@ -16,7 +16,7 @@ export default function ScanButton({ loading, onPress }) {
   const glowAnim = useRef(new Animated.Value(0)).current;
   const rippleAnim = useRef(new Animated.Value(0)).current;
 
-  const ballIcon = require('../../assets/cards/other/pokeball.png');
+  const ballIcon = require('../../assets/cards/other/scanMon.png');
 
   useEffect(() => {
     const glowLoop = Animated.loop(
@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     resizeMode: 'contain',
+    borderRadius: "50%"
   },
 });
 

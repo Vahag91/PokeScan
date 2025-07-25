@@ -5,7 +5,6 @@ import RNFS from 'react-native-fs';
 
 const fetcher = url =>
   fetch(url, { headers: { 'X-Api-Key': OPENAI_API_KEY } }).then(r => r.json());
-
 const fetcherSet = async url => {
   try {
     const res = await fetch(url, {
@@ -44,7 +43,6 @@ function Dummy() {
     </View>
   );
 }
-
 function ListEmpty(loading, term) {
   if (loading) return null;
   if (term) {
@@ -86,7 +84,7 @@ const categories = [
   { title: 'Surging Sparks' },
 ];
 function getPriceColor(label, value, tier) {
-  if (!tier || !value || value === '–') return styles.defaultColor;
+  if (!tier || !value || value === '–') return defaultColor;
 
   const num = parseFloat(value.replace('$', ''));
   const base =
@@ -96,28 +94,38 @@ function getPriceColor(label, value, tier) {
     tier.avg30 ??
     tier.trendPrice;
 
-  if (!base || isNaN(num)) return styles.defaultColor;
+  if (!base || isNaN(num)) return defaultColor;
 
-  switch (label) {
+  const cleanLabel = label.trim();
+  switch (cleanLabel) {
     case 'Market Price':
     case 'Trend':
     case 'Price Trend':
-      return num > base ? styles.positiveColor : styles.defaultColor;
+      return num > base ? positiveColor : defaultColor;
 
     case 'Low Price':
-      return num < base * 0.8 ? styles.negativeColor : styles.defaultColor;
+      return negativeColor;
 
     case 'High Price':
-      return num > base * 1.5 ? styles.warningColor : styles.defaultColor;
+    case '1D Avg':
+      return warningColor;
 
     case 'Direct Low':
     case 'German Low':
-      return styles.specialColor;
+    case 'Avg Sell':
+    case 'Mid Price':
+      return specialColor;
 
     default:
-      return styles.defaultColor;
+      return defaultColor;
   }
 }
+
+const defaultColor = { color: '#1E293B' }; // slate-800 (was #94A3B8)
+const positiveColor = { color: '#16A34A' }; // green-600
+const negativeColor = { color: '#2563EB' }; // blue-600
+const warningColor = { color: '#D97706' }; // amber-600
+const specialColor = { color: '#D946EF' }; // fuchsia-500
 function getCardPrice(item) {
   const tcgPrices = item?.tcgplayer?.prices;
   if (tcgPrices) {
@@ -151,7 +159,6 @@ const getContrastColor = hex => {
   return luminance > 0.7 ? '#000' : '#fff';
 };
 function normalizeCardFromAPI(card) {
-  
   return {
     id: card.id,
     name: card.name,
@@ -163,9 +170,9 @@ function normalizeCardFromAPI(card) {
     attacks: card.attacks ?? [],
     image:
       card.images?.large && typeof card.images.large === 'number'
-        ? card.images.large 
+        ? card.images.large
         : typeof card.images?.large === 'string'
-        ? card.images.large 
+        ? card.images.large
         : null,
     artist: card.artist ?? null,
     number: card.number ?? null,
@@ -179,6 +186,7 @@ function normalizeCardFromAPI(card) {
           ? card.set.images.logo
           : null,
       releaseDate: card.set?.releaseDate ?? null,
+      setId: card.set?.id ?? null,
     },
     tcgplayer: {
       url: card.tcgplayer?.url ?? null,
@@ -190,21 +198,8 @@ function normalizeCardFromAPI(card) {
     },
   };
 }
-function parseJsonSafe(value, fallback = []) {
-  if (typeof value === 'string') {
-    try {
-      return JSON.parse(value);
-    } catch (err) {
-      console.warn('❌ Failed to parse:', value, err.message);
-      return fallback;
-    }
-  }
-  return value ?? fallback;
-}
-const getFullPath = filename =>
-  filename ? `file://${RNFS.DocumentDirectoryPath}/${filename}` : null;
-
 function normalizeCardFromDb(cardRow) {
+  
   return {
     id: cardRow.cardId,
     name: cardRow.name,
@@ -228,6 +223,7 @@ function normalizeCardFromDb(cardRow) {
       series: cardRow.seriesName,
       logo: getFullPath(cardRow.setLogo),
       releaseDate: cardRow.releaseDate,
+      setId: cardRow.setId,
     },
     image: getFullPath(cardRow.imagePath),
     tcgplayer: {
@@ -241,6 +237,33 @@ function normalizeCardFromDb(cardRow) {
     },
   };
 }
+function parseJsonSafe(value, fallback = []) {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch (err) {
+      console.warn('❌ Failed to parse:', value, err.message);
+      return fallback;
+    }
+  }
+  return value ?? fallback;
+}
+const getFullPath = filename =>
+  filename ? `file://${RNFS.DocumentDirectoryPath}/${filename}` : null;
+
+function formatFoilLabel(key) {
+  if (!key) return '';
+  return key
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/^1stEdition/, '1st Edition')
+    .replace(/^unlimited/, 'Unlimited')
+    .replace(/^normal/, 'Normal')
+    .replace(/^holofoil/, 'Holofoil')
+    .replace(/^reverse Holofoil/, 'Reverse Holofoil')
+    .replace(/^etched Holofoil/, 'Etched Holofoil')
+    .replace(/^promo Holofoil/, 'Promo Holofoil');
+}
+
 
 export {
   getTabIcon,
@@ -256,135 +279,5 @@ export {
   normalizeCardFromDb,
   getFullPath,
   fetcherSet,
+  formatFoilLabel
 };
-
-
-// import React from 'react';
-// import {
-//   View,
-//   Text,
-//   FlatList,
-//   StyleSheet,
-//   Dimensions,
-//   TouchableOpacity,
-// } from 'react-native';
-// import { useRoute, useNavigation } from '@react-navigation/native';
-// import SkeletonCard from '../components/skeletons/SkeleteonCard';
-// import useSWR from 'swr';
-// import { fetcherSet } from '../utils';
-// import { Image } from 'react-native';
-// const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
-
-// const MemoizedCardItem = React.memo(({ item, onPress }) => (
-//   <TouchableOpacity
-//     style={styles.cardContainer}
-//     onPress={() => onPress(item.id)}
-//   >
-//     <Image source={{ uri: item.images.small }} style={styles.card} />
-//   </TouchableOpacity>
-// ));
-
-// export default function SetDetailScreen() {
-//   const route = useRoute();
-//   const navigation = useNavigation();
-//   const { setId } = route.params;
-
-//   const { data, error, isLoading } = useSWR(
-//     `https://api.pokemontcg.io/v2/cards?q=set.id:${setId}`,
-//     fetcherSet
-//   );
-
-//   const cards = data?.data || [];
-
-//   const renderItem = ({ item }) => (
-//     <MemoizedCardItem
-//       item={item}
-//       onPress={(id) => navigation.navigate('SingleCardScreen', { cardId: id })}
-//     />
-//   );
-
-//   if (isLoading) {
-//     return (
-//       <View style={styles.container}>
-//         <Text style={styles.title}>Loading cards...</Text>
-//         <FlatList
-//           data={Array.from({ length: 6 })}
-//           keyExtractor={(_, index) => index.toString()}
-//           numColumns={2}
-//           renderItem={() => (
-//             <View style={styles.cardContainer}>
-//               <SkeletonCard />
-//             </View>
-//           )}
-//         />
-//       </View>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <View style={styles.centered}>
-//         <Text>Error loading cards.</Text>
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>Cards in Set</Text>
-//       <FlatList
-//         data={cards}
-//         keyExtractor={(item) => item.id}
-//         renderItem={renderItem}
-//         numColumns={2}
-//         contentContainerStyle={styles.grid}
-//         showsVerticalScrollIndicator={false}
-//         initialNumToRender={12}
-//         maxToRenderPerBatch={12}
-//         windowSize={5}
-//         removeClippedSubviews={true}
-//         getItemLayout={(data, index) => ({
-//           length: CARD_WIDTH * 1.4 + 16,
-//           offset: (CARD_WIDTH * 1.4 + 16) * Math.floor(index / 2),
-//           index,
-//         })}
-//       />
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     paddingHorizontal: 16,
-//     paddingTop: 16,
-//     backgroundColor: '#FFFFFF',
-//   },
-//   grid: {
-//     paddingBottom: 80,
-//   },
-//   title: {
-//     fontSize: 20,
-//     fontWeight: 'bold',
-//     marginBottom: 16,
-//     textAlign: 'center',
-//   },
-//   cardContainer: {
-//     width: CARD_WIDTH,
-//     marginBottom: 16,
-//     marginRight: 16,
-//   },
-//   card: {
-//     width: '100%',
-//     height: CARD_WIDTH * 1.4,
-//     resizeMode: 'contain',
-//     borderRadius: 8,
-//     backgroundColor: '#f5f5f5',
-//   },
-//   centered: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     padding: 20,
-//   },
-// });
