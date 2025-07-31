@@ -73,6 +73,6 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
+	<string>Please allow camera access in Settings to scan Pokémon cards.</string>
 </dict>
 </plist>

@@ -135,6 +135,8 @@ PODS:
   - nanopb/decode (2.30910.0)
   - nanopb/encode (2.30910.0)
   - PromisesObjC (2.4.0)
+  - PurchasesHybridCommon (16.0.2):
+    - RevenueCat (= 5.33.1)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2430,6 +2432,7 @@ PODS:
     - React-perflogger (= 0.80.0)
     - React-utils (= 0.80.0)
     - SocketRocket
+  - RevenueCat (5.33.1)
   - RNCAsyncStorage (2.2.0):
     - boost
     - DoubleConversion
@@ -2555,6 +2558,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNPurchases (9.1.0):
+    - PurchasesHybridCommon (= 16.0.2)
+    - React-Core
   - RNReanimated (3.18.0):
     - boost
     - DoubleConversion
@@ -2896,6 +2902,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNMLKitTextRecognition (from `../node_modules/@react-native-ml-kit/text-recognition`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
+  - RNPurchases (from `../node_modules/react-native-purchases`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -2923,6 +2930,8 @@ SPEC REPOS:
     - MLKitVision
     - nanopb
     - PromisesObjC
+    - PurchasesHybridCommon
+    - RevenueCat
     - SDWebImage
     - SDWebImageWebPCoder
     - SocketRocket
@@ -3098,6 +3107,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-ml-kit/text-recognition"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
+  RNPurchases:
+    :path: "../node_modules/react-native-purchases"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -3137,6 +3148,7 @@ SPEC CHECKSUMS:
   MLKitVision: e858c5f125ecc288e4a31127928301eaba9ae0c1
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  PurchasesHybridCommon: ae7a0a6e105ecdde3e8816a004e57f0a2a7b9261
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: ff787f6c860a1b97dd1bc27264b61d23ad1994da
   RCTRequired: 664eb8399ed8a83e26ab65af7c2ad390f7e61696
@@ -3206,12 +3218,14 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 3267432b637c9b38e86961b287f784ee1b08dde0
   ReactCodegen: 5d41e1df061200130dd326e55cdfdf94b0289c6e
   ReactCommon: b028d09a66e60ebd83ca59d8cc9a1216360db147
+  RevenueCat: b0ed01125b05a45b8264a2951ad68acb61942038
   RNCAsyncStorage: 1f04c8d56558e533277beda29187f571cf7eecb2
   RNCMaskedView: 7e0ce15656772a939ff0d269100bca3a182163c8
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: eeb622199ef1fb3a076243131095df1c797072f0
   RNMLKitTextRecognition: ff4ec181537d3ec3bd53f48038ed3d0c381ff66a
   RNPermissions: ebf576a01cc2cb73db0006e0b3c9b4760e0aa569
+  RNPurchases: 791e8c81fa5bbd192b77894740c63bd9f813a5ac
   RNReanimated: bc1ddb7a5352648bcf0d592256069833bf935a46
   RNScreens: ee2abe7e0c548eed14e92742e81ed991165c56aa
   RNVectorIcons: ef9b4b0b786053ebdd63ee2972f48de9633ba166
@@ -3222,6 +3236,6 @@ SPEC CHECKSUMS:
   WCPhotoManipulator: 804988e16a6fe941cddff942b2acf887110de5d6
   Yoga: 0c4b7d2aacc910a1f702694fa86be830386f4ceb
 
-PODFILE CHECKSUM: c91fdd1336a370ead80eab688934e20eb1a16b8b
+PODFILE CHECKSUM: 1fbfb4f88665203d89b97785e5bfb8d7ffbebad4
 
 COCOAPODS: 1.16.2
