@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useRef,
   useState,
   useContext,
@@ -25,6 +24,8 @@ import { supabase } from '../../supabase/supabase';
 import { globalStyles } from '../../globalStyles';
 import SetHeader from '../components/setSearch/SetHeader';
 import { ThemeContext } from '../context/ThemeContext';
+import useSafeAsync from '../hooks/useSafeAsync';
+import ErrorView from '../components/ErrorView';
 
 const CARD_SPACING = 12;
 const CARD_WIDTH = (Dimensions.get('window').width - CARD_SPACING * 3) / 2;
@@ -35,59 +36,43 @@ export default function SetDetailScreen() {
   const { setId } = route.params;
 
   const [sortAsc, setSortAsc] = useState(true);
-  const [cards, setCards] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState(null);
-  const [initialLoading, setInitialLoading] = useState(true);
-
   const flatListRef = useRef(null);
   const scrollTopOpacity = useRef(new Animated.Value(0)).current;
 
-  const fetchCards = async () => {
-    if (isFetching) return;
-    setIsFetching(true);
+  // ✅ Stable fetch function
+  const fetchCards = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('cards')
+      .select('*')
+      .filter('set->>id', 'eq', setId);
 
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('cards')
-        .select('*')
-        .filter('set->>id', 'eq', setId);
-
-      if (fetchError) throw fetchError;
-
-      setCards(data);
-    } catch (err) {
-      console.error('Failed to fetch cards:', err.message);
-      setError(err);
-    } finally {
-      setIsFetching(false);
-      setInitialLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    setCards([]);
-    setInitialLoading(true);
-    fetchCards();
+    if (error) throw error;
+    return data || [];
   }, [setId]);
 
+  // ✅ Safe async logic
+  const { data: cards = [], loading, error, retry } = useSafeAsync(fetchCards);
+
+  // ✅ Safe and guarded sorting
   const sortedCards = useMemo(() => {
-    const sorted = [...cards].sort((a, b) => {
-      const aNum = parseInt(a.number, 10);
-      const bNum = parseInt(b.number, 10);
+    if (!Array.isArray(cards)) return [];
+
+    return [...cards].sort((a, b) => {
+      const aNum = parseInt(a?.number, 10);
+      const bNum = parseInt(b?.number, 10);
 
       if (isNaN(aNum) || isNaN(bNum)) {
         return sortAsc
-          ? a.number.localeCompare(b.number)
-          : b.number.localeCompare(a.number);
+          ? a?.number?.localeCompare(b?.number || '') || 0
+          : b?.number?.localeCompare(a?.number || '') || 0;
       }
 
       return sortAsc ? aNum - bNum : bNum - aNum;
     });
-    return sorted;
   }, [cards, sortAsc]);
 
   const toggleSort = () => setSortAsc(prev => !prev);
+
   const scrollToTop = () =>
     flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
 
@@ -130,13 +115,13 @@ export default function SetDetailScreen() {
   );
 
   const renderFooter = () =>
-    isFetching ? (
+    loading ? (
       <View style={styles.footer}>
         <ActivityIndicator size="small" color={theme.accent} />
       </View>
     ) : null;
 
-  if (initialLoading) {
+  if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <SetHeaderSkeleton />
@@ -157,13 +142,10 @@ export default function SetDetailScreen() {
   }
 
   if (error) {
-    return (
-      <View style={[styles.centered, { backgroundColor: theme.background }]}>
-        <Text style={[globalStyles.body, { color: theme.text }]}>
-          Error loading cards.
-        </Text>
-      </View>
-    );
+    return <ErrorView message="Error loading cards." onRetry={retry} />;
+  }
+  if (!loading && !error && cards.length === 0) {
+    return <ErrorView message="No cards found in this set." />;
   }
 
   return (
@@ -212,13 +194,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  title: {
-    textAlign: 'center',
-    marginBottom: 4,
-  },
   sortButton: {
     alignSelf: 'center',
-    // marginTop: 10,
   },
   sortButtonInner: {
     flexDirection: 'row',
@@ -231,12 +208,6 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     width: CARD_WIDTH,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
   },
   footer: {
     paddingVertical: 24,

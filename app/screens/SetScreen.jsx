@@ -1,5 +1,10 @@
-import React, { useState, useMemo, useRef, useEffect, useContext, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useContext,
+} from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -7,23 +12,31 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { categories as originalCategories } from '../constants';
 import AnimatedRow from '../components/setSearch/AnimatedRow';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
 import { getOwnedCardCountsBySet } from '../lib/db';
+import ErrorView from '../components/ErrorView';
+import useSafeAsync from '../hooks/useSafeAsync';
 
 export default function SetScreen() {
-  const [setStats, setSetStats] = useState({}); // setId => count
-
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
-  const [searchTerm, setSearchTerm] = useState('');
   const listRef = useRef(null);
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchSetStats = useMemo(
+    () => () => getOwnedCardCountsBySet(),
+    []
+  );
+
+  const { data: setStats, loading, error, retry } = useSafeAsync(fetchSetStats);
 
   const flatData = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -50,7 +63,7 @@ export default function SetScreen() {
     return result;
   }, [searchTerm]);
 
-  useEffect(() => {
+  useMemo(() => {
     if (listRef.current && flatData.length > 0) {
       listRef.current.scrollToOffset({
         animated: true,
@@ -59,23 +72,15 @@ export default function SetScreen() {
     }
   }, [flatData]);
 
-useFocusEffect(
-  useCallback(() => {
-    getOwnedCardCountsBySet().then(set => {
-      setSetStats(set);
-    });
-  }, [])
-);
-
   const renderFlatItem = ({ item }) => {
     if (item.type === 'header') {
       return (
-        <View style={styles.stickyHeader}>
+        <View style={styles(theme).stickyHeader}>
           <Text
             style={[
               globalStyles.subheading,
-              styles.sectionTitle,
-              { color: theme.text },
+              styles(theme).sectionTitle,
+              styles(theme).text,
             ]}
           >
             {item.title}
@@ -85,22 +90,22 @@ useFocusEffect(
     }
 
     return (
-  <AnimatedRow
-  itemPair={item.pair}
-  index={item.index}
-  onPress={setId => navigation.navigate('SetDetail', { setId })}
-  setStats={setStats}
-/>
+      <AnimatedRow
+        itemPair={item.pair}
+        index={item.index}
+        onPress={setId => navigation.navigate('SetDetail', { setId })}
+        setStats={setStats || {}}
+      />
     );
   };
 
   const renderEmpty = () => (
-    <View style={styles.emptyContainer}>
+    <View style={styles(theme).emptyContainer}>
       <Icon name="sad-outline" size={48} color={theme.placeholder} />
       <Text
         style={[
           globalStyles.body,
-          styles.emptyText,
+          styles(theme).emptyText,
           { color: theme.placeholder },
         ]}
       >
@@ -109,104 +114,30 @@ useFocusEffect(
     </View>
   );
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          backgroundColor: theme.background,
-        },
-        topBar: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingHorizontal: 16,
-          paddingTop: 8,
-          paddingBottom: 12,
-        },
-        pageTitle: {
-          color: theme.text,
-        },
-        searchBox: {
-          flexDirection: 'row',
-          backgroundColor: theme.inputBackground,
-          marginHorizontal: 16,
-          marginBottom: 8,
-          borderRadius: 12,
-          paddingHorizontal: 12,
-          alignItems: 'center',
-        },
-        searchIcon: {
-          marginRight: 6,
-        },
-        clearIcon: {
-          marginLeft: 8,
-        },
-        input: {
-          color: theme.inputText,
-          paddingVertical: 10,
-          flex: 1,
-          fontSize: 15,
-          fontFamily: 'Lato-Regular',
-        },
-        resultLabel: {
-          marginLeft: 16,
-          marginBottom: 8,
-        },
-        resultHighlight: {
-          fontFamily: 'Lato-Bold',
-          color: theme.text,
-        },
-        stickyHeader: {
-          backgroundColor: theme.background,
-          paddingHorizontal: 16,
-          paddingTop: 20,
-          paddingBottom: 8,
-        },
-        sectionTitle: {
-          fontSize: 17,
-        },
-        gridContent: {
-          paddingBottom: 60,
-        },
-        emptyContainer: {
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingTop: 100,
-        },
-        emptyText: {
-          marginTop: 8,
-        },
-      }),
-    [theme],
-  );
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.topBar}>
+    <SafeAreaView style={styles(theme).container} edges={['top']}>
+      <View style={styles(theme).topBar}>
         <Text
           style={[
             globalStyles.heading,
-            styles.pageTitle,
-            { color: theme.text },
+            styles(theme).pageTitle,
           ]}
         >
           Search Card Sets
         </Text>
       </View>
 
-      <View style={styles.searchBox}>
+      <View style={styles(theme).searchBox}>
         <Icon
           name="search-outline"
           size={18}
           color={theme.placeholder}
-          style={styles.searchIcon}
+          style={styles(theme).searchIcon}
         />
         <TextInput
           placeholder="Search by set name..."
           placeholderTextColor={theme.placeholder}
-          style={styles.input}
+          style={styles(theme).input}
           value={searchTerm}
           onChangeText={setSearchTerm}
         />
@@ -216,37 +147,121 @@ useFocusEffect(
               name="close-circle"
               size={20}
               color={theme.placeholder}
-              style={styles.clearIcon}
+              style={styles(theme).clearIcon}
             />
           </TouchableOpacity>
         )}
       </View>
 
-      {searchTerm.trim().length > 0 && flatData.length > 0 && (
-        <Text
-          style={[
-            globalStyles.smallText,
-            styles.resultLabel,
-            { color: theme.mutedText },
-          ]}
-        >
-          Showing results for:{' '}
-          <Text style={styles.resultHighlight}>"{searchTerm.trim()}"</Text>
-        </Text>
-      )}
-
-      {flatData.length === 0 ? (
+      {loading ? (
+        <ActivityIndicator style={styles(theme).loader} size="large" color={theme.text} />
+      ) : error ? (
+        <ErrorView message="Failed to load your set stats." onRetry={retry} />
+      ) : flatData.length === 0 ? (
         renderEmpty()
       ) : (
-        <FlatList
-          ref={listRef}
-          data={flatData}
-          keyExtractor={(_, index) => `item-${index}`}
-          renderItem={renderFlatItem}
-          contentContainerStyle={styles.gridContent}
-          keyboardShouldPersistTaps="handled"
-        />
+        <>
+          {searchTerm.trim().length > 0 && flatData.length > 0 && (
+            <Text style={[globalStyles.smallText, styles(theme).resultLabel]}>
+              Showing results for:{' '}
+              <Text style={styles(theme).resultHighlight}>
+                "{searchTerm.trim()}"
+              </Text>
+            </Text>
+          )}
+          <FlatList
+            ref={listRef}
+            data={flatData}
+            keyExtractor={(_, index) => `item-${index}`}
+            renderItem={renderFlatItem}
+            contentContainerStyle={styles(theme).gridContent}
+            keyboardShouldPersistTaps="handled"
+            style={styles(theme).flatListWrapper}
+          />
+        </>
       )}
     </SafeAreaView>
   );
 }
+
+const styles = (theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 12,
+    },
+    pageTitle: {
+      color: theme.text,
+    },
+    searchBox: {
+      flexDirection: 'row',
+      backgroundColor: theme.inputBackground,
+      marginHorizontal: 16,
+      marginBottom: 8,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      alignItems: 'center',
+    },
+    searchIcon: {
+      marginRight: 6,
+    },
+    clearIcon: {
+      marginLeft: 8,
+    },
+    input: {
+      color: theme.inputText,
+      paddingVertical: 10,
+      flex: 1,
+      fontSize: 15,
+      fontFamily: 'Lato-Regular',
+    },
+    resultLabel: {
+      marginLeft: 16,
+      marginBottom: 8,
+      color: theme.mutedText,
+    },
+    resultHighlight: {
+      fontFamily: 'Lato-Bold',
+      color: theme.text,
+    },
+    stickyHeader: {
+      backgroundColor: theme.background,
+      paddingHorizontal: 16,
+      paddingTop: 20,
+      paddingBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 17,
+    },
+    gridContent: {
+      paddingBottom: 60,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 100,
+    },
+    emptyText: {
+      marginTop: 8,
+    },
+    loader: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    flatListWrapper: {
+      flex: 1,
+    },
+    text: {
+      color: theme.text,
+    },
+  });

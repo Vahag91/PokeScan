@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useContext } from 'react';
+import { useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -138,6 +139,18 @@ export default function CollectionDetailScreen() {
     );
   }, [filteredCards]);
 
+  useLayoutEffect(() => {
+  navigation.setOptions({
+    headerRight: () => (
+      <TouchableOpacity
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })}
+        style={{ marginRight: 16 }}
+      >
+        <Ionicons name="add" size={26} color={'#10B981'} />
+      </TouchableOpacity>
+    ),
+  });
+}, [navigation, theme.text, collectionId]);
   const clearFilters = () => {
     setSelectedSet(null);
     setSelectedSeries(null);
@@ -146,7 +159,7 @@ export default function CollectionDetailScreen() {
   const renderHeader = () => (
     <View>
       <View style={styles.headerWrapper}>
-        <Text style={[globalStyles.subheading, { color: theme.text }]}> 
+        <Text style={[globalStyles.subheading, { color: theme.text }]}>
           {collectionInfo.name}
         </Text>
       </View>
@@ -161,7 +174,7 @@ export default function CollectionDetailScreen() {
           >
             <Ionicons name="layers-outline" size={16} color="#fff" />
           </LinearGradient>
-          <Text style={[globalStyles.smallText, { color: theme.text }]}> 
+          <Text style={[globalStyles.smallText, { color: theme.text }]}>
             {cards.length} {cards.length === 1 ? 'card' : 'cards'}
           </Text>
         </View>
@@ -175,7 +188,7 @@ export default function CollectionDetailScreen() {
           >
             <Ionicons name="cash-outline" size={16} color="#fff" />
           </LinearGradient>
-          <Text style={[globalStyles.smallText, { color: theme.text }]}> 
+          <Text style={[globalStyles.smallText, { color: theme.text }]}>
             {collectionInfo.totalValue > 0
               ? `$${collectionInfo.totalValue.toFixed(2)}`
               : 'No value'}
@@ -193,7 +206,10 @@ export default function CollectionDetailScreen() {
           {uniqueSeries.map(series => (
             <TouchableOpacity
               key={series}
-              style={[styles.filterBadge, selectedSeries === series && styles.activeFilter]}
+              style={[
+                styles.filterBadge,
+                selectedSeries === series && styles.activeFilter,
+              ]}
               onPress={() => {
                 setSelectedSeries(prev => {
                   const newSeries = prev === series ? null : series;
@@ -202,7 +218,13 @@ export default function CollectionDetailScreen() {
                 });
               }}
             >
-              <Text style={[globalStyles.smallText, styles.filterText, selectedSeries === series && styles.activeFilterText]}> 
+              <Text
+                style={[
+                  globalStyles.smallText,
+                  styles.filterText,
+                  selectedSeries === series && styles.activeFilterText,
+                ]}
+              >
                 {series}
               </Text>
             </TouchableOpacity>
@@ -220,10 +242,21 @@ export default function CollectionDetailScreen() {
           {uniqueSets.map(set => (
             <TouchableOpacity
               key={set}
-              style={[styles.filterBadge, selectedSet === set && styles.activeFilter]}
-              onPress={() => setSelectedSet(prev => (prev === set ? null : set))}
+              style={[
+                styles.filterBadge,
+                selectedSet === set && styles.activeFilter,
+              ]}
+              onPress={() =>
+                setSelectedSet(prev => (prev === set ? null : set))
+              }
             >
-              <Text style={[globalStyles.smallText, styles.filterText, selectedSet === set && styles.activeFilterText]}> 
+              <Text
+                style={[
+                  globalStyles.smallText,
+                  styles.filterText,
+                  selectedSet === set && styles.activeFilterText,
+                ]}
+              >
                 {set}
               </Text>
             </TouchableOpacity>
@@ -234,7 +267,9 @@ export default function CollectionDetailScreen() {
       {(selectedSet || selectedSeries) && (
         <TouchableOpacity style={styles.clearBtn} onPress={clearFilters}>
           <Ionicons name="close-outline" size={18} color="#fff" />
-          <Text style={[globalStyles.smallText, styles.clearText]}>Clear filters</Text>
+          <Text style={[globalStyles.smallText, styles.clearText]}>
+            Clear filters
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -242,7 +277,11 @@ export default function CollectionDetailScreen() {
 
   const renderItem = ({ item }) => {
     if (item.type === 'add-button') {
-      return <AddCardItem onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })} />;
+      return (
+        <AddCardItem
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })}
+        />
+      );
     }
 
     const isSelected = selectedCardId === item.cardId;
@@ -263,7 +302,7 @@ export default function CollectionDetailScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}> 
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {groupedCards.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons
@@ -272,24 +311,40 @@ export default function CollectionDetailScreen() {
             color={theme.border}
             style={styles.emptyIcon}
           />
-          <Text style={[globalStyles.subheading, styles.emptyTitle, { color: theme.text }]}> 
+          <Text
+            style={[
+              globalStyles.subheading,
+              styles.emptyTitle,
+              { color: theme.text },
+            ]}
+          >
             No cards yet
           </Text>
-          <Text style={[globalStyles.smallText, styles.emptySubtitle, { color: theme.mutedText }]}> 
+          <Text
+            style={[
+              globalStyles.smallText,
+              styles.emptySubtitle,
+              { color: theme.mutedText },
+            ]}
+          >
             Start building your collection by adding cards.
           </Text>
 
           <TouchableOpacity
             style={styles.emptyButton}
-            onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })}
+            onPress={() =>
+              navigation.navigate('MainTabs', { screen: 'Search' })
+            }
           >
             <Ionicons name="search" size={16} color="#fff" />
-            <Text style={[globalStyles.smallText, styles.emptyButtonText]}>Find Cards</Text>
+            <Text style={[globalStyles.smallText, styles.emptyButtonText]}>
+              Find Cards
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
         <FlatList
-          data={[...groupedCards, { type: 'add-button' }]}
+          data={[ ...groupedCards]}
           keyExtractor={item => item.cardId || 'add-button'}
           renderItem={renderItem}
           numColumns={2}
@@ -297,12 +352,12 @@ export default function CollectionDetailScreen() {
           columnWrapperStyle={styles.gridRow}
           contentContainerStyle={styles.list}
           extraData={updateKey}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
@@ -315,6 +370,7 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     marginBottom: 16,
+    paddingHorizontal: 10,
   },
   summaryIcons: {
     flexDirection: 'row',
@@ -322,7 +378,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 14,
     marginBottom: 16,
-    paddingHorizontal: 4,
+    paddingHorizontal: 10,
   },
   iconTextBox: {
     flexDirection: 'row',
@@ -342,6 +398,7 @@ const styles = StyleSheet.create({
   },
   filterScroll: {
     marginBottom: 8,
+    paddingHorizontal: 6,
   },
   filterContainer: {
     paddingLeft: 2,

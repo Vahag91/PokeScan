@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useMemo,
   useContext,
-  use,
 } from 'react';
 import {
   Keyboard,
@@ -29,6 +28,7 @@ import { defaultSearchCards } from '../constants';
 import { searchCardsInSupabase } from '../../supabase/utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
+
 export default function SearchScreen() {
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
@@ -53,12 +53,16 @@ export default function SearchScreen() {
     let isCancelled = false;
     const doFetch = async () => {
       const trimmed = term.trim();
+      if (!trimmed) return;
+
       setResults([]);
       setErrorType(null);
       setErrorMessage(null);
       clearTimeout(loaderTimeoutRef.current);
       setShowLoader(false);
+
       loaderTimeoutRef.current = setTimeout(() => setShowLoader(true), 200);
+
       try {
         const data = await searchCardsInSupabase(trimmed);
         if (!isCancelled) {
@@ -83,9 +87,22 @@ export default function SearchScreen() {
       }
     };
     doFetch();
+
     return () => {
       isCancelled = true;
     };
+  }, [term]);
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (term.trim()) fetchResults();
+    }, 400);
+
+    return () => clearTimeout(delayDebounce);
+  }, [term, fetchResults]);
+
+  useEffect(() => {
+    setHasFetched(false);
   }, [term]);
 
   useEffect(() => {
@@ -93,13 +110,6 @@ export default function SearchScreen() {
       flatListRef.current.scrollToOffset({ offset: 0, animated: true });
     }
   }, [filters, sortKey]);
-
-  useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      if (term.trim()) fetchResults();
-    }, 400);
-    return () => clearTimeout(delayDebounce);
-  }, [term, fetchResults]);
 
   const clearSearch = () => {
     Keyboard.dismiss();
@@ -110,17 +120,15 @@ export default function SearchScreen() {
     setHasFetched(false);
   };
 
-  useEffect(() => {
-    setHasFetched(false);
-  }, [term]);
-
   const retryFetch = () => fetchResults();
+
   const dataToSort = term.trim() ? results : defaultSearchCards;
 
   const sortedResults = useMemo(() => {
     if (!dataToSort.length || !sortKey) return dataToSort;
     const [base, direction = 'desc'] = sortKey.split('-');
     const isAsc = direction === 'asc';
+
     const getVal = item => {
       switch (base) {
         case 'name':
@@ -135,6 +143,7 @@ export default function SearchScreen() {
           return '';
       }
     };
+
     return [...dataToSort].sort((a, b) => {
       const aVal = getVal(a);
       const bVal = getVal(b);
@@ -149,8 +158,7 @@ export default function SearchScreen() {
   }, [dataToSort, sortKey]);
 
   const filteredAndSortedResults = useMemo(() => {
-    const baseResults = sortedResults;
-    const filtered = baseResults.filter(card => {
+    return sortedResults.filter(card => {
       const matchesRarity =
         filters.rarity.length === 0 || filters.rarity.includes(card.rarity);
       const matchesType =
@@ -188,7 +196,6 @@ export default function SearchScreen() {
         matchesLegality
       );
     });
-    return filtered;
   }, [sortedResults, filters]);
 
   const resultsCount = filteredAndSortedResults.length;
@@ -215,7 +222,7 @@ export default function SearchScreen() {
           returnKeyType="search"
           onSubmitEditing={() => {
             Keyboard.dismiss();
-            fetchResults();
+            if (term.trim()) fetchResults();
           }}
         />
         {!!term && hasFetched && !showLoader && (
@@ -285,7 +292,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingVertical: 4,
-    lineHeight:20
+    lineHeight: 20,
   },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,

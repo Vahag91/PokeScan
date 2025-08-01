@@ -2081,3 +2081,30 @@ export const defaultSearchCards = [
     },
   },
 ];
+
+export const slides = [
+  {
+    key: '1',
+    image: require('./assets/onboarding/scandark.png'),
+    title: 'Scan your cards',
+    subtitle: 'Get detailed information!',
+  },
+  {
+    key: '2',
+    image: require('./assets/onboarding/searchdark.png'),
+    title: 'Search any cards',
+    subtitle: 'Use our advanced filters!',
+  },
+  {
+    key: '3',
+    image: require('./assets/onboarding/collectiondark.png'),
+    title: 'Create your card collection',
+    subtitle: 'Track collection value!',
+  },
+  {
+    key: '4',
+    image: require('./assets/onboarding/pricedark.png'),
+    title: 'Get Card Information',
+    subtitle: 'Access details about price, stats and rarities info',
+  },
+];

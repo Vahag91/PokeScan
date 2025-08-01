@@ -8,6 +8,8 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  Linking,
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import PhotoManipulator from 'react-native-photo-manipulator';
@@ -24,18 +26,38 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export default function ScannerScreen({ navigation }) {
-  const [permission, setPermission] = useState(null);
+  const [permissionStatus, setPermissionStatus] = useState('not-determined');
   const [loading, setLoading] = useState(false);
   const [overlayLayout, setOverlayLayout] = useState(null);
   const [cardName, setCardName] = useState(null);
   const [cardData, setCardData] = useState(null);
   const [cardResults, setCardResults] = useState([]);
+  const [noResult, setNoResult] = useState(false);
 
   const device = useCameraDevice('back');
   const cameraRef = useRef(null);
 
   useEffect(() => {
-    Camera.requestCameraPermission().then(status => setPermission(status));
+    (async () => {
+      const status = await Camera.getCameraPermissionStatus();
+
+      if (status === 'authorized') {
+        setPermissionStatus('authorized');
+      } else {
+        const newStatus = await Camera.requestCameraPermission();
+        if (newStatus === 'denied') {
+          Alert.alert(
+            'Camera Access Needed',
+            'Please allow camera access in Settings to scan Pokémon cards.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ],
+          );
+        }
+        setPermissionStatus(newStatus);
+      }
+    })();
   }, []);
 
   const onScan = async () => {
@@ -46,6 +68,7 @@ export default function ScannerScreen({ navigation }) {
       setCardName(null);
       setCardData(null);
       setCardResults([]);
+      setNoResult(false);
 
       const photo = await cameraRef.current.takePhoto();
       const uri = photo.path.startsWith('file://')
@@ -87,7 +110,6 @@ export default function ScannerScreen({ navigation }) {
       if (error) throw error;
 
       setCardName(dataFromEdge.name);
-
       const matches = await fetchScannerCardFromSupabase(
         dataFromEdge.name,
         dataFromEdge.number,
@@ -98,19 +120,33 @@ export default function ScannerScreen({ navigation }) {
       if (matches?.length === 1) {
         setCardData(matches[0]);
         setCardResults([]);
+        setNoResult(false);
       } else if (matches?.length > 1) {
         setCardData(null);
         setCardResults(matches);
+        setNoResult(false);
+      } else {
+        setCardData(null);
+        setCardResults([]);
+        setNoResult(true);
       }
     } catch (e) {
       console.error('Scan error:', e);
       setCardName('Error');
+      setNoResult(true);
     } finally {
       setLoading(false);
     }
   };
 
-  if (permission == null || device == null) {
+  const clearScanResult = () => {
+    setCardName(null);
+    setCardData(null);
+    setCardResults([]);
+    setNoResult(false);
+  };
+
+  if (permissionStatus === 'not-determined' || device == null) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color="#007AFF" />
@@ -119,13 +155,27 @@ export default function ScannerScreen({ navigation }) {
     );
   }
 
-  if (permission !== 'granted') {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Camera permission denied.</Text>
+if (permissionStatus === 'denied') {
+  return (
+    <SafeAreaView style={styles.center}>
+      <Ionicons name="camera-outline" size={64} color="#10B981" style={{ marginBottom: 16 }} />
+      <Text style={styles.permissionTitle}>Camera Access Needed</Text>
+      <Text style={styles.permissionSubtitle}>
+        Please enable camera access in your device settings to scan Pokémon cards.
+      </Text>
+
+      <View style={styles.permissionButtons}>
+        <TouchableOpacity
+          style={styles.openSettingsBtn}
+          onPress={() => Linking.openSettings()}
+        >
+          <Text style={styles.openSettingsText}>Open Settings</Text>
+        </TouchableOpacity>
       </View>
-    );
-  }
+    </SafeAreaView>
+  );
+}
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -150,14 +200,46 @@ export default function ScannerScreen({ navigation }) {
             <CardPreview cardName={cardName} cardData={cardData} />
           ) : cardResults.length > 0 ? (
             <CardCarouselPreview cards={cardResults} />
-          ) : (
-            <CardPreview cardName={cardName} cardData={null} />
-          )}
+          ) : noResult ? (
+            <View style={styles.noResultWrapper}>
+              <Text style={styles.noResultTitle}>No cards found</Text>
+              <Text style={styles.noResultDescription}>
+                We couldn't find a match for this scan. Try again with better
+                lighting or clearer framing.
+              </Text>
+
+              <TouchableOpacity
+                onPress={onScan}
+                style={styles.retryButton}
+                disabled={loading}
+              >
+                <Text style={styles.retryButtonText}>
+                  {loading ? 'Scanning...' : 'Try Again'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </ScrollView>
 
-        <View style={{ marginTop: 12 }}>
+        <View style={styles.scanSection}>
           <ScanButton loading={loading} onPress={onScan} />
+          {!loading && <Text style={styles.tapToScanText}>Tap to Scan</Text>}
         </View>
+        {(cardData || cardResults.length > 0) && (
+          <TouchableOpacity
+            onPress={clearScanResult}
+            style={styles.clearFloatingButton}
+            activeOpacity={0.85}
+          >
+            <Ionicons
+              name="close-circle-outline"
+              size={16}
+              color="#fff"
+              style={styles.clearIcon}
+            />
+            <Text style={styles.clearFloatingText}>Clear</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -168,10 +250,10 @@ const styles = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 8, color: '#888' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { color: 'red' },
+  errorText: { color: 'red', fontSize: 16, marginBottom: 12 },
   overlay: {
     position: 'absolute',
-    bottom: 52,
+    bottom: 44,
     left: 16,
     right: 16,
     alignItems: 'center',
@@ -184,41 +266,118 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 24,
   },
-  imagePreviewWrapper: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  previewLabel: {
-    color: '#F1F5F9',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  previewImage: {
-    width: 180,
-    height: 160,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#10B981',
-  },
-  scrollContainer: {
-    maxHeight: 240,
-    marginBottom: 12,
-  },
-  resultItemWrapper: {
-    marginHorizontal: 6,
-    alignItems: 'center',
-  },
-  optionLabel: {
-    color: '#CBD5E1',
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  resultItem: {
-    transform: [{ scale: 0.95 }],
-    opacity: 0.9,
-  },
   scrollArea: {
     paddingBottom: 2,
     alignItems: 'center',
   },
+  scanSection: {
+    marginTop: 8,
+    alignItems: 'center',
+    gap: 6,
+  },
+  tapToScanText: {
+    color: '#E5E7EB',
+    fontSize: 14,
+    opacity: 0.9,
+    marginTop: 4,
+    fontFamily: 'Lato-Bold',
+  },
+  clearFloatingButton: {
+    position: 'absolute',
+    left: 30,
+    bottom: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#df1f28ff',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 24,
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  clearFloatingText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  clearIcon: {
+    marginTop: 1,
+  },
+  noResultWrapper: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  noResultTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Lato-Bold',
+    color: '#F1F5F9',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  noResultDescription: {
+    fontSize: 14,
+    fontFamily: 'Lato-Bold',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  retryButton: {
+    backgroundColor: '#0788b0ff',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'Lato-Bold',
+  },
+  permissionTitle: {
+  fontSize: 20,
+  fontWeight: '700',
+  color: '#F1F5F9',
+  marginBottom: 8,
+  textAlign: 'center',
+  fontFamily: 'Lato-Bold',
+},
+permissionSubtitle: {
+  fontSize: 14,
+  color: '#94A3B8',
+  textAlign: 'center',
+  paddingHorizontal: 32,
+  lineHeight: 20,
+  marginBottom: 20,
+  fontFamily: 'Lato-Regular',
+},
+permissionButtons: {
+  flexDirection: 'row',
+  gap: 12,
+},
+openSettingsBtn: {
+  backgroundColor: '#10B981',
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 24,
+},
+openSettingsText: {
+  color: '#fff',
+  fontWeight: '600',
+  fontSize: 14,
+  fontFamily: 'Lato-Bold',
+},
+tryAgainText: {
+  color: '#10B981',
+  fontWeight: '600',
+  fontSize: 14,
+  fontFamily: 'Lato-Bold',
+},
+
 });

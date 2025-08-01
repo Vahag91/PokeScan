@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '49%',
     marginBottom: 8,
+    marginTop: 18,
   },
   card: {
     borderRadius: 16,

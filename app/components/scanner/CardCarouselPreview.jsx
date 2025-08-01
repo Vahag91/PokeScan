@@ -22,7 +22,7 @@ export default function CardCarouselPreview({ cards }) {
   const navigation = useNavigation();
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showArrows, setShowArrows] = useState(true);
+  const [, setShowArrows] = useState(true);
   const leftArrowOpacity = useRef(new Animated.Value(0)).current;
   const rightArrowOpacity = useRef(new Animated.Value(0)).current;
 
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     borderRadius: 18,
-    padding: 12,
+    padding: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,

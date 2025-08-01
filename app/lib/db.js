@@ -252,6 +252,17 @@ export async function getAllCollections(db) {
 }
 export async function getAllCollectionsWithPreviewCards(db) {
   try {
+    // Check if 'collections' table exists
+    const [checkTables] = await db.executeSql(`
+      SELECT name FROM sqlite_master
+      WHERE type='table' AND name='collections';
+    `);
+
+    if (checkTables.rows.length === 0) {
+      // Table doesn't exist yet — first launch
+      return [];
+    }
+
     const [result] = await db.executeSql(`
       SELECT collections.*, COUNT(collection_cards.id) AS cardCount
       FROM collections
@@ -291,10 +302,12 @@ export async function getAllCollectionsWithPreviewCards(db) {
 
     return collections;
   } catch (error) {
-    console.error('❌ Failed to fetch collections with previews:', error);
+    // Suppress error if it's due to fresh DB creation
+    console.warn('📭 No collections to load yet:', error?.message || error);
     return [];
   }
 }
+
 export async function getCardsForCollection(db, collectionId) {
   try {
     const [results] = await db.executeSql(

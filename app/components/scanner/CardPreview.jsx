@@ -81,7 +81,6 @@ export default function CardPreview({ cardName, cardData }) {
 const styles = StyleSheet.create({
   container: {
     width: CARD_WIDTH,
-    paddingVertical: 2,
     paddingHorizontal: 16,
   },
   detectionBadge: {
@@ -113,7 +112,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 16,
-    padding: 14,
+    padding: 10,
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',

@@ -1,30 +1,8 @@
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { OPENAI_API_KEY, POKEMON_TCG_API_KEY } from '@env';
 import RNFS from 'react-native-fs';
 
-const fetcher = url =>
-  fetch(url, { headers: { 'X-Api-Key': OPENAI_API_KEY } }).then(r => r.json());
-const fetcherSet = async url => {
-  try {
-    const res = await fetch(url, {
-      headers: { 'X-Api-Key': POKEMON_TCG_API_KEY },
-    });
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Fetch failed: ${res.status} — ${text}`);
-    }
-
-    const text = await res.text();
-    if (!text) throw new Error('Empty response body');
-
-    return JSON.parse(text);
-  } catch (err) {
-    console.error('fetcherSet error:', err.message);
-    throw err;
-  }
-};
 function getTabIcon(routeName, color, size) {
   let iconName = 'home-outline';
 
@@ -264,13 +242,11 @@ function formatFoilLabel(key) {
     .replace(/^promo Holofoil/, 'Promo Holofoil');
 }
 
-
 export {
   getTabIcon,
   Dummy,
   categories,
   handleImageLoad,
-  fetcher,
   ListEmpty,
   getPriceColor,
   getCardPrice,
@@ -278,6 +254,5 @@ export {
   normalizeCardFromAPI,
   normalizeCardFromDb,
   getFullPath,
-  fetcherSet,
   formatFoilLabel
 };

@@ -26,10 +26,10 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = cardScanner/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = cardScanner/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8906596326603430E6077103 /* libPods-cardScanner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-cardScanner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		9347D69CDC844BB1879727EB /* Lato-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Lato-Regular.ttf"; path = "../app/assets/fonts/Lato-Regular.ttf"; sourceTree = "<group>"; };
-		B960005D41104FC3A1A17889 /* Lato-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Lato-BoldItalic.ttf"; path = "../app/assets/fonts/Lato-BoldItalic.ttf"; sourceTree = "<group>"; };
+		9347D69CDC844BB1879727EB /* Lato-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lato-Regular.ttf"; path = "../app/assets/fonts/Lato-Regular.ttf"; sourceTree = "<group>"; };
+		B960005D41104FC3A1A17889 /* Lato-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lato-BoldItalic.ttf"; path = "../app/assets/fonts/Lato-BoldItalic.ttf"; sourceTree = "<group>"; };
 		C1F8B56D2E2F3AB9212B57BE /* Pods-cardScanner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-cardScanner.debug.xcconfig"; path = "Target Support Files/Pods-cardScanner/Pods-cardScanner.debug.xcconfig"; sourceTree = "<group>"; };
-		E77F936C4F694E6CB7F12BE7 /* Lato-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Lato-Bold.ttf"; path = "../app/assets/fonts/Lato-Bold.ttf"; sourceTree = "<group>"; };
+		E77F936C4F694E6CB7F12BE7 /* Lato-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Lato-Bold.ttf"; path = "../app/assets/fonts/Lato-Bold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -104,7 +104,6 @@
 				9347D69CDC844BB1879727EB /* Lato-Regular.ttf */,
 			);
 			name = Resources;
-			path = "";
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -281,7 +280,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = B4R7S3QMC5;
+				DEVELOPMENT_TEAM = 7WPTF68A9C;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = cardScanner/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -295,7 +294,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = new.cardscanner;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tortnisoft.pokescan;
 				PRODUCT_NAME = cardScanner;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -310,7 +309,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = B4R7S3QMC5;
+				DEVELOPMENT_TEAM = 7WPTF68A9C;
 				INFOPLIST_FILE = cardScanner/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -323,7 +322,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = new.cardscanner;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tortnisoft.pokescan;
 				PRODUCT_NAME = cardScanner;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

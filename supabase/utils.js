@@ -86,11 +86,6 @@ const cleanedName = name
   .trim();
 
   const pattern = `%${cleanedName}%`;
-  console.log(name, "name");
-  
-  console.log(cleanedName, "cleanedName");
-  
-console.log(pattern, "pattern");
 
   let extractedNumber = null;
   if (number?.includes('/')) {
