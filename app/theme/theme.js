@@ -13,7 +13,18 @@ export const lightTheme = {
   shadowColor: '#0000001a',
   greenBadgeBackground: 'none',
   skeletonBase: '#d1d5db',
-  skeletonHighlight: 'rgba(255,255,255,0.3)'
+  skeletonHighlight: 'rgba(255,255,255,0.3)',
+
+  overlayDark: 'rgba(255, 255, 255, 0.6)',
+  overlayDarker: 'rgba(255, 255, 255, 0.85)',
+  blurFallback: '#F9FAFB',
+  blurType: 'light',
+  blurAmount: 10,
+  iconGradient: ['#6366F1', '#A78BFA'],
+  textPrimary: '#1E293B',
+  textSecondary: '#475569',
+  buttonBorder: '#CBD5E1',
+  buttonBackground: '#F1F5F9',
 };
 
 export const darkTheme = {
@@ -31,5 +42,15 @@ export const darkTheme = {
   shadowColor: '#ffffff0d',
   greenBadgeBackground: '#012204ff',
   skeletonBase: '#334155',
-  skeletonHighlight: 'rgba(255,255,255,0.2)'
+  skeletonHighlight: 'rgba(255,255,255,0.2)',
+  overlayDark: 'rgba(15, 23, 42, 0.7)',
+  overlayDarker: 'rgba(15, 23, 42, 0.9)',
+  blurFallback: 'rgba(37, 57, 103, 0.95)',
+  blurType: 'dark',
+  blurAmount: 20,
+  iconGradient: ['#6366F1', '#8B5CF6'],
+  textPrimary: '#FFFFFF',
+  textSecondary: 'rgba(255, 255, 255, 0.85)',
+  buttonBorder: 'rgba(255, 255, 255, 0.2)',
+  buttonBackground: 'rgba(255, 255, 255, 0.1)',
 };

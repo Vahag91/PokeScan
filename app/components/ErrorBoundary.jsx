@@ -17,11 +17,6 @@ export default class ErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
-//   componentDidCatch(error, info) {
-//     // You can log this to Supabase, Sentry, or any backend
-//     console.log('❌ Error caught by ErrorBoundary:', error);
-//     console.log('📄 Info:', info?.componentStack);
-//   }
 
   handleReload = () => {
     this.setState({ hasError: false });

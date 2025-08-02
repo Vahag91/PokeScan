@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fetchScannerCardFromSupabase } from '../../../supabase/utils';
 import { supabase } from '../../../supabase/supabase';
 import RNFS from 'react-native-fs';
-
+import { SubscriptionContext } from '../../context/SubscriptionContext';
+import { hasExceededLimit, incrementScanCount } from '../../utils';
+import PaywallModal from '../../screens/PaywallScreen';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -33,7 +35,9 @@ export default function ScannerScreen({ navigation }) {
   const [cardData, setCardData] = useState(null);
   const [cardResults, setCardResults] = useState([]);
   const [noResult, setNoResult] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
+  const { isPremium } = useContext(SubscriptionContext);
   const device = useCameraDevice('back');
   const cameraRef = useRef(null);
 
@@ -52,7 +56,7 @@ export default function ScannerScreen({ navigation }) {
             [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Open Settings', onPress: () => Linking.openSettings() },
-            ],
+            ]
           );
         }
         setPermissionStatus(newStatus);
@@ -63,6 +67,16 @@ export default function ScannerScreen({ navigation }) {
   const onScan = async () => {
     if (!overlayLayout) return;
 
+    if (!isPremium) {
+      const exceeded = await hasExceededLimit();
+      if (exceeded) {
+        setShowPaywall(true);
+        return;
+      } else {
+        await incrementScanCount();
+      }
+    }
+
     try {
       setLoading(true);
       setCardName(null);
@@ -71,9 +85,7 @@ export default function ScannerScreen({ navigation }) {
       setNoResult(false);
 
       const photo = await cameraRef.current.takePhoto();
-      const uri = photo.path.startsWith('file://')
-        ? photo.path
-        : `file://${photo.path}`;
+      const uri = photo.path.startsWith('file://') ? photo.path : `file://${photo.path}`;
 
       const scaleX = (photo.width / SCREEN_WIDTH) * 0.8;
       const scaleY = photo.height / SCREEN_HEIGHT;
@@ -91,7 +103,7 @@ export default function ScannerScreen({ navigation }) {
         uri,
         box,
         { width: targetWidth, height: targetHeight },
-        { format: 'webp', quality: '50%' },
+        { format: 'webp', quality: '50%' }
       );
       const fileExt = croppedPath.split('.').pop();
       const fileName = `scan-${Date.now()}.${fileExt}`;
@@ -104,7 +116,7 @@ export default function ScannerScreen({ navigation }) {
             fileName,
             base64Image: fileData,
           },
-        },
+        }
       );
 
       if (error) throw error;
@@ -114,7 +126,7 @@ export default function ScannerScreen({ navigation }) {
         dataFromEdge.name,
         dataFromEdge.number,
         dataFromEdge.hp,
-        dataFromEdge.illustrator,
+        dataFromEdge.illustrator
       );
 
       if (matches?.length === 1) {
@@ -131,7 +143,6 @@ export default function ScannerScreen({ navigation }) {
         setNoResult(true);
       }
     } catch (e) {
-      console.error('Scan error:', e);
       setCardName('Error');
       setNoResult(true);
     } finally {
@@ -155,27 +166,26 @@ export default function ScannerScreen({ navigation }) {
     );
   }
 
-if (permissionStatus === 'denied') {
-  return (
-    <SafeAreaView style={styles.center}>
-      <Ionicons name="camera-outline" size={64} color="#10B981" style={{ marginBottom: 16 }} />
-      <Text style={styles.permissionTitle}>Camera Access Needed</Text>
-      <Text style={styles.permissionSubtitle}>
-        Please enable camera access in your device settings to scan Pokémon cards.
-      </Text>
+  if (permissionStatus === 'denied') {
+    return (
+      <SafeAreaView style={styles.center}>
+        <Ionicons name="camera-outline" size={64} color="#10B981" style={{ marginBottom: 16 }} />
+        <Text style={styles.permissionTitle}>Camera Access Needed</Text>
+        <Text style={styles.permissionSubtitle}>
+          Please enable camera access in your device settings to scan Pokémon cards.
+        </Text>
 
-      <View style={styles.permissionButtons}>
-        <TouchableOpacity
-          style={styles.openSettingsBtn}
-          onPress={() => Linking.openSettings()}
-        >
-          <Text style={styles.openSettingsText}>Open Settings</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
-
+        <View style={styles.permissionButtons}>
+          <TouchableOpacity
+            style={styles.openSettingsBtn}
+            onPress={() => Linking.openSettings()}
+          >
+            <Text style={styles.openSettingsText}>Open Settings</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -225,6 +235,7 @@ if (permissionStatus === 'denied') {
           <ScanButton loading={loading} onPress={onScan} />
           {!loading && <Text style={styles.tapToScanText}>Tap to Scan</Text>}
         </View>
+
         {(cardData || cardResults.length > 0) && (
           <TouchableOpacity
             onPress={clearScanResult}
@@ -241,6 +252,8 @@ if (permissionStatus === 'denied') {
           </TouchableOpacity>
         )}
       </View>
+
+      <PaywallModal visible={showPaywall} onClose={() => setShowPaywall(false)} />
     </SafeAreaView>
   );
 }

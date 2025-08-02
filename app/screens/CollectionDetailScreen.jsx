@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useContext } from 'react';
+import React, { useState, useCallback, useMemo, useContext, memo } from 'react';
 import { useLayoutEffect } from 'react';
 import {
   View,
@@ -27,6 +27,12 @@ import AddCardItem from '../components/collections/AddCardItem';
 import { normalizeCardFromDb } from '../utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
+
+export const HeaderAddButton = memo(({ onPress }) => (
+  <TouchableOpacity onPress={onPress} style={{ marginRight: 16 }}>
+    <Ionicons name="add" size={26} color={'#10B981'} />
+  </TouchableOpacity>
+));
 
 export default function CollectionDetailScreen() {
   const { theme } = useContext(ThemeContext);
@@ -140,17 +146,12 @@ export default function CollectionDetailScreen() {
   }, [filteredCards]);
 
   useLayoutEffect(() => {
-  navigation.setOptions({
-    headerRight: () => (
-      <TouchableOpacity
-          onPress={() => navigation.navigate('MainTabs', { screen: 'Search' })}
-        style={{ marginRight: 16 }}
-      >
-        <Ionicons name="add" size={26} color={'#10B981'} />
-      </TouchableOpacity>
-    ),
-  });
-}, [navigation, theme.text, collectionId]);
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderAddButton onPress={() => navigation.push('SearchStandalone')} />
+      ),
+    });
+  }, [navigation]);
   const clearFilters = () => {
     setSelectedSet(null);
     setSelectedSeries(null);
@@ -332,9 +333,7 @@ export default function CollectionDetailScreen() {
 
           <TouchableOpacity
             style={styles.emptyButton}
-            onPress={() =>
-              navigation.navigate('MainTabs', { screen: 'Search' })
-            }
+            onPress={() => navigation.push('SearchStandalone')}
           >
             <Ionicons name="search" size={16} color="#fff" />
             <Text style={[globalStyles.smallText, styles.emptyButtonText]}>
@@ -344,7 +343,7 @@ export default function CollectionDetailScreen() {
         </View>
       ) : (
         <FlatList
-          data={[ ...groupedCards]}
+          data={[...groupedCards]}
           keyExtractor={item => item.cardId || 'add-button'}
           renderItem={renderItem}
           numColumns={2}

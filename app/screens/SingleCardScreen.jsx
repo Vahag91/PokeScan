@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Image,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import SkeletonSingleCard from '../components/skeletons/SkeletonSingleCard';
 import { rarityColors } from '../constants';
@@ -30,7 +24,11 @@ import {
 } from '../lib/db';
 import { defaultSearchCards } from '../constants';
 import { ThemeContext } from '../context/ThemeContext';
-import { fetchCardFromSupabase, fetchEvolutions } from '../../supabase/utils';
+import {
+  fetchCardFromSupabase,
+  fetchEvolutions,
+  mergeCardWithPrice,
+} from '../../supabase/utils';
 import { globalStyles } from '../../globalStyles';
 
 const abilityIcon = require('../assets/icons/cardIcons/ability.png');
@@ -76,26 +74,28 @@ export default function SingleCardScreen() {
           localCard = normalizeCardFromDb(match);
           setCardData(localCard);
           return;
-        } catch (err) {
-          console.log('❌ normalizeCardFromDb error:', err.message);
+        } catch (_) {
         }
       }
     }
 
-    const supabaseCard = await fetchCardFromSupabase(cardId);
-    if (supabaseCard) {
-      setCardData(supabaseCard.normalized);
-      setEvolvesFrom(supabaseCard.evolvesFrom);
-      setEvolvesTo(supabaseCard.evolvesTo);
-      return;
+    try {
+      const supabaseCard = await fetchCardFromSupabase(cardId);
+      if (supabaseCard) {
+        setCardData(supabaseCard.normalized);
+        setEvolvesFrom(supabaseCard.evolvesFrom);
+        setEvolvesTo(supabaseCard.evolvesTo);
+        return;
+      }
+    } catch (_) {
     }
 
     const fallback = defaultSearchCards.find(c => c.id === cardId);
     if (fallback) {
       try {
-        setCardData(normalizeCardFromAPI(fallback));
-      } catch (err) {
-        console.log('❌ normalize fallback error:', err.message);
+        const cardWithPrices = await mergeCardWithPrice(fallback);
+        setCardData(normalizeCardFromAPI(cardWithPrices));
+      } catch (_) {
       }
     }
   };

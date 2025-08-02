@@ -9,16 +9,126 @@ import {
   Dimensions,
   ScrollView,
   Animated,
+  ActivityIndicator,
+  Alert,
+  Linking,
 } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemeContext } from '../context/ThemeContext';
+import { SubscriptionContext } from '../context/SubscriptionContext';
 
 const { width } = Dimensions.get('window');
 
 export default function PaywallModal({ visible, onClose }) {
   const [selectedPlan, setSelectedPlan] = useState('yearly');
+  const [loading, setLoading] = useState(false);
+  const [hasInternet, setHasInternet] = useState(true);
+
   const { themeName, theme } = useContext(ThemeContext);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  const {
+    purchasePackage,
+    restorePurchases,
+    fetchOfferings,
+    availablePackages,
+  } = useContext(SubscriptionContext);
+
+  // Check internet connection on modal open
+  useEffect(() => {
+    if (!visible) return;
+
+    const checkConnection = async () => {
+      const state = await NetInfo.fetch();
+      if (!state.isConnected) {
+        setHasInternet(false);
+        Alert.alert(
+          'No Internet Connection',
+          'Please check your connection and try again.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+              onPress: onClose,
+            },
+            {
+              text: 'Try Again',
+              onPress: () => checkConnection(),
+            },
+          ]
+        );
+      } else {
+        setHasInternet(true);
+        fetchOfferings();
+      }
+    };
+
+    checkConnection();
+  }, [visible]);
+
+  useEffect(() => {
+    const checkIfSubscribed = async () => {
+      try {
+        const info = await restorePurchases();
+        if (info?.entitlements?.active?.Premium) {
+          onClose();
+        }
+      } catch {}
+    };
+    if (visible && hasInternet) checkIfSubscribed();
+  }, [visible, hasInternet]);
+
+  const handlePurchase = async () => {
+    const selectedPkg = availablePackages[selectedPlan];
+    if (!selectedPkg) return;
+    setLoading(true);
+    try {
+      const result = await purchasePackage(selectedPkg);
+      if (result?.customerInfo?.entitlements?.active?.Premium) {
+        onClose();
+      }
+    } catch (e) {
+      if (!e.userCancelled) console.warn('❌ Purchase failed:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      const info = await restorePurchases();
+      if (info?.entitlements?.active?.Premium) {
+        onClose();
+      }
+    } catch (e) {
+      console.warn('❌ Restore failed:', e);
+    }
+  };
+
+  const backgroundImage =
+    themeName === 'dark'
+      ? require('../assets/onboarding/darkpaywall.png')
+      : require('../assets/onboarding/lightpaywall.png');
+
+  const plans = {
+    yearly: {
+      title: 'Yearly Access',
+      price: availablePackages.yearly?.product.priceString || '',
+      sub: availablePackages.yearly?.product.pricePerWeekString
+        ? `${availablePackages.yearly.product.pricePerWeekString} per week`
+        : '',
+      badge: 'SAVE 85%',
+    },
+    weekly: {
+      title: 'Weekly Access',
+      price: availablePackages.weekly?.product.priceString || '',
+      sub:
+        availablePackages.weekly?.product.introPrice?.price === 0
+          ? '3 days free trial'
+          : '',
+    },
+  };
 
   useEffect(() => {
     Animated.loop(
@@ -33,36 +143,19 @@ export default function PaywallModal({ visible, onClose }) {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ]),
+      ])
     ).start();
   }, [pulseAnim]);
 
-  const plans = {
-    yearly: {
-      title: 'Yearly Access',
-      price: '29.99 $/year',
-      sub: '0.62 $/week',
-      badge: 'SAVE 85%',
-    },
-    weekly: {
-      title: 'Weekly Access',
-      price: '3.99 $/week',
-      sub: '3 days free trial',
-    },
-  };
-
-  const backgroundImage =
-    themeName === 'dark'
-      ? require('../assets/onboarding/darkpaywall.png')
-      : require('../assets/onboarding/lightpaywall.png');
+  if (!hasInternet) return null;
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <ImageBackground
-        source={backgroundImage}
-        style={styles.background}
-        resizeMode="cover"
-      >
+      <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+        <Ionicons name="close" size={26} color={theme.text} />
+      </TouchableOpacity>
+
+      <ImageBackground source={backgroundImage} style={styles.background}>
         <View
           style={[
             styles.overlay,
@@ -71,14 +164,7 @@ export default function PaywallModal({ visible, onClose }) {
             },
           ]}
         >
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-            <Ionicons name="close" size={26} color={theme.text} />
-          </TouchableOpacity>
-
-          <ScrollView
-            contentContainerStyle={styles.container}
-            showsVerticalScrollIndicator={false}
-          >
+          <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
             <Text style={[styles.title, { color: theme.text }]}>
               Upgrade to Premium
             </Text>
@@ -87,34 +173,16 @@ export default function PaywallModal({ visible, onClose }) {
             </Text>
 
             <View style={styles.stars}>
-              {Array(5)
-                .fill(0)
-                .map((_, i) => (
-                  <Ionicons key={i} name="star" size={34} color="#fbbf24" />
-                ))}
+              {Array(5).fill(0).map((_, i) => (
+                <Ionicons key={i} name="star" size={34} color="#fbbf24" />
+              ))}
             </View>
 
             <View style={styles.features}>
-              <Feature
-                icon="scan-outline"
-                text="Unlimited Card Scans"
-                theme={theme}
-              />
-              <Feature
-                icon="filter-outline"
-                text="Advanced Search Filters"
-                theme={theme}
-              />
-              <Feature
-                icon="albums-outline"
-                text="Unlimited Collections"
-                theme={theme}
-              />
-              <Feature
-                icon="cash-outline"
-                text="Live Market Prices"
-                theme={theme}
-              />
+              <Feature icon="scan-outline" text="Unlimited Card Scans" theme={theme} />
+              <Feature icon="filter-outline" text="Advanced Search Filters" theme={theme} />
+              <Feature icon="albums-outline" text="Unlimited Collections" theme={theme} />
+              <Feature icon="cash-outline" text="Live Market Prices" theme={theme} />
             </View>
 
             <View style={styles.plans}>
@@ -137,9 +205,7 @@ export default function PaywallModal({ visible, onClose }) {
                   >
                     <View style={styles.planHeader}>
                       <Ionicons
-                        name={
-                          isSelected ? 'checkmark-circle' : 'ellipse-outline'
-                        }
+                        name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
                         size={22}
                         color={isSelected ? '#10B981' : theme.text}
                       />
@@ -167,19 +233,32 @@ export default function PaywallModal({ visible, onClose }) {
                 { transform: [{ scale: pulseAnim }] },
               ]}
             >
-              <TouchableOpacity style={styles.continueBtn} activeOpacity={0.8}>
-                <Text style={styles.continueText}>
-                  {selectedPlan === 'weekly' ? 'Start Free Trial' : 'Continue'}
-                </Text>
+              <TouchableOpacity
+                style={styles.continueBtn}
+                activeOpacity={0.8}
+                onPress={handlePurchase}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.continueText}>
+                    {selectedPlan === 'weekly' ? 'Start Free Trial' : 'Continue'}
+                  </Text>
+                )}
               </TouchableOpacity>
             </Animated.View>
 
             <View style={styles.footerLinks}>
-              {['Terms of Use', 'Privacy Policy', 'Restore'].map((item, i) => (
-                <TouchableOpacity key={i} activeOpacity={0.6}>
-                  <Text style={styles.footerText}>{item}</Text>
-                </TouchableOpacity>
-              ))}
+              <TouchableOpacity onPress={() => Linking.openURL('https://yourdomain.com/terms')}>
+                <Text style={styles.footerText}>Terms of Use</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => Linking.openURL('https://yourdomain.com/privacy')}>
+                <Text style={styles.footerText}>Privacy Policy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleRestore}>
+                <Text style={styles.footerText}>Restore</Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>
@@ -191,16 +270,12 @@ export default function PaywallModal({ visible, onClose }) {
 function Feature({ icon, text, theme }) {
   return (
     <View style={styles.feature}>
-      <Ionicons
-        name={icon}
-        size={20}
-        color="#10B981"
-        style={{ marginRight: 10, width: 24 }}
-      />
+      <Ionicons name={icon} size={20} color="#10B981" style={styles.featureIcon} />
       <Text style={[styles.featureText, { color: theme.text }]}>{text}</Text>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   background: {
@@ -251,9 +326,11 @@ const styles = StyleSheet.create({
   feature: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
     marginVertical: 8,
-    width: '100%',
+  },
+  featureIcon: {
+    marginRight: 10,
+    width: 24,
   },
   featureText: {
     fontSize: 18,

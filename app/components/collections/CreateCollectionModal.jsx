@@ -20,18 +20,23 @@ export default function CreateCollectionModal({ visible, onClose, onCreated }) {
 
   const styles = getStyles(theme, error);
 
-  const handleCreate = async () => {
-    if (!newName.trim()) {
-      setError(true);
-      return;
-    }
+const handleCreate = async () => {
+  if (!newName.trim()) {
+    setError(true);
+    return;
+  }
+
+  try {
     const db = await getDBConnection();
     await createCollection(db, newName.trim());
     setNewName('');
     setError(false);
     onClose();
     if (onCreated) onCreated();
-  };
+  } catch (_) {
+    // Silently ignore any errors
+  }
+};
 
   const handleBackdropPress = () => {
     Keyboard.dismiss();

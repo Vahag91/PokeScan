@@ -54,8 +54,7 @@ export default function CardCollectionsModal({
         [collectionId]: (prev[collectionId] || 0) + 1,
       }));
       if (onChange) onChange();
-    } catch (err) {
-      console.error('Add copy error:', err);
+    } catch (_) {
     }
   };
 
@@ -79,8 +78,7 @@ export default function CardCollectionsModal({
           if (onChange) onChange();
         }
       }
-    } catch (err) {
-      console.error('Remove copy error:', err);
+    } catch (_) {
     }
   };
 

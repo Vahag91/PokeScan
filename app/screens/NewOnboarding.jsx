@@ -54,7 +54,6 @@ export default function NewOnboarding({ onDone }) {
   const buttonScale = useRef(new Animated.Value(1)).current;
   const { themeName, theme } = useContext(ThemeContext);
   const slides = useMemo(() => getSlides(themeName), [themeName]);
-console.log(themeName,"themename");
 
   const backgroundImage = themeName === 'dark'
     ? require('../assets/onboarding/darkpaywall.png')

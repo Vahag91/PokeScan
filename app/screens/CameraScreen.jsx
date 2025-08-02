@@ -47,8 +47,7 @@ export default function CameraScreen({ navigation }) {
         flash: flashMode,
       });
       navigation.navigate('SingleCardScreen', { photoPath: photo.path });
-    } catch (error) {
-      console.error('Failed to take photo:', error);
+    } catch (_) {
     } finally {
       setIsLoading(false);
     }

@@ -25,7 +25,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { typeIcons, rarityColors } from '../../constants';
 import { getContrastColor } from '../../utils';
 import { ThemeContext } from '../../context/ThemeContext';
+import { SubscriptionContext } from '../../context/SubscriptionContext';
 import { globalStyles } from '../../../globalStyles';
+import PaywallModal from '../../screens/PaywallScreen';
+import LockedBlurOverlay from './filter/LockedBlurOverlay';
 
 if (
   Platform.OS === 'android' &&
@@ -40,7 +43,11 @@ const attackOptions = typeOptions.filter(t => t !== 'Dragon');
 
 export default function FilterComponent({ filters, setFilters }) {
   const { theme } = useContext(ThemeContext);
+  const { isPremium } = useContext(SubscriptionContext);
+
   const [visible, setVisible] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+
   const [selectedRarities, setSelectedRarities] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedAttack, setSelectedAttack] = useState([]);
@@ -151,6 +158,7 @@ export default function FilterComponent({ filters, setFilters }) {
           onPress={() => setVisible(true)}
         />
       </View>
+
       <Modal
         visible={visible}
         animationType="slide"
@@ -158,7 +166,9 @@ export default function FilterComponent({ filters, setFilters }) {
         onRequestClose={() => setVisible(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
-          <Pressable style={[styles.sheet, { backgroundColor: theme.background }]}>
+          <Pressable
+            style={[styles.sheet, { backgroundColor: theme.background }]}
+          >
             <BottomSheetHeader
               title="Filters"
               onClose={() => setVisible(false)}
@@ -173,7 +183,12 @@ export default function FilterComponent({ filters, setFilters }) {
               />
               {expanded.rarity && (
                 <View style={styles.sectionBlock}>
-                  {renderSelectAllRow('Rarity', rarityOptions, selectedRarities, setSelectedRarities)}
+                  {renderSelectAllRow(
+                    'Rarity',
+                    rarityOptions,
+                    selectedRarities,
+                    setSelectedRarities,
+                  )}
                   <View style={styles.chipWrap}>
                     {rarityOptions.map(r => {
                       const selected = selectedRarities.includes(r);
@@ -183,7 +198,11 @@ export default function FilterComponent({ filters, setFilters }) {
                         <TouchableOpacity
                           key={r}
                           onPress={() =>
-                            toggleSelection(selectedRarities, setSelectedRarities, r)
+                            toggleSelection(
+                              selectedRarities,
+                              setSelectedRarities,
+                              r,
+                            )
                           }
                           style={[
                             styles.rarityChip,
@@ -195,9 +214,7 @@ export default function FilterComponent({ filters, setFilters }) {
                               globalStyles.caption,
                               styles.rarityChipText,
                               {
-                                color: selected
-                                  ? textColor
-                                  : theme.rarityText,
+                                color: selected ? textColor : theme.rarityText,
                               },
                             ]}
                           >
@@ -216,7 +233,12 @@ export default function FilterComponent({ filters, setFilters }) {
               />
               {expanded.type && (
                 <View style={styles.sectionBlock}>
-                  {renderSelectAllRow('Type', typeOptions, selectedTypes, setSelectedTypes)}
+                  {renderSelectAllRow(
+                    'Type',
+                    typeOptions,
+                    selectedTypes,
+                    setSelectedTypes,
+                  )}
                   <IconOptions
                     options={typeOptions}
                     selectedList={selectedTypes}
@@ -232,7 +254,12 @@ export default function FilterComponent({ filters, setFilters }) {
               />
               {expanded.attack && (
                 <View style={styles.sectionBlock}>
-                  {renderSelectAllRow('Attack', attackOptions, selectedAttack, setSelectedAttack)}
+                  {renderSelectAllRow(
+                    'Attack',
+                    attackOptions,
+                    selectedAttack,
+                    setSelectedAttack,
+                  )}
                   <IconOptions
                     options={attackOptions}
                     selectedList={selectedAttack}
@@ -280,9 +307,28 @@ export default function FilterComponent({ filters, setFilters }) {
             </ScrollView>
 
             <FilterBtns handleApply={handleApply} handleClear={handleClear} />
+
+            {isPremium && (
+              <LockedBlurOverlay
+                title="Advanced Filters Locked"
+                subtitle="Unlock premium to use type, rarity, attack cost, and HP filters."
+                buttonText="Unlock Premium"
+                onPress={() => {
+                  setVisible(false);
+                  setTimeout(() => setShowPaywall(true), 200);
+                }}
+                onClose={()=>setVisible(false)}
+              />
+            )}
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* 💰 Paywall Modal */}
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
     </View>
   );
 }
@@ -332,5 +378,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 0,
+  },
+  lockedOverlay: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  lockedText: {
+    textAlign: 'center',
+    marginTop: 12,
+    color: '#374151',
   },
 });

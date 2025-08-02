@@ -28,10 +28,11 @@ import { defaultSearchCards } from '../constants';
 import { searchCardsInSupabase } from '../../supabase/utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
-
+import { mergeCardWithPrice } from '../../supabase/utils';
 export default function SearchScreen() {
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
+  const [hydratedDefaults, setHydratedDefaults] = useState(defaultSearchCards);
   const [results, setResults] = useState([]);
   const [filters, setFilters] = useState({
     rarity: [],
@@ -111,6 +112,16 @@ export default function SearchScreen() {
     }
   }, [filters, sortKey]);
 
+  useEffect(() => {
+    const hydrate = async () => {
+      const updated = await Promise.all(
+        defaultSearchCards.map(card => mergeCardWithPrice(card)),
+      );
+      setHydratedDefaults(updated);
+    };
+
+    hydrate();
+  }, []);
   const clearSearch = () => {
     Keyboard.dismiss();
     setTerm('');
@@ -122,7 +133,7 @@ export default function SearchScreen() {
 
   const retryFetch = () => fetchResults();
 
-  const dataToSort = term.trim() ? results : defaultSearchCards;
+  const dataToSort = term.trim() ? results : hydratedDefaults;
 
   const sortedResults = useMemo(() => {
     if (!dataToSort.length || !sortKey) return dataToSort;
@@ -179,8 +190,8 @@ export default function SearchScreen() {
         hpValue <= hpRange[1];
       const matchesRegulation =
         filters.regulation.length === 0 ||
-        (card.regulationMark &&
-          filters.regulation.includes(card.regulationMark));
+        (card.regulationmark &&
+          filters.regulation.includes(card.regulationmark));
       const matchesLegality =
         filters.legality.length === 0 ||
         (card.legalities &&
@@ -212,7 +223,12 @@ export default function SearchScreen() {
           },
         ]}
       >
-        <Icon name="search" size={24} color={theme.mutedText} style={styles.searchIcon} />
+        <Icon
+          name="search"
+          size={24}
+          color={theme.mutedText}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={[globalStyles.body, styles.input, { color: theme.text }]}
           placeholder="Search"
@@ -227,7 +243,13 @@ export default function SearchScreen() {
         />
         {!!term && hasFetched && !showLoader && (
           <View style={styles.rightInfoContainer}>
-            <Text style={[globalStyles.smallText, styles.resultBadge, { color: theme.secondaryText }]}>
+            <Text
+              style={[
+                globalStyles.smallText,
+                styles.resultBadge,
+                { color: theme.secondaryText },
+              ]}
+            >
               results: {resultsCount}
             </Text>
             <TouchableOpacity onPress={clearSearch} style={styles.clearBtn}>

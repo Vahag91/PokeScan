@@ -1724,6 +1724,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - react-native-netinfo (11.4.1):
+    - React-Core
   - react-native-photo-manipulator (1.9.2):
     - boost
     - DoubleConversion
@@ -2713,6 +2715,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-photo-manipulator (from `../node_modules/react-native-photo-manipulator`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-sqlite-storage (from `../node_modules/react-native-sqlite-storage`)
@@ -2857,6 +2860,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-photo-manipulator:
     :path: "../node_modules/react-native-photo-manipulator"
   react-native-safe-area-context:
@@ -2992,6 +2997,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: f5754c33877eaf36e4c76c613b35615a181c85c5
   React-microtasksnativemodule: 23df6374a3ac422d8c2927839bcaeed61fee3dad
   react-native-blur: 477fac85a42b5506232ef1d2b82aad359feadd26
+  react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-photo-manipulator: 5ac803352e07b7f61f5905e78952006f0c4efd54
   react-native-safe-area-context: c98c858bd57e01b4047f957934f0a34b173028fb
   react-native-sqlite-storage: 0c84826214baaa498796c7e46a5ccc9a82e114ed

@@ -1,16 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  Modal,
-  Pressable,
-  Switch,
-  ActivityIndicator,
-  Platform
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import {
   NavigationContainer,
   DefaultTheme,
@@ -19,6 +8,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SetDetailScreen from './app/screens/SetDetail';
 import SingleCardScreen from './app/screens/SingleCardScreen';
+import SearchScreen from './app/screens/SearchScreen';
 import CollectionDetailScreen from './app/screens/CollectionDetailScreen';
 import { initDatabase } from './app/lib/initDB';
 import { MenuProvider } from 'react-native-popup-menu';
@@ -27,59 +17,58 @@ import MainTabs from './app/components/navigation/MainTabs';
 import ErrorBoundary from './app/components/ErrorBoundary';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NewOnboarding from './app/screens/NewOnboarding';
-import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import DrawerModal from './app/components/navigation/DrawerModal';
+import { SubscriptionProvider } from './app/context/SubscriptionContext';
+import NetInfo from '@react-native-community/netinfo';
+import { updateDefaultCardPrices } from './supabase/utils';
 const Stack = createNativeStackNavigator();
-
 
 export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [firstLaunch, setFirstLaunch] = useState(null);
 
   useEffect(() => {
-    initDatabase();
-    AsyncStorage.getItem('hasLaunched').then(value => {
+    let isMounted = true;
+
+    const initializeApp = async () => {
+      await initDatabase(); // ✅ Keep this!
+
+      const value = await AsyncStorage.getItem('hasLaunched');
+      if (!isMounted) return;
+
       if (value === null) {
-        AsyncStorage.setItem('hasLaunched', 'true');
+        await AsyncStorage.setItem('hasLaunched', 'true');
         setFirstLaunch(true);
       } else {
         setFirstLaunch(false);
       }
-    });
+    };
+
+    initializeApp();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  useEffect(() => {
+  const runUpdates = async () => {
+    const net = await NetInfo.fetch();
+    if (net.isConnected) {
+      await updateDefaultCardPrices();
+    }
+  };
 
-useEffect(() => {
-  Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+  runUpdates();
 
-  const apiKey =
-    Platform.OS === 'ios'
-      ? process.env.REVENUE_PUBLIC_IOS
-      : process.env.REVENUE_PUBLIC_ANDROID;
-
-  if (apiKey) {
-    Purchases.configure({ apiKey });
-  } else {
-    console.warn('❌ RevenueCat API key is missing for platform:', Platform.OS);
-  }
-
-  Purchases.getOfferings()
-    .then((offerings) => {
-      console.log('📦 Offerings:', offerings);
-    })
-    .catch((err) => {
-      console.warn('❌ Error fetching offerings:', err);
-    });
 }, []);
-
- if (firstLaunch === null) {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" />
-    </View>
-  );
-}
-
+  if (firstLaunch === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   if (firstLaunch) {
     return (
@@ -91,76 +80,88 @@ useEffect(() => {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <ThemeContext.Consumer>
-          {({ theme }) => {
-            const navTheme = theme.dark
-              ? {
-                  ...DarkTheme,
-                  colors: {
-                    ...DarkTheme.colors,
-                    background: theme.background,
-                    card: theme.card,
-                    text: theme.text,
-                  },
-                }
-              : {
-                  ...DefaultTheme,
-                  colors: {
-                    ...DefaultTheme.colors,
-                    background: theme.background,
-                    card: theme.card,
-                    text: theme.text,
-                  },
-                };
+      <SubscriptionProvider>
+        <ThemeProvider>
+          <ThemeContext.Consumer>
+            {({ theme }) => {
+              const navTheme = theme.dark
+                ? {
+                    ...DarkTheme,
+                    colors: {
+                      ...DarkTheme.colors,
+                      background: theme.background,
+                      card: theme.card,
+                      text: theme.text,
+                    },
+                  }
+                : {
+                    ...DefaultTheme,
+                    colors: {
+                      ...DefaultTheme.colors,
+                      background: theme.background,
+                      card: theme.card,
+                      text: theme.text,
+                    },
+                  };
 
-            return (
-              <NavigationContainer theme={navTheme}>
-                <MenuProvider>
-                  <View style={styles.flex}>
-                    <Stack.Navigator
-                      screenOptions={({ route }) => ({
-                        headerShown: route.name !== 'MainTabs',
-                        headerStyle: { backgroundColor: theme.background },
-                        headerTintColor: theme.text,
-                        headerTitleStyle: { color: theme.text },
-                        headerTitleAlign: 'center',
-                        headerBackTitleVisible: false,
-                        headerShadowVisible: false,
-                        contentStyle: { backgroundColor: theme.background },
-                      })}
-                    >
-                      <Stack.Screen name="MainTabs">
-                        {() => <MainTabs setIsDrawerOpen={setIsDrawerOpen} />}
-                      </Stack.Screen>
-                      <Stack.Screen
-                        name="SetDetail"
-                        component={SetDetailScreen}
-                        options={{ title: 'Set Cards' }}
-                      />
-                      <Stack.Screen
-                        name="SingleCardScreen"
-                        component={SingleCardScreen}
-                        options={{ title: 'Card Details' }}
-                      />
-                      <Stack.Screen
-                        name="CollectionDetail"
-                        component={CollectionDetailScreen}
-                        options={{ title: 'Card Details' }}
-                      />
-                    </Stack.Navigator>
+              return (
+                <NavigationContainer theme={navTheme}>
+                  <MenuProvider>
+                    <View style={styles.flex}>
+                      <Stack.Navigator
+                        screenOptions={({ route }) => ({
+                          headerStyle: { backgroundColor: theme.background },
+                          headerTintColor: theme.text,
+                          headerTitleStyle: { color: theme.text },
+                          headerTitleAlign: 'center',
+                          headerBackTitleVisible: false,
+                          headerShadowVisible: false,
+                          contentStyle: { backgroundColor: theme.background },
+                        })}
+                      >
+                        <Stack.Screen
+                          name="MainTabs"
+                          options={{ headerShown: false }}
+                        >
+                          {() => <MainTabs setIsDrawerOpen={setIsDrawerOpen} />}
+                        </Stack.Screen>
 
-                    <DrawerModal
-                      visible={isDrawerOpen}
-                      onClose={() => setIsDrawerOpen(false)}
-                    />
-                  </View>
-                </MenuProvider>
-              </NavigationContainer>
-            );
-          }}
-        </ThemeContext.Consumer>
-      </ThemeProvider>
+                        <Stack.Screen
+                          name="SetDetail"
+                          component={SetDetailScreen}
+                          options={{ title: 'Set Cards' }}
+                        />
+                        <Stack.Screen
+                          name="SingleCardScreen"
+                          component={SingleCardScreen}
+                          options={{ title: 'Card Details' }}
+                        />
+                        <Stack.Screen
+                          name="CollectionDetail"
+                          component={CollectionDetailScreen}
+                          options={{ title: 'Collection Details' }}
+                        />
+                        <Stack.Screen
+                          name="SearchStandalone"
+                          component={SearchScreen}
+                          options={{ title: 'Search Cards' }}
+                        />
+                      </Stack.Navigator>
+
+                      {isDrawerOpen && (
+                        <DrawerModal
+                          visible
+                          onClose={() => setIsDrawerOpen(false)}
+                        />
+                      )}
+                    </View>
+                  </MenuProvider>
+                </NavigationContainer>
+              );
+            }}
+          </ThemeContext.Consumer>
+        </ThemeProvider>
+      </SubscriptionProvider>
     </ErrorBoundary>
   );
 }

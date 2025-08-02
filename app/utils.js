@@ -1,7 +1,38 @@
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+const SCAN_LIMIT = 2;
+const STORAGE_KEY = 'daily_scan_data';
 
+
+
+const getTodayKey = () => {
+  const now = new Date();
+  return now.toISOString().split('T')[0]; 
+};
+ const getScanData = async () => {
+  const stored = await AsyncStorage.getItem(STORAGE_KEY);
+  return stored ? JSON.parse(stored) : { date: getTodayKey(), count: 0 };
+};
+ const incrementScanCount = async () => {
+  const today = getTodayKey();
+  let data = await getScanData();
+
+  if (data.date !== today) {
+    data = { date: today, count: 1 };
+  } else {
+    data.count += 1;
+  }
+
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  return data.count;
+};
+ const hasExceededLimit = async () => {
+  const data = await getScanData();
+  const today = getTodayKey();
+
+  return data.date === today && data.count >= SCAN_LIMIT;
+};
 
 function getTabIcon(routeName, color, size) {
   let iconName = 'home-outline';
@@ -14,47 +45,7 @@ function getTabIcon(routeName, color, size) {
 
   return <Ionicons name={iconName} size={size} color={color} />;
 }
-function Dummy() {
-  return (
-    <View style={styles.dummyContainer}>
-      <Text style={styles.dummyText}>Coming Soon</Text>
-    </View>
-  );
-}
-function ListEmpty(loading, term) {
-  if (loading) return null;
-  if (term) {
-    return <Text style={styles.empty}>No results</Text>;
-  }
-  return null;
-}
-const styles = StyleSheet.create({
-  dummyContainer: {
-    flex: 1,
-    backgroundColor: '#0e0e10',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dummyText: {
-    color: '#fff',
-  },
-});
-const handleImageLoad = (fadeAnim, scaleAnim) => {
-  Animated.parallel([
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }),
-    Animated.timing(scaleAnim, {
-      toValue: 1,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }),
-  ]).start();
-};
+
 const categories = [
   { title: 'Destined Rivals' },
   { title: 'Journey Together' },
@@ -220,7 +211,6 @@ function parseJsonSafe(value, fallback = []) {
     try {
       return JSON.parse(value);
     } catch (err) {
-      console.warn('❌ Failed to parse:', value, err.message);
       return fallback;
     }
   }
@@ -244,15 +234,14 @@ function formatFoilLabel(key) {
 
 export {
   getTabIcon,
-  Dummy,
   categories,
-  handleImageLoad,
-  ListEmpty,
   getPriceColor,
   getCardPrice,
   getContrastColor,
   normalizeCardFromAPI,
   normalizeCardFromDb,
   getFullPath,
-  formatFoilLabel
+  formatFoilLabel,
+  incrementScanCount,
+  hasExceededLimit
 };

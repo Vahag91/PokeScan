@@ -1,11 +1,5 @@
 import React, { useEffect, useState, useCallback, useContext } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Animated,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Animated } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CreateCollectionModal from '../components/collections/CreateCollectionModal';
 import EditCollectionModal from '../components/collections/EditCollectionModal';
@@ -20,14 +14,21 @@ import { useFocusEffect } from '@react-navigation/native';
 import CollectionCard from '../components/collections/CollectionCard';
 import { CollectionHeader } from '../components/collections/CollectionHeader';
 import { ThemeContext } from '../context/ThemeContext';
+import { SubscriptionContext } from '../context/SubscriptionContext';
 import { globalStyles } from '../../globalStyles';
+import LockedBlurOverlay from '../components/searchScreen/filter/LockedBlurOverlay';
+import PaywallModal from '../screens/PaywallScreen';
+import { updateCollectionCardPrices } from '../../supabase/utils';
 
 export default function CollectionsScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
+  const { isPremium } = useContext(SubscriptionContext);
 
   const [collections, setCollections] = useState([]);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [showLockedOverlay, setShowLockedOverlay] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const [editingCollection, setEditingCollection] = useState(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0.95))[0];
@@ -41,12 +42,18 @@ export default function CollectionsScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       loadCollections();
-    }, [loadCollections])
+    }, [loadCollections]),
   );
 
-  useEffect(() => {
-    loadCollections();
-  }, [loadCollections]);
+useFocusEffect(
+  useCallback(() => {
+    const syncPricesAndLoad = async () => {
+      await updateCollectionCardPrices();  
+      await loadCollections();             
+    };
+    syncPricesAndLoad();
+  }, [loadCollections])
+);
 
   useEffect(() => {
     Animated.parallel([
@@ -63,12 +70,12 @@ export default function CollectionsScreen({ navigation }) {
     ]).start();
   }, []);
 
-  const openEditModal = (collection) => {
+  const openEditModal = collection => {
     setEditingCollection(collection);
     setEditModalVisible(true);
   };
 
-  const handleEditSave = async (newName) => {
+  const handleEditSave = async newName => {
     if (!newName.trim()) return;
     const db = await getDBConnection();
     await renameCollection(db, editingCollection.id, newName.trim());
@@ -77,7 +84,7 @@ export default function CollectionsScreen({ navigation }) {
     loadCollections();
   };
 
-  const handleDelete = async (collection) => {
+  const handleDelete = async collection => {
     const db = await getDBConnection();
     await deleteCollection(db, collection.id);
     setEditModalVisible(false);
@@ -85,11 +92,19 @@ export default function CollectionsScreen({ navigation }) {
     loadCollections();
   };
 
+  const handleAddCollection = () => {
+    if (!isPremium && collections.length >= 2) {
+      setShowLockedOverlay(true);
+      return;
+    }
+    setCreateModalVisible(true);
+  };
+
   const renderItem = ({ item }) => {
     if (item.isAddCard) {
       return (
         <View style={styles.renderItem}>
-          <AddCollectionCard onPress={() => setCreateModalVisible(true)} />
+          <AddCollectionCard onPress={handleAddCollection} />
         </View>
       );
     }
@@ -127,7 +142,7 @@ export default function CollectionsScreen({ navigation }) {
       <CollectionHeader collections={collections} />
       <FlatList
         data={dataWithAdd}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         renderItem={renderItem}
         numColumns={1}
         contentContainerStyle={styles.list}
@@ -138,9 +153,21 @@ export default function CollectionsScreen({ navigation }) {
               size={64}
               color={theme.mutedText}
             />
-            <Text style={[globalStyles.text, styles.emptyText, { color: theme.text }]}>Nothing here yet...</Text>
             <Text
-              style={[globalStyles.text, styles.emptySubtext, { color: theme.mutedText }]}
+              style={[
+                globalStyles.text,
+                styles.emptyText,
+                { color: theme.text },
+              ]}
+            >
+              Nothing here yet...
+            </Text>
+            <Text
+              style={[
+                globalStyles.text,
+                styles.emptySubtext,
+                { color: theme.mutedText },
+              ]}
             >
               Tap the + button to create your first collection.
             </Text>
@@ -160,6 +187,26 @@ export default function CollectionsScreen({ navigation }) {
         initialName={editingCollection?.name}
         onSave={handleEditSave}
         onDelete={handleDelete}
+      />
+
+      {/* 🔒 Show overlay then open paywall */}
+      {showLockedOverlay && (
+        <LockedBlurOverlay
+          title="Collection Limit Reached"
+          subtitle="Upgrade to premium to create unlimited collections and organize your cards freely."
+          buttonText="Upgrade Now"
+          onPress={() => {
+            setShowLockedOverlay(false);
+            setTimeout(() => setShowPaywall(true), 250);
+          }}
+          onClose={() => setShowLockedOverlay(false)}
+        />
+      )}
+
+      {/* 💰 Paywall Modal */}
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
       />
     </Animated.View>
   );

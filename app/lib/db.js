@@ -75,7 +75,18 @@ export async function createTables(db) {
       FOREIGN KEY (collectionId) REFERENCES collections(id) ON DELETE CASCADE
     );
   `);
+
+  await db.executeSql(`
+    CREATE TABLE IF NOT EXISTS card_prices (
+      cardId TEXT PRIMARY KEY,
+      tcgplayerPrices TEXT,
+      cardmarketPrices TEXT,
+      updatedAt TEXT
+    )
+  `);
 }
+
+
 export async function addCardToCollection(card, collectionId) {
   const db = await getDBConnection();
 
@@ -205,7 +216,6 @@ export async function downloadImageIfNeeded(url, filename) {
     }
     return `file://${localPath}`;
   } catch (err) {
-    console.error('Image download error:', err);
     return null;
   }
 }
@@ -224,7 +234,6 @@ export async function createCollection(db, name) {
     );
     return { id, name, createdAt, updatedAt };
   } catch (error) {
-    console.error('❌ Failed to create collection:', error);
     throw error;
   }
 }
@@ -246,7 +255,6 @@ export async function getAllCollections(db) {
 
     return collections;
   } catch (error) {
-    console.error('❌ Failed to fetch collections:', error);
     return [];
   }
 }
@@ -259,7 +267,6 @@ export async function getAllCollectionsWithPreviewCards(db) {
     `);
 
     if (checkTables.rows.length === 0) {
-      // Table doesn't exist yet — first launch
       return [];
     }
 
@@ -302,8 +309,6 @@ export async function getAllCollectionsWithPreviewCards(db) {
 
     return collections;
   } catch (error) {
-    // Suppress error if it's due to fresh DB creation
-    console.warn('📭 No collections to load yet:', error?.message || error);
     return [];
   }
 }
@@ -322,7 +327,6 @@ export async function getCardsForCollection(db, collectionId) {
 
     return cards;
   } catch (error) {
-    console.error('❌ Failed to load cards:', error);
     return [];
   }
 }
@@ -355,7 +359,6 @@ export async function getCardsByCollectionId(db, collectionId) {
 
     return cards;
   } catch (error) {
-    console.error('❌ Failed to fetch cards for collection:', error);
     return [];
   }
 }
@@ -372,7 +375,6 @@ export async function getCollectionsForCard(db, cardId) {
     }
     return collectionIds;
   } catch (error) {
-    console.error('❌ Failed to get collections for card:', error);
     return [];
   }
 }
@@ -430,8 +432,7 @@ export async function updateCollectionTotalValue(db, collectionId) {
       `UPDATE collections SET totalValue = ?, updatedAt = ? WHERE id = ?`,
       [total, new Date().toISOString(), collectionId],
     );
-  } catch (err) {
-    console.error('❌ Failed to update total value:', err);
+  } catch (_) {
   }
 }
 function safeJsonParse(input) {
@@ -476,8 +477,7 @@ export async function deleteDatabase() {
       name: 'collections.db',
       location: 'default',
     });
-  } catch (error) {
-    console.error('❌ Failed to delete database:', error);
+  } catch (_) {
   }
 }
 export async function getOwnedCardCountsBySet() {

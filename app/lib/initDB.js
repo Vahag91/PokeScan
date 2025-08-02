@@ -4,8 +4,7 @@ export async function initDatabase() {
   try {
     const db = await getDBConnection();
     await createTables(db);
-  } catch (error) {
-    console.error('❌ Failed to initialize DB:', error);
+  } catch (_) {
   }
 }
 
@@ -41,7 +40,6 @@ export async function testDatabase() {
       ]
     );
 
-  } catch (error) {
-    console.error('❌ DB Test Failed:', error);
+  } catch (_) {
   }
 }

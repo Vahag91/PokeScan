@@ -1,6 +1,5 @@
 import React, { useContext, useMemo } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-// import CollectionsScreen from '../../screens/CollectionsScreen';
 import CollectionsScreen from '../../screens/CollectionsScreen';
 import SearchScreen from '../../screens/SearchScreen';
 import ScannerScreen from '../../components/scanner/Scanner';
