@@ -151,10 +151,11 @@ const playRipple = useCallback(() => {
 }, [rippleAnim]);
 
 const handlePress = useCallback(() => {
+  if (loading) return;
   Vibration.vibrate(10);
   playRipple();
   onPress();
-}, [onPress, playRipple]);
+}, [loading, onPress, playRipple]);
 
 
   const animatedFabStyle = {
@@ -245,18 +246,6 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     resizeMode: 'contain',
-    borderRadius: "50%"
+    borderRadius: 40
   },
 });
-
-
-      // {croppedImageUri && (
-      //     <View style={styles.imagePreviewWrapper}>
-      //       <Text style={styles.previewLabel}>Scanned Image:</Text>
-      //       <Image
-      //         source={{ uri: croppedImageUri }}
-      //         style={styles.previewImage}
-      //         resizeMode="contain"
-      //       />
-      //     </View>
-      //   )}

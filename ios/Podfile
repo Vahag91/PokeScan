@@ -1,4 +1,3 @@
-# Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
     "react-native/scripts/react_native_pods.rb",
@@ -17,10 +16,12 @@ end
 target 'cardScanner' do
   config = use_native_modules!
 
-  use_react_native!(
-    :path => config[:reactNativePath],
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
+use_react_native!(
+  :path => config[:reactNativePath],
+  :app_path => "#{Pod::Config.instance.installation_root}/..",
+  :fabric_enabled => false,        # Disable Fabric (new rendering)
+  :new_arch_enabled => false       # Disable Bridgeless (classic RN bridge)
+)
 
   post_install do |installer|
     # Standard React Native setup

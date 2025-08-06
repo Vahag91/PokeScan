@@ -8,21 +8,15 @@ import {
   Image,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { FasterImageView } from '@rraut/react-native-faster-image';
 import { ThemeContext } from '../../context/ThemeContext';
 
-export default function FullImageModal({
-  cardImage,
-  modalVisible,
-  setModalVisible,
-}) {
+export default function FullImageModal({ cardImage, modalVisible, setModalVisible }) {
   const { theme } = useContext(ThemeContext);
 
   const closeImageModal = () => {
     setModalVisible(false);
   };
 
-  const isLocalFile = cardImage?.startsWith('file://');
   const isDark = theme === 'dark';
 
   return (
@@ -44,18 +38,11 @@ export default function FullImageModal({
           activeOpacity={1}
           onPress={closeImageModal}
         >
-          {isLocalFile ? (
-            <Image
-              source={{ uri: cardImage }}
-              style={styles.fullImage}
-              resizeMode="contain"
-            />
-          ) : (
-            <FasterImageView
-              source={{ uri: cardImage, resizeMode: 'contain' }}
-              style={styles.fullImage}
-            />
-          )}
+          <Image
+            source={{ uri: cardImage }}
+            style={styles.fullImage}
+            resizeMode="contain"
+          />
 
           <TouchableOpacity
             style={[

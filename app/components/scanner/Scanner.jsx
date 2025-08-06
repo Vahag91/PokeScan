@@ -66,6 +66,7 @@ export default function ScannerScreen({ navigation }) {
 
   const onScan = async () => {
     if (!overlayLayout) return;
+    if(loading) return
 
     if (!isPremium) {
       const exceeded = await hasExceededLimit();

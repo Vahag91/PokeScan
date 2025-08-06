@@ -2,7 +2,6 @@ import React, { useState, useContext } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PaywallModal from '../../screens/PaywallScreen';
-import OneTimeOfferPaywallModal from '../OneTimeOfferPaywallModal';
 import { SubscriptionContext } from '../../context/SubscriptionContext';
 
 export default function HeaderRight() {
@@ -20,7 +19,7 @@ export default function HeaderRight() {
         <Ionicons name="diamond-sharp" size={20} color="#fff" />
       </TouchableOpacity>
 
-      <OneTimeOfferPaywallModal
+      <PaywallModal
         visible={isPaywallVisible}
         onClose={() => setIsPaywallVisible(false)}
       />

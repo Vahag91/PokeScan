@@ -177,6 +177,7 @@ export default function NewOnboarding({ onDone }) {
     );
   };
 
+
   return (
     <ImageBackground source={backgroundImage} style={styles.background} resizeMode="cover">
       <View style={styles.overlayContainer}>

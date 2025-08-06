@@ -29,6 +29,10 @@ import { searchCardsInSupabase } from '../../supabase/utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
 import { mergeCardWithPrice } from '../../supabase/utils';
+import { SubscriptionContext } from '../context/SubscriptionContext';
+import { Alert } from 'react-native';
+import { Linking } from 'react-native';
+
 export default function SearchScreen() {
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
@@ -49,6 +53,14 @@ export default function SearchScreen() {
   const [hasFetched, setHasFetched] = useState(false);
   const loaderTimeoutRef = useRef(null);
   const flatListRef = useRef(null);
+
+
+  const {
+    purchasePackage,
+    restorePurchases,
+    fetchOfferings,
+    availablePackages,
+  } = useContext(SubscriptionContext);
 
   const fetchResults = useCallback(() => {
     let isCancelled = false;
@@ -212,7 +224,7 @@ export default function SearchScreen() {
   const resultsCount = filteredAndSortedResults.length;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>  
       <View
         style={[
           styles.searchBar,

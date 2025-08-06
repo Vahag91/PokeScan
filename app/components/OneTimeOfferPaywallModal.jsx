@@ -11,35 +11,62 @@ import {
   Animated,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
-import NetInfo from '@react-native-community/netinfo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemeContext } from '../context/ThemeContext';
 import { SubscriptionContext } from '../context/SubscriptionContext';
 
 const { width } = Dimensions.get('window');
 
-export default function OneTimeOfferPaywallModal({ visible, onClose }) {
+function Feature({ icon, text, theme }) {
+  return (
+    <View style={styles.feature}>
+      <Ionicons
+        name={icon}
+        size={20}
+        color="#10B981"
+        style={styles.featureIcon}
+      />
+      <Text style={[styles.featureText, { color: theme.text }]}>{text}</Text>
+    </View>
+  );
+}
+
+export default function OneTimeOfferPaywall({ visible, onClose }) {
   const [loading, setLoading] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const { themeName, theme } = useContext(ThemeContext);
-  const { purchasePackage, restorePurchases, fetchOfferings, availablePackages } =
-    useContext(SubscriptionContext);
+  const {
+    purchasePackage,
+    restorePurchases,
+    fetchOfferings,
+    availablePackages,
+  } = useContext(SubscriptionContext);
 
   useEffect(() => {
     if (!visible) return;
 
     const checkConnection = async () => {
-      const state = await NetInfo.fetch();
-      if (!state.isConnected) {
+      try {
+        const res = await fetch('https://www.google.com/generate_204');
+        if (res.status === 204) {
+          setHasInternet(true);
+          fetchOfferings();
+        } else {
+          throw new Error('No internet');
+        }
+      } catch (e) {
         setHasInternet(false);
-        Alert.alert('No Internet', 'Please check your connection.', [
-          { text: 'OK', onPress: onClose },
-        ]);
-      } else {
-        setHasInternet(true);
-        fetchOfferings();
+        Alert.alert(
+          'No Internet Connection',
+          'Please check your network and try again.',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: onClose },
+            { text: 'Retry', onPress: () => checkConnection() },
+          ]
+        );
       }
     };
 
@@ -50,136 +77,141 @@ export default function OneTimeOfferPaywallModal({ visible, onClose }) {
     const checkIfSubscribed = async () => {
       try {
         const info = await restorePurchases();
-        if (info?.entitlements?.active?.Premium) {
-          onClose();
-        }
+        if (info?.entitlements?.active?.Premium) onClose();
       } catch {}
     };
     if (visible && hasInternet) checkIfSubscribed();
   }, [visible, hasInternet]);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
-
   const handlePurchase = async () => {
-    const discountedPkg = availablePackages.yearly;
-    if (!discountedPkg) return;
+    const offerPkg = availablePackages.oneTime;
+    if (!offerPkg) return;
     setLoading(true);
     try {
-      const result = await purchasePackage(discountedPkg);
-      if (result?.customerInfo?.entitlements?.active?.Premium) {
-        onClose();
-      }
+      const result = await purchasePackage(offerPkg);
+      if (result?.customerInfo?.entitlements?.active?.Premium) onClose();
     } catch (e) {
-      if (!e.userCancelled) console.warn('❌ Purchase failed:', e);
+      if (!e.userCancelled) {
+        Alert.alert("Purchase Failed", "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const handleRestore = async () => {
+    try {
+      const info = await restorePurchases();
+      if (info?.entitlements?.active?.Premium) {
+        Alert.alert("Restored", "Your subscription has been successfully restored.");
+        onClose();
+      } else {
+        Alert.alert("No Subscription", "No active subscription found to restore.");
+      }
+    } catch (e) {
+      Alert.alert("Restore Failed", "Something went wrong during restore.");
+    }
+  };
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.08,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [pulseAnim]);
 
   const backgroundImage =
     themeName === 'dark'
       ? require('../assets/onboarding/darkpaywall.png')
       : require('../assets/onboarding/lightpaywall.png');
 
-  const plan = {
-    title: 'Premium Yearly Access',
-    price: availablePackages.yearly?.product.priceString || '$49.99',
-    sub: 'One-time offer only – cancel anytime',
-    perMonth: availablePackages.yearly
-      ? `$${(availablePackages.yearly.product.price / 12).toFixed(2)}/month`
-      : '$4.16/month',
-  };
-
-  const features = [
-    'Unlimited access to all features',
-    'Ad-free experience',
-    'Priority customer support',
-    'Exclusive updates & content',
-    'Supports ongoing development',
-  ];
+  const plan = availablePackages.oneTime;
+  const price = plan?.product?.price;
+  const currency = plan?.product?.currencyCode;
 
   if (!hasInternet) return null;
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
-      <ImageBackground source={backgroundImage} style={styles.background} blurRadius={2}>
+    <Modal visible={visible} animationType="slide" transparent>
+      <TouchableOpacity
+        style={[styles.closeBtn, { backgroundColor: theme.overlayDark }]}
+        onPress={onClose}
+      >
+        <Ionicons name="close" size={26} color={theme.text} />
+      </TouchableOpacity>
+
+      <ImageBackground source={backgroundImage} style={styles.background}>
         <View
           style={[
             styles.overlay,
             {
-              backgroundColor:
-                themeName === 'dark' ? 'rgba(0,0,0,0.88)' : 'rgba(255,255,255,0.95)',
+              backgroundColor: themeName === 'dark' ? '#0f0f0fe8' : '#ffffffdd',
             },
           ]}
         >
-          <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <Ionicons name="close" size={24} color={theme.text} />
-            </TouchableOpacity>
-
-            <Text style={[styles.title, { color: theme.primary }]}>Unlock Premium</Text>
-            <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
-              Enjoy exclusive benefits and full access
-            </Text>
-
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>LIMITED TIME</Text>
-            </View>
-
-            <View style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.primary }]}>
-              <View style={styles.cardHeader}>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>{plan.title}</Text>
-                <View style={styles.discountTag}>
-                  <Text style={styles.discountText}>50% OFF</Text>
+          <ScrollView
+            contentContainerStyle={styles.container}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.content}>
+              <View style={styles.specialOfferContainer}>
+                <View style={styles.specialOfferBadge}>
+                  <Text style={styles.specialOfferBadgeText}>You will never see this again</Text>
                 </View>
+                <Text style={[styles.offerTitle, { color: theme.text }]}>Exclusive One-Time Offer</Text>
+                <View style={styles.offerHighlight}>
+                  <Text style={styles.offerHighlightText}>50% OFF</Text>
+                </View>
+                <Text style={[styles.offerSubtitle, { color: theme.text }]}>This premium upgrade is available only once at this special price. Don't miss this opportunity to unlock all features!</Text>
               </View>
-              <Text style={[styles.cardPrice, { color: theme.text }]}>{plan.price}</Text>
-              <Text style={[styles.cardSub, { color: theme.secondaryText }]}>{plan.perMonth}</Text>
-              <Text style={[styles.cardNote, { color: theme.secondaryText }]}>{plan.sub}</Text>
-            </View>
 
-            <View style={styles.features}>
-              {features.map((text, idx) => (
-                <View key={idx} style={styles.featureItem}>
-                  <Ionicons name="checkmark-circle" size={20} color={theme.primary} />
-                  <Text style={[styles.featureText, { color: theme.text }]}>{text}</Text>
-                </View>
-              ))}
-            </View>
+              <View style={styles.featureList}>
+                <Feature icon="scan-outline" text="Unlimited Card Scans" theme={theme} />
+                <Feature icon="filter-outline" text="Advanced Search Filters" theme={theme} />
+                <Feature icon="albums-outline" text="Unlimited Collections" theme={theme} />
+                <Feature icon="cash-outline" text="Real-Time Market Pricing" theme={theme} />
+              </View>
 
-            <Animated.View style={{ transform: [{ scale: pulseAnim }], width: '100%' }}>
-              <TouchableOpacity
-                style={[styles.ctaBtn, { backgroundColor: theme.primary }]}
-                activeOpacity={0.85}
-                onPress={handlePurchase}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.ctaText}>Upgrade Now</Text>
-                )}
+              <Animated.View style={[styles.ctaBtnWrapper, { transform: [{ scale: pulseAnim }] }]}>
+                <TouchableOpacity
+                  style={styles.ctaBtn}
+                  activeOpacity={0.9}
+                  onPress={handlePurchase}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.ctaText}>
+                      Upgrade Now – {currency} {price} per year
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+
+              <TouchableOpacity onPress={handleRestore}>
+                <Text style={styles.restoreText}>Restore Purchase</Text>
               </TouchableOpacity>
-            </Animated.View>
 
-            <TouchableOpacity onPress={restorePurchases}>
-              <Text style={[styles.restoreText, { color: theme.secondaryText }]}>Restore Purchase</Text>
-            </TouchableOpacity>
+              <View style={styles.footerLinks}>
+                <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/terms')}>
+                  <Text style={styles.footerText}>Terms of Use</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/privacy')}>
+                  <Text style={styles.footerText}>Privacy Policy</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </ScrollView>
         </View>
       </ImageBackground>
@@ -188,130 +220,103 @@ export default function OneTimeOfferPaywallModal({ visible, onClose }) {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width,
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-  container: {
-    alignItems: 'center',
-  },
+  background: { flex: 1, width, height: '100%' },
+  overlay: { flex: 1, justifyContent: 'center' },
   closeBtn: {
     position: 'absolute',
-    top: 20,
+    top: 40,
     right: 20,
+    zIndex: 10,
     padding: 8,
-    zIndex: 99,
+    borderRadius: 20,
   },
-  title: {
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+  },
+  content: { alignItems: 'center' },
+  specialOfferContainer: {
+    alignItems: 'center',
+    marginBottom: 25,
+    width: '100%',
+  },
+  specialOfferBadge: {
+    backgroundColor: '#F97316',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 12,
+    transform: [{ rotate: '-5deg' }],
+  },
+  specialOfferBadgeText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: 1,
+  },
+  offerTitle: {
     fontSize: 28,
     fontFamily: 'Lato-Bold',
-    marginBottom: 6,
     textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: 'Lato-Regular',
-    marginBottom: 24,
-    textAlign: 'center',
-    opacity: 0.8,
-  },
-  badge: {
-    backgroundColor: '#FF3B30',
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  badgeText: {
-    color: 'white',
-    fontSize: 13,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  card: {
-    width: '100%',
-    borderWidth: 2,
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontFamily: 'Lato-Bold',
-    marginRight: 10,
-  },
-  discountTag: {
-    backgroundColor: '#FACC15',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  discountText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  cardPrice: {
-    fontSize: 30,
-    fontFamily: 'Lato-Bold',
-    marginVertical: 4,
-  },
-  cardSub: {
-    fontSize: 16,
-    fontFamily: 'Lato-Regular',
-  },
-  cardNote: {
-    fontSize: 14,
-    fontFamily: 'Lato-Italic',
-    marginTop: 6,
-  },
-  features: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 12,
   },
-  featureText: {
+  offerHighlight: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 30,
+    marginBottom: 15,
+  },
+  offerHighlightText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  offerSubtitle: {
     fontSize: 16,
     fontFamily: 'Lato-Regular',
-    marginLeft: 8,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
   },
+  featureList: {
+    width: '80%',
+    marginBottom: 30,
+    alignSelf: 'center',
+  },
+  feature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  featureIcon: { marginRight: 10, width: 24 },
+  featureText: { fontSize: 18, fontFamily: 'Lato-Bold' },
+  ctaBtnWrapper: { width: '100%', marginTop: 16, marginBottom: 20 },
   ctaBtn: {
-    paddingVertical: 18,
-    borderRadius: 12,
+    backgroundColor: '#10B981',
+    paddingVertical: 16,
+    borderRadius: 28,
     alignItems: 'center',
     width: '100%',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 4,
-    marginBottom: 16,
+    elevation: 3,
   },
-  ctaText: {
-    color: '#fff',
-    fontSize: 18,
-    fontFamily: 'Lato-Bold',
+  ctaText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  restoreText: { color: '#94A3B8', marginTop: 12, fontSize: 13 },
+  footerLinks: {
+    marginTop: 30,
+    flexDirection: 'row',
+    gap: 16,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
-  restoreText: {
-    fontSize: 14,
-    fontFamily: 'Lato-Regular',
+  footerText: {
+    color: '#94A3B8',
+    fontSize: 13,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
     textDecorationLine: 'underline',
   },
 });

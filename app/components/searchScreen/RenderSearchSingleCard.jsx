@@ -10,7 +10,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { rarityColors, typeIcons } from '../../constants';
 import { getCardPrice } from '../../utils';
-import { FasterImageView } from '@rraut/react-native-faster-image';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 
@@ -41,14 +40,14 @@ function RenderSearchSingleCard({ item, showCardNumber = false }) {
           ]}
         >
           <View style={styles.imageBox}>
-            {typeof item.images.small === 'string' ? (
-              <FasterImageView
-                source={{ uri: item.images.small, resizeMode: 'contain' }}
-                style={styles.cardImage}
-              />
-            ) : (
-              <Image source={item.images.small} style={styles.cardImage} />
-            )}
+            <Image
+              source={
+                typeof item.images.small === 'string'
+                  ? { uri: item.images.small }
+                  : item.images.small
+              }
+              style={styles.cardImage}
+            />
 
             {item.rarity && (
               <View style={[styles.rarityBadge, { backgroundColor: rarityColor }]}>

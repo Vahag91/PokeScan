@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { FasterImageView } from '@rraut/react-native-faster-image';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
+
 export default function EvolutionChain({ title, cards, onCardPress }) {
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
@@ -19,7 +19,7 @@ export default function EvolutionChain({ title, cards, onCardPress }) {
             onPress={() => onCardPress(card.id)}
             style={styles.item}
           >
-            <FasterImageView source={{ uri: card.images.small }} style={styles.image} />
+            <Image source={{ uri: card.images.small }} style={styles.image} />
             <Text style={[globalStyles.smallText, styles.name]}>{card.name}</Text>
           </TouchableOpacity>
         ))}

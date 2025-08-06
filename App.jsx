@@ -19,49 +19,70 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NewOnboarding from './app/screens/NewOnboarding';
 import DrawerModal from './app/components/navigation/DrawerModal';
 import { SubscriptionProvider } from './app/context/SubscriptionContext';
-import NetInfo from '@react-native-community/netinfo';
 import { updateDefaultCardPrices } from './supabase/utils';
+import PaywallModal from './app/screens/PaywallScreen';
+import OneTimeOfferPaywall from './app/components/OneTimeOfferPaywallModal';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [firstLaunch, setFirstLaunch] = useState(null);
+  const [showStandardPaywall, setShowStandardPaywall] = useState(false);
+  const [showOneTimeOffer, setShowOneTimeOffer] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-
     const initializeApp = async () => {
-      await initDatabase(); // ✅ Keep this!
+      try {
+        await initDatabase();
+        const value = await AsyncStorage.getItem('hasLaunched');
+        if (!isMounted) return;
 
-      const value = await AsyncStorage.getItem('hasLaunched');
-      if (!isMounted) return;
-
-      if (value === null) {
-        await AsyncStorage.setItem('hasLaunched', 'true');
-        setFirstLaunch(true);
-      } else {
-        setFirstLaunch(false);
+        if (value === null) {
+          await AsyncStorage.setItem('hasLaunched', 'true');
+          if (isMounted) setFirstLaunch(true);
+        } else {
+          if (isMounted) setFirstLaunch(false);
+        }
+      } catch (e) {
+        if (isMounted) setFirstLaunch(false);
       }
     };
-
     initializeApp();
-
     return () => {
       isMounted = false;
     };
   }, []);
 
   useEffect(() => {
-  const runUpdates = async () => {
-    const net = await NetInfo.fetch();
-    if (net.isConnected) {
-      await updateDefaultCardPrices();
+    const runUpdates = async () => {
+      try {
+        const res = await fetch('https://www.google.com/generate_204');
+        if (res.status === 204) {
+          await updateDefaultCardPrices();
+        }
+      } catch (e) {
+        // Fail silently if offline
+      }
+    };
+    runUpdates();
+  }, []);
+
+  const handleOnboardingDone = async () => {
+    setFirstLaunch(false);
+    const isPremiumUser = await AsyncStorage.getItem('@isPremium');
+    if (isPremiumUser === 'true') return;
+    const seenPaywall = await AsyncStorage.getItem('@seenPaywall');
+    const seenOTO = await AsyncStorage.getItem('@seenOTO');
+
+    if (!seenPaywall) {
+      setShowStandardPaywall(true);
+    } else if (!seenOTO) {
+      setShowOneTimeOffer(true);
     }
   };
 
-  runUpdates();
-
-}, []);
   if (firstLaunch === null) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -73,7 +94,7 @@ export default function App() {
   if (firstLaunch) {
     return (
       <ThemeProvider>
-        <NewOnboarding onDone={() => setFirstLaunch(false)} />
+        <NewOnboarding onDone={handleOnboardingDone} />
       </ThemeProvider>
     );
   }
@@ -125,7 +146,6 @@ export default function App() {
                         >
                           {() => <MainTabs setIsDrawerOpen={setIsDrawerOpen} />}
                         </Stack.Screen>
-
                         <Stack.Screen
                           name="SetDetail"
                           component={SetDetailScreen}
@@ -154,6 +174,29 @@ export default function App() {
                           onClose={() => setIsDrawerOpen(false)}
                         />
                       )}
+
+                      <PaywallModal
+                        visible={showStandardPaywall}
+                        onClose={async () => {
+                          setShowStandardPaywall(false);
+                          await AsyncStorage.setItem('@seenPaywall', 'true');
+
+                          const otoSeen = await AsyncStorage.getItem(
+                            '@seenOTO',
+                          );
+                          if (otoSeen !== 'true') {
+                            setShowOneTimeOffer(true);
+                          }
+                        }}
+                      />
+
+                      <OneTimeOfferPaywall
+                        visible={showOneTimeOffer}
+                        onClose={async () => {
+                          setShowOneTimeOffer(false);
+                          await AsyncStorage.setItem('@seenOTO', 'true');
+                        }}
+                      />
                     </View>
                   </MenuProvider>
                 </NavigationContainer>
@@ -167,9 +210,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
+  flex: { flex: 1 },
   overlay: {
     position: 'absolute',
     top: 0,

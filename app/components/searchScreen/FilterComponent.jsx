@@ -308,7 +308,7 @@ export default function FilterComponent({ filters, setFilters }) {
 
             <FilterBtns handleApply={handleApply} handleClear={handleClear} />
 
-            {isPremium && (
+            {!isPremium && (
               <LockedBlurOverlay
                 title="Advanced Filters Locked"
                 subtitle="Unlock premium to use type, rarity, attack cost, and HP filters."

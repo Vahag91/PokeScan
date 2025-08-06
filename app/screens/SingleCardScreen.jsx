@@ -1,3 +1,5 @@
+// File: screens/SingleCardScreen.jsx
+
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -42,8 +44,6 @@ export default function SingleCardScreen() {
   const [cardData, setCardData] = useState(null);
   const [collectionsModalVisible, setCollectionsModalVisible] = useState(false);
   const [isInCollection, setIsInCollection] = useState(false);
-  const [evolvesFrom, setEvolvesFrom] = useState([]);
-  const [evolvesTo, setEvolvesTo] = useState([]);
   const [fromData, setFromData] = useState([]);
   const [toData, setToData] = useState([]);
 
@@ -57,69 +57,62 @@ export default function SingleCardScreen() {
     [isInCollection],
   );
 
-  const loadCard = async () => {
-    const db = await getDBConnection();
-    const ids = await getCollectionsForCard(db, cardId);
-    const isIn = ids.length > 0;
-    setIsInCollection(isIn);
+  useEffect(() => {
+    if (!cardId) return;
 
-    let localCard = null;
+    (async () => {
+      const db = await getDBConnection();
+      const ids = await getCollectionsForCard(db, cardId);
+      setIsInCollection(ids.length > 0);
 
-    if (isIn) {
-      const cards = await getCardsByCollectionId(db, ids[0]);
-      const match = cards.find(c => c.cardId === cardId);
+      let currentCard = null;
+      let fromIds = [];
+      let toIds = [];
 
-      if (match) {
-        try {
-          localCard = normalizeCardFromDb(match);
-          setCardData(localCard);
-          return;
-        } catch (_) {
+      if (ids.length) {
+        const cards = await getCardsByCollectionId(db, ids[0]);
+        const match = cards.find(c => c.cardId === cardId);
+        if (match) {
+          try {
+            currentCard = normalizeCardFromDb(match);
+            setCardData(currentCard);
+          } catch (_) {}
         }
       }
-    }
 
-    try {
-      const supabaseCard = await fetchCardFromSupabase(cardId);
-      if (supabaseCard) {
-        setCardData(supabaseCard.normalized);
-        setEvolvesFrom(supabaseCard.evolvesFrom);
-        setEvolvesTo(supabaseCard.evolvesTo);
-        return;
+      if (!currentCard) {
+        const supabaseCard = await fetchCardFromSupabase(cardId);
+        if (supabaseCard) {
+          currentCard = supabaseCard?.normalized;
+          setCardData(currentCard);
+          fromIds = supabaseCard?.evolvesFrom || [];
+          toIds = supabaseCard?.evolvesTo || [];
+        } else {
+          const fallback = defaultSearchCards.find(c => c.id === cardId);
+          if (fallback) {
+            try {
+              const cardWithPrices = await mergeCardWithPrice(fallback);
+              currentCard = normalizeCardFromAPI(cardWithPrices);
+              setCardData(currentCard);
+            } catch (_) {}
+          }
+        }
       }
-    } catch (_) {
-    }
 
-    const fallback = defaultSearchCards.find(c => c.id === cardId);
-    if (fallback) {
-      try {
-        const cardWithPrices = await mergeCardWithPrice(fallback);
-        setCardData(normalizeCardFromAPI(cardWithPrices));
-      } catch (_) {
+      if ((fromIds?.length || 0) > 0 || (toIds?.length || 0) > 0) {
+        const { evolutionFrom, evolutionTo } = await fetchEvolutions(fromIds, toIds);
+        setFromData(evolutionFrom || []);
+        setToData(evolutionTo || []);
+      } else {
+        setFromData([]);
+        setToData([]);
       }
-    }
-  };
-
-  useEffect(() => {
-    if (cardId) loadCard();
+    })();
   }, [cardId]);
 
   useEffect(() => {
     navigation.setOptions({ headerRight: headerRightButton });
   }, [headerRightButton, navigation]);
-
-  useEffect(() => {
-    const getEvolutions = async () => {
-      if (!cardData) return;
-      const { evolutionFrom, evolutionTo } = await fetchEvolutions(
-        evolvesFrom,
-        evolvesTo,
-      );
-      setFromData(evolutionFrom);
-      setToData(evolutionTo);
-    };
-    getEvolutions();
-  }, [cardData]);
 
   if (!cardData) return <SkeletonSingleCard />;
 
@@ -130,46 +123,26 @@ export default function SingleCardScreen() {
   return (
     <>
       <ScrollView style={styles.screen}>
-        <EvolutionChain
-          title="Evolves From"
-          cards={fromData}
-          onCardPress={navigateTo}
-        />
-        <EvolutionChain
-          title="Evolves To"
-          cards={toData}
-          onCardPress={navigateTo}
-        />
-        <CardSetHeader
-          cardData={cardData}
-          onPress={setId => navigation.navigate('SetDetail', { setId })}
-        />
+        <EvolutionChain title="Evolves From" cards={fromData} onCardPress={navigateTo} />
+        <EvolutionChain title="Evolves To" cards={toData} onCardPress={navigateTo} />
+        <CardSetHeader cardData={cardData} onPress={setId => navigation.navigate('SetDetail', { setId })} />
         <CardImageViewer imageSource={cardData.image} />
 
         <AnimatedSection style={styles.sectionCard}>
-          <Text style={[globalStyles.subheading, styles.sectionTitle]}>
-            Market Overview
-          </Text>
-          <MarketOverview
-            tcgplayer={cardData.tcgplayer}
-            cardmarket={cardData.cardmarket}
-          />
+          <Text style={[globalStyles.subheading, styles.sectionTitle]}>Market Overview</Text>
+          <MarketOverview tcgplayer={cardData.tcgplayer} cardmarket={cardData.cardmarket} />
         </AnimatedSection>
 
         {cardData.abilities?.length > 0 && (
           <AnimatedSection style={styles.sectionCard}>
-            <Text style={[globalStyles.subheading, styles.sectionTitle]}>
-              Abilities
-            </Text>
+            <Text style={[globalStyles.subheading, styles.sectionTitle]}>Abilities</Text>
             {cardData.abilities.map(ab => (
               <LabelRow
                 key={ab.name}
                 label={
                   <View style={styles.iconLabel}>
                     <Image source={abilityIcon} style={styles.abilityIcon} />
-                    <Text style={[globalStyles.body, styles.labelText]}>
-                      {ab.name}
-                    </Text>
+                    <Text style={[globalStyles.body, styles.labelText]}>{ab.name}</Text>
                   </View>
                 }
                 subtext={ab.text}
@@ -180,13 +153,8 @@ export default function SingleCardScreen() {
 
         {cardData.attacks?.length > 0 && (
           <AnimatedSection style={styles.sectionCard}>
-            <Text style={[globalStyles.subheading, styles.sectionTitle]}>
-              Attacks
-            </Text>
-            <LabelRow
-              label={<LabelWithIcon types={[cardData.types?.[0]]} text="HP" />}
-              value={cardData.hp || 'N/A'}
-            />
+            <Text style={[globalStyles.subheading, styles.sectionTitle]}>Attacks</Text>
+            <LabelRow label={<LabelWithIcon types={[cardData.types?.[0]]} text="HP" />} value={cardData.hp || 'N/A'} />
             {cardData.attacks.map(atk => (
               <LabelRow
                 key={atk.name}
@@ -199,33 +167,15 @@ export default function SingleCardScreen() {
         )}
 
         <AnimatedSection style={styles.sectionCard}>
-          <Text style={[globalStyles.subheading, styles.sectionTitle]}>
-            Details
-          </Text>
-          {cardData.types?.length > 0 && (
-            <LabelRow label="Types" value={cardData.types.join(', ')} />
-          )}
-          {cardData.subtypes?.[0] && (
-            <LabelRow label="Subtype" value={cardData.subtypes[0]} />
-          )}
+          <Text style={[globalStyles.subheading, styles.sectionTitle]}>Details</Text>
+          {cardData.types?.length > 0 && <LabelRow label="Types" value={cardData.types.join(', ')} />}
+          {cardData.subtypes?.[0] && <LabelRow label="Subtype" value={cardData.subtypes[0]} />}
           <SetLabelRow set={cardData.set} />
-          {cardData.artist && (
-            <LabelRow label="Illustrator" value={cardData.artist} />
-          )}
+          {cardData.artist && <LabelRow label="Illustrator" value={cardData.artist} />}
           <LabelRow label="Number" value={cardData.number} />
           <LabelRow
             label="Rarity"
-            value={
-              <Text
-                style={[
-                  globalStyles.body,
-                  styles.rarityText,
-                  { color: rarityColors[cardData.rarity] },
-                ]}
-              >
-                {cardData.rarity}
-              </Text>
-            }
+            value={<Text style={[globalStyles.body, styles.rarityText, { color: rarityColors[cardData.rarity] }]}>{cardData.rarity}</Text>}
           />
           <LabelRow label="Release Year" value={cardData.set?.releaseDate} />
           <LabelRow label="Series" value={cardData.set?.series} />
@@ -233,11 +183,10 @@ export default function SingleCardScreen() {
 
         {cardData.flavorText && (
           <AnimatedSection style={styles.sectionCard}>
-            <Text style={[globalStyles.caption, styles.flavorText]}>
-              "{cardData.flavorText}"
-            </Text>
+            <Text style={[globalStyles.caption, styles.flavorText]}>"{cardData.flavorText}"</Text>
           </AnimatedSection>
         )}
+
         <ExternalLinksSection cardData={cardData} theme={theme} />
       </ScrollView>
 
@@ -245,7 +194,7 @@ export default function SingleCardScreen() {
         visible={collectionsModalVisible}
         onClose={() => setCollectionsModalVisible(false)}
         card={cardData}
-        onChange={loadCard}
+        onChange={() => {}}
       />
     </>
   );
@@ -254,24 +203,13 @@ export default function SingleCardScreen() {
 const getStyles = theme =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: theme.background, padding: 12 },
-    sectionCard: {
-      backgroundColor: theme.inputBackground,
-      borderRadius: 12,
-    },
-    sectionTitle: {
-      marginBottom: 12,
-      color: theme.text,
-    },
+    sectionCard: { backgroundColor: theme.inputBackground, borderRadius: 12 },
+    sectionTitle: { marginBottom: 12, color: theme.text },
     iconLabel: { flexDirection: 'row', alignItems: 'center' },
     abilityIcon: { width: 24, height: 24, marginRight: 6 },
     labelText: { color: theme.text },
     rarityText: { fontWeight: '600' },
-    flavorText: {
-      fontStyle: 'italic',
-      color: theme.mutedText,
-      textAlign: 'center',
-      lineHeight: 20,
-    },
+    flavorText: { fontStyle: 'italic', color: theme.mutedText, textAlign: 'center', lineHeight: 20 },
     linkButton: {
       paddingVertical: 12,
       paddingHorizontal: 16,

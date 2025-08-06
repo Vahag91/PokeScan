@@ -27,7 +27,7 @@ export default function LockedBlurOverlay({
       <BlurView
         style={styles.absoluteFill}
         blurType={theme.blurType || 'light'}
-        blurAmount={3}
+        blurAmount={0}
         reducedTransparencyFallbackColor={theme.blurFallback}
       />
 

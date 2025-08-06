@@ -39,7 +39,6 @@ export default function SetDetailScreen() {
   const flatListRef = useRef(null);
   const scrollTopOpacity = useRef(new Animated.Value(0)).current;
 
-  // ✅ Stable fetch function
   const fetchCards = useCallback(async () => {
     const { data, error } = await supabase
       .from('cards')

@@ -13,17 +13,17 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import NetInfo from '@react-native-community/netinfo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemeContext } from '../context/ThemeContext';
 import { SubscriptionContext } from '../context/SubscriptionContext';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function PaywallModal({ visible, onClose }) {
   const [selectedPlan, setSelectedPlan] = useState('yearly');
   const [loading, setLoading] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
+  const [loadingPackages, setLoadingPackages] = useState(true);
 
   const { themeName, theme } = useContext(ThemeContext);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -35,35 +35,27 @@ export default function PaywallModal({ visible, onClose }) {
     availablePackages,
   } = useContext(SubscriptionContext);
 
-  // Check internet connection on modal open
   useEffect(() => {
     if (!visible) return;
-
     const checkConnection = async () => {
-      const state = await NetInfo.fetch();
-      if (!state.isConnected) {
+      try {
+        await fetch('https://www.google.com/generate_204', { method: 'HEAD' });
+        setHasInternet(true);
+        setLoadingPackages(true);
+        await fetchOfferings();
+        setLoadingPackages(false);
+      } catch (e) {
         setHasInternet(false);
         Alert.alert(
           'No Internet Connection',
           'Please check your connection and try again.',
           [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-              onPress: onClose,
-            },
-            {
-              text: 'Try Again',
-              onPress: () => checkConnection(),
-            },
+            { text: 'Cancel', style: 'cancel', onPress: onClose },
+            { text: 'Try Again', onPress: () => checkConnection() },
           ]
         );
-      } else {
-        setHasInternet(true);
-        fetchOfferings();
       }
     };
-
     checkConnection();
   }, [visible]);
 
@@ -89,7 +81,7 @@ export default function PaywallModal({ visible, onClose }) {
         onClose();
       }
     } catch (e) {
-      if (!e.userCancelled) console.warn('❌ Purchase failed:', e);
+      Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -99,10 +91,13 @@ export default function PaywallModal({ visible, onClose }) {
     try {
       const info = await restorePurchases();
       if (info?.entitlements?.active?.Premium) {
+        Alert.alert('Restored', 'Your subscription has been successfully restored.');
         onClose();
+      } else {
+        Alert.alert('No Subscription', 'No active subscription found to restore.');
       }
     } catch (e) {
-      console.warn('❌ Restore failed:', e);
+      Alert.alert('Restore Failed', 'Something went wrong during restore.');
     }
   };
 
@@ -112,23 +107,46 @@ export default function PaywallModal({ visible, onClose }) {
       : require('../assets/onboarding/lightpaywall.png');
 
   const plans = {
-    yearly: {
-      title: 'Yearly Access',
-      price: availablePackages.yearly?.product.priceString || '',
-      sub: availablePackages.yearly?.product.pricePerWeekString
-        ? `${availablePackages.yearly.product.pricePerWeekString} per week`
-        : '',
-      badge: 'SAVE 85%',
-    },
-    weekly: {
-      title: 'Weekly Access',
-      price: availablePackages.weekly?.product.priceString || '',
-      sub:
-        availablePackages.weekly?.product.introPrice?.price === 0
-          ? '3 days free trial'
-          : '',
-    },
+    yearly: (() => {
+      const yearly = availablePackages.yearly?.product;
+      const weekly = availablePackages.weekly?.product;
+
+      if (!yearly || !weekly) return null;
+
+      const yearlyPrice = parseFloat(yearly.price);
+      const weeklyPrice = parseFloat(weekly.price);
+      const currency = yearly.currencyCode;
+      const weeklyRate = (yearlyPrice / 52).toFixed(2);
+      const discount =
+        weeklyPrice && yearlyPrice
+          ? Math.round(
+              ((weeklyPrice * 52 - yearlyPrice) / (weeklyPrice * 52)) * 100
+            )
+          : 0;
+
+      return {
+        title: 'Yearly Access',
+        price: `billed annualy at ${currency} ${yearlyPrice} per year`,
+        sub: `${currency} ${weeklyRate} per week`,
+        badge: discount > 0 ? `SAVE ${discount}%` : null,
+      };
+    })(),
+
+    weekly: (() => {
+      const weekly = availablePackages.weekly?.product;
+      const currency = weekly?.currencyCode;
+      const weeklyPrice = parseFloat(weekly?.price || 0);
+      const introFree =
+        weekly?.introPrice?.price === 0 ? '3 days free trial' : null;
+      return {
+        title: 'Weekly Access',
+        price: `then ${currency} ${weeklyPrice.toFixed(2)} per week`,
+        sub: introFree,
+        badge: null,
+      };
+    })(),
   };
+
 
   useEffect(() => {
     Animated.loop(
@@ -149,6 +167,16 @@ export default function PaywallModal({ visible, onClose }) {
 
   if (!hasInternet) return null;
 
+  if (loadingPackages) {
+    return (
+      <Modal visible={visible} animationType="slide" transparent>
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color="#10B981" />
+        </View>
+      </Modal>
+    );
+  }
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
@@ -156,21 +184,10 @@ export default function PaywallModal({ visible, onClose }) {
       </TouchableOpacity>
 
       <ImageBackground source={backgroundImage} style={styles.background}>
-        <View
-          style={[
-            styles.overlay,
-            {
-              backgroundColor: themeName === 'dark' ? '#0f0f0fcc' : '#ffffffdd',
-            },
-          ]}
-        >
+        <View style={[styles.overlay, { backgroundColor: themeName === 'dark' ? '#0f0f0fcc' : '#ffffffdd' }]}>
           <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-            <Text style={[styles.title, { color: theme.text }]}>
-              Upgrade to Premium
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.text }]}>
-              Unlock all features and scan with full power.
-            </Text>
+            <Text style={[styles.title, { color: theme.text }]}>Upgrade to Premium</Text>
+            <Text style={[styles.subtitle, { color: theme.text }]}>Unlock all features and scan with full power.</Text>
 
             <View style={styles.stars}>
               {Array(5).fill(0).map((_, i) => (
@@ -187,6 +204,7 @@ export default function PaywallModal({ visible, onClose }) {
 
             <View style={styles.plans}>
               {Object.entries(plans).map(([key, plan]) => {
+                if (!plan) return null;
                 const isSelected = selectedPlan === key;
                 return (
                   <TouchableOpacity
@@ -209,13 +227,9 @@ export default function PaywallModal({ visible, onClose }) {
                         size={22}
                         color={isSelected ? '#10B981' : theme.text}
                       />
-                      <Text style={[styles.planTitle, { color: theme.text }]}>
-                        {plan.title}
-                      </Text>
+                      <Text style={[styles.planTitle, { color: theme.text }]}>{plan.title}</Text>
                     </View>
-                    <Text style={[styles.planPrice, { color: theme.text }]}>
-                      {plan.sub}
-                    </Text>
+                    {plan.sub && <Text style={[styles.planPrice, { color: theme.text }]}>{plan.sub}</Text>}
                     <Text style={styles.planSub}>{plan.price}</Text>
                     {plan.badge && (
                       <View style={styles.badge}>
@@ -227,21 +241,9 @@ export default function PaywallModal({ visible, onClose }) {
               })}
             </View>
 
-            <Animated.View
-              style={[
-                styles.continueBtnWrapper,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.continueBtn}
-                activeOpacity={0.8}
-                onPress={handlePurchase}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
+            <Animated.View style={[styles.continueBtnWrapper, { transform: [{ scale: pulseAnim }] }]}>
+              <TouchableOpacity style={styles.continueBtn} activeOpacity={0.8} onPress={handlePurchase} disabled={loading}>
+                {loading ? <ActivityIndicator color="#fff" /> : (
                   <Text style={styles.continueText}>
                     {selectedPlan === 'weekly' ? 'Start Free Trial' : 'Continue'}
                   </Text>
@@ -250,10 +252,10 @@ export default function PaywallModal({ visible, onClose }) {
             </Animated.View>
 
             <View style={styles.footerLinks}>
-              <TouchableOpacity onPress={() => Linking.openURL('https://yourdomain.com/terms')}>
+              <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/terms')}>
                 <Text style={styles.footerText}>Terms of Use</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => Linking.openURL('https://yourdomain.com/privacy')}>
+              <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/privacy')}>
                 <Text style={styles.footerText}>Privacy Policy</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleRestore}>
@@ -276,17 +278,10 @@ function Feature({ icon, text, theme }) {
   );
 }
 
-
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width,
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-  },
+  background: { flex: 1, width, height },
+  overlay: { flex: 1, justifyContent: 'center' },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000000aa' },
   closeBtn: {
     position: 'absolute',
     top: 40,
@@ -302,11 +297,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     alignItems: 'center',
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 6,
-    fontFamily: 'Lato-BoldItalic',
-  },
+  title: { fontSize: 24, marginBottom: 6, fontFamily: 'Lato-BoldItalic' },
   subtitle: {
     fontSize: 14,
     color: '#94A3B8',
@@ -314,31 +305,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Lato-Regular',
   },
-  stars: {
-    flexDirection: 'row',
-    marginBottom: 24,
-  },
-  features: {
-    width: '60%',
-    marginBottom: 30,
-    alignSelf: 'center',
-  },
-  feature: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  featureIcon: {
-    marginRight: 10,
-    width: 24,
-  },
-  featureText: {
-    fontSize: 18,
-    fontFamily: 'Lato-Bold',
-  },
-  plans: {
-    width: '100%',
-  },
+  stars: { flexDirection: 'row', marginBottom: 24 },
+  features: { width: '60%', marginBottom: 30, alignSelf: 'center' },
+  feature: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
+  featureIcon: { marginRight: 10, width: 24 },
+  featureText: { fontSize: 18, fontFamily: 'Lato-Bold' },
+  plans: { width: '100%' },
   planCard: {
     borderWidth: 1.5,
     borderRadius: 16,
@@ -349,25 +321,10 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 4,
   },
-  planHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  planTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginLeft: 10,
-  },
-  planPrice: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  planSub: {
-    color: '#94A3B8',
-    fontSize: 13,
-  },
+  planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  planTitle: { fontSize: 16, fontWeight: '700', marginLeft: 10 },
+  planPrice: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
+  planSub: { color: '#94A3B8', fontSize: 14, },
   badge: {
     position: 'absolute',
     top: 10,
@@ -377,16 +334,8 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 20,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  continueBtnWrapper: {
-    marginTop: 18,
-    alignItems: 'center',
-    width: '100%',
-  },
+  badgeText: { fontSize: 10, fontWeight: '700', color: '#111827' },
+  continueBtnWrapper: { marginTop: 18, alignItems: 'center', width: '100%' },
   continueBtn: {
     backgroundColor: '#10B981',
     borderRadius: 28,
@@ -395,11 +344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 2,
   },
-  continueText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
+  continueText: { color: '#fff', fontSize: 18, fontWeight: '700' },
   footerLinks: {
     marginTop: 40,
     flexDirection: 'row',

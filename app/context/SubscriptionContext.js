@@ -11,10 +11,11 @@ export const SubscriptionProvider = ({ children }) => {
   const [availablePackages, setAvailablePackages] = useState({
     yearly: null,
     weekly: null,
+    oneTime: null,
   });
 
   const STORAGE_KEY = '@isPremium';
-  const ENTITLEMENT_ID = 'Premium'; // should match RevenueCat
+  const ENTITLEMENT_ID = 'Premium';
 
   useEffect(() => {
     const initializeRevenueCat = async () => {
@@ -31,16 +32,15 @@ export const SubscriptionProvider = ({ children }) => {
           return;
         }
 
-        // Step 1: Load cached premium state immediately
         const cachedPremium = await AsyncStorage.getItem(STORAGE_KEY);
         if (cachedPremium !== null) {
           setIsPremium(JSON.parse(cachedPremium));
         }
+
         await Purchases.configure({ apiKey });
 
-        // Step 3: Fetch customer info and offerings
         const info = await Purchases.getCustomerInfo();
-        handleCustomerInfo(info);
+        await handleCustomerInfo(info);
         await fetchOfferings();
       } catch (err) {
         console.warn('❌ RevenueCat init error:', err.message);
@@ -88,23 +88,45 @@ export const SubscriptionProvider = ({ children }) => {
     }
   };
 
-  const fetchOfferings = async () => {
+  const logOutRevenueCat = async () => {
     try {
-      const offerings = await Purchases.getOfferings();
-      const current = offerings.current;
-
-      if (current?.availablePackages?.length) {
-        const all = {};
-        for (let pkg of current.availablePackages) {
-          if (pkg.identifier === '$rc_weekly') all.weekly = pkg;
-          if (pkg.identifier === '$rc_annual') all.yearly = pkg;
-        }
-        setAvailablePackages(all);
-      }
+      await Purchases.logOut();
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      setIsPremium(false);
+      setCustomerInfo(null);
     } catch (e) {
-      console.warn('❌ Failed to fetch packages:', e.message);
+      console.warn('❌ Logout error:', e.message);
     }
   };
+
+  const forceRefresh = async () => {
+    try {
+      const info = await Purchases.getCustomerInfo();
+      await handleCustomerInfo(info);
+    } catch (e) {
+      console.warn('❌ Force refresh failed:', e.message);
+    }
+  };
+
+const fetchOfferings = async () => {
+  try {
+    const offerings = await Purchases.getOfferings();
+    if (!offerings?.all) return; 
+    const all = {};
+    const defaultPkgs = offerings.all.default?.availablePackages || [];
+    for (let pkg of defaultPkgs) {
+      if (pkg.identifier === '$rc_weekly') all.weekly = pkg;
+      if (pkg.identifier === '$rc_annual') all.yearly = pkg;
+    }
+    const otoPkgs = offerings.all.oto?.availablePackages || [];
+    for (let pkg of otoPkgs) {
+      if (pkg.identifier === '$rc_annual') all.oneTime = pkg;
+    }
+    setAvailablePackages(all);
+  } catch (e) {
+    console.warn('❌ Failed to fetch packages:', e.message);
+  }
+};
 
   return (
     <SubscriptionContext.Provider
@@ -116,6 +138,8 @@ export const SubscriptionProvider = ({ children }) => {
         refreshCustomerInfo,
         fetchOfferings,
         availablePackages,
+        logOutRevenueCat,
+        forceRefresh,
       }}
     >
       {children}
