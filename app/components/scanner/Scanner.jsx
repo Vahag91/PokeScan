@@ -39,6 +39,7 @@ export default function ScannerScreen({ navigation }) {
 
   const { isPremium } = useContext(SubscriptionContext);
   const device = useCameraDevice('back');
+
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function ScannerScreen({ navigation }) {
             [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Open Settings', onPress: () => Linking.openSettings() },
-            ]
+            ],
           );
         }
         setPermissionStatus(newStatus);
@@ -66,7 +67,7 @@ export default function ScannerScreen({ navigation }) {
 
   const onScan = async () => {
     if (!overlayLayout) return;
-    if(loading) return
+    if (loading) return;
 
     if (!isPremium) {
       const exceeded = await hasExceededLimit();
@@ -86,48 +87,60 @@ export default function ScannerScreen({ navigation }) {
       setNoResult(false);
 
       const photo = await cameraRef.current.takePhoto();
-      const uri = photo.path.startsWith('file://') ? photo.path : `file://${photo.path}`;
+
+      const uri = photo.path.startsWith('file://')
+        ? photo.path
+        : `file://${photo.path}`;
 
       const scaleX = (photo.width / SCREEN_WIDTH) * 0.8;
       const scaleY = photo.height / SCREEN_HEIGHT;
+
       const box = {
-        x: Math.round(overlayLayout.x * scaleX) * 0.4,
-        y: -Math.round(overlayLayout.y * scaleY) * 0.8 + 900,
+        x: Math.max(0, Math.round(overlayLayout.x * scaleX * 0.4)),
+        y: Math.max(0, -Math.round(overlayLayout.y * scaleY * 0.8) + 900),
         width: Math.round(overlayLayout.width * scaleX * 0.85),
-        height: Math.round(overlayLayout.height * scaleY) * 1.7 + 100,
+        height: Math.round(overlayLayout.height * scaleY * 1.7 + 100),
       };
 
       const targetWidth = 700;
       const aspectRatio = box.height / box.width;
       const targetHeight = Math.round(targetWidth * aspectRatio);
+
       const croppedPath = await PhotoManipulator.crop(
         uri,
         box,
         { width: targetWidth, height: targetHeight },
-        { format: 'webp', quality: '50%' }
+        'image/jpeg',
       );
+
       const fileExt = croppedPath.split('.').pop();
       const fileName = `scan-${Date.now()}.${fileExt}`;
       const fileData = await RNFS.readFile(croppedPath, 'base64');
 
+      const bodyPayload = {
+        fileName,
+        base64Image: fileData,
+      };
+
       const { data: dataFromEdge, error } = await supabase.functions.invoke(
         'classify-card',
         {
-          body: {
-            fileName,
-            base64Image: fileData,
-          },
-        }
+          body: bodyPayload,
+        },
       );
 
-      if (error) throw error;
+      if (error) {
+        console.error('[SCAN] classify-card error:', error);
+        throw error;
+      }
 
       setCardName(dataFromEdge.name);
+
       const matches = await fetchScannerCardFromSupabase(
         dataFromEdge.name,
         dataFromEdge.number,
         dataFromEdge.hp,
-        dataFromEdge.illustrator
+        dataFromEdge.illustrator,
       );
 
       if (matches?.length === 1) {
@@ -144,6 +157,7 @@ export default function ScannerScreen({ navigation }) {
         setNoResult(true);
       }
     } catch (e) {
+      // Alert.alert('Scan Failed', e?.message || 'Unexpected error');
       setCardName('Error');
       setNoResult(true);
     } finally {
@@ -170,10 +184,16 @@ export default function ScannerScreen({ navigation }) {
   if (permissionStatus === 'denied') {
     return (
       <SafeAreaView style={styles.center}>
-        <Ionicons name="camera-outline" size={64} color="#10B981" style={{ marginBottom: 16 }} />
+        <Ionicons
+          name="camera-outline"
+          size={64}
+          color="#10B981"
+          style={{ marginBottom: 16 }}
+        />
         <Text style={styles.permissionTitle}>Camera Access Needed</Text>
         <Text style={styles.permissionSubtitle}>
-          Please enable camera access in your device settings to scan Pokémon cards.
+          Please enable camera access in your device settings to scan Pokémon
+          cards.
         </Text>
 
         <View style={styles.permissionButtons}>
@@ -218,16 +238,6 @@ export default function ScannerScreen({ navigation }) {
                 We couldn't find a match for this scan. Try again with better
                 lighting or clearer framing.
               </Text>
-
-              <TouchableOpacity
-                onPress={onScan}
-                style={styles.retryButton}
-                disabled={loading}
-              >
-                <Text style={styles.retryButtonText}>
-                  {loading ? 'Scanning...' : 'Try Again'}
-                </Text>
-              </TouchableOpacity>
             </View>
           ) : null}
         </ScrollView>
@@ -254,7 +264,10 @@ export default function ScannerScreen({ navigation }) {
         )}
       </View>
 
-      <PaywallModal visible={showPaywall} onClose={() => setShowPaywall(false)} />
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -355,43 +368,42 @@ const styles = StyleSheet.create({
     fontFamily: 'Lato-Bold',
   },
   permissionTitle: {
-  fontSize: 20,
-  fontWeight: '700',
-  color: '#F1F5F9',
-  marginBottom: 8,
-  textAlign: 'center',
-  fontFamily: 'Lato-Bold',
-},
-permissionSubtitle: {
-  fontSize: 14,
-  color: '#94A3B8',
-  textAlign: 'center',
-  paddingHorizontal: 32,
-  lineHeight: 20,
-  marginBottom: 20,
-  fontFamily: 'Lato-Regular',
-},
-permissionButtons: {
-  flexDirection: 'row',
-  gap: 12,
-},
-openSettingsBtn: {
-  backgroundColor: '#10B981',
-  paddingVertical: 10,
-  paddingHorizontal: 20,
-  borderRadius: 24,
-},
-openSettingsText: {
-  color: '#fff',
-  fontWeight: '600',
-  fontSize: 14,
-  fontFamily: 'Lato-Bold',
-},
-tryAgainText: {
-  color: '#10B981',
-  fontWeight: '600',
-  fontSize: 14,
-  fontFamily: 'Lato-Bold',
-},
-
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#F1F5F9',
+    marginBottom: 8,
+    textAlign: 'center',
+    fontFamily: 'Lato-Bold',
+  },
+  permissionSubtitle: {
+    fontSize: 14,
+    color: '#94A3B8',
+    textAlign: 'center',
+    paddingHorizontal: 32,
+    lineHeight: 20,
+    marginBottom: 20,
+    fontFamily: 'Lato-Regular',
+  },
+  permissionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  openSettingsBtn: {
+    backgroundColor: '#10B981',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+  },
+  openSettingsText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'Lato-Bold',
+  },
+  tryAgainText: {
+    color: '#10B981',
+    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'Lato-Bold',
+  },
 });

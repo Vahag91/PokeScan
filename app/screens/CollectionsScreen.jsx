@@ -207,7 +207,7 @@ useFocusEffect(
       <PaywallModal
         visible={showPaywall}
         onClose={() => setShowPaywall(false)}
-      />
+      /> 
     </Animated.View>
   );
 }

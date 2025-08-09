@@ -136,7 +136,7 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
       : require('../assets/onboarding/lightpaywall.png');
 
   const plan = availablePackages.oneTime;
-  const price = plan?.product?.price;
+  const price = plan?.product?.price.toFixed(2);
   const currency = plan?.product?.currencyCode;
 
   if (!hasInternet) return null;
@@ -193,7 +193,7 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text style={styles.ctaText}>
-                      Upgrade Now – {currency} {price} per year
+                      Upgrade Now {currency} {price} per year
                     </Text>
                   )}
                 </TouchableOpacity>

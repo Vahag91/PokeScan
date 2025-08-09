@@ -16,22 +16,21 @@ end
 target 'cardScanner' do
   config = use_native_modules!
 
-use_react_native!(
-  :path => config[:reactNativePath],
-  :app_path => "#{Pod::Config.instance.installation_root}/..",
-  :fabric_enabled => false,        # Disable Fabric (new rendering)
-  :new_arch_enabled => false       # Disable Bridgeless (classic RN bridge)
-)
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :fabric_enabled => false,
+    :new_arch_enabled => false
+  )
 
   post_install do |installer|
-    # Standard React Native setup
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
     )
 
-    # ✅ Add this to fix arm64 simulator issues on M1/M2 Macs
+    # ✅ Fix for M1/M2 simulators
     installer.pods_project.build_configurations.each do |config|
       config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
     end

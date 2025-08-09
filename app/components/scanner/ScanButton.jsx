@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import {
   TouchableWithoutFeedback,
+  Pressable,
   Animated,
   StyleSheet,
   View,
@@ -140,27 +141,26 @@ export default function ScanButton({ loading, onPress }) {
     outputRange: [0.3, 0],
   });
 
-const playRipple = useCallback(() => {
-  rippleAnim.setValue(0);
-  Animated.timing(rippleAnim, {
-    toValue: 1,
-    duration: 700,
-    easing: Easing.out(Easing.quad),
-    useNativeDriver: true,
-  }).start();
-}, [rippleAnim]);
+  const playRipple = useCallback(() => {
+    rippleAnim.setValue(0);
+    Animated.timing(rippleAnim, {
+      toValue: 1,
+      duration: 700,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [rippleAnim]);
 
-const handlePress = useCallback(() => {
-  if (loading) return;
-  Vibration.vibrate(10);
-  playRipple();
-  onPress();
-}, [loading, onPress, playRipple]);
-
+  const handlePress = useCallback(() => {
+    if (loading) return;
+    Vibration.vibrate(10);
+    playRipple();
+    onPress();
+  }, [loading, onPress, playRipple]);
 
   const animatedFabStyle = {
     transform: [{ scale: scaleAnim }, { scale: pulseScale }],
-    opacity: loading ? 0.85 : 1,
+    opacity: loading  ? 0.85 : 1,
   };
 
   const animatedGlowStyle = {
@@ -178,15 +178,10 @@ const handlePress = useCallback(() => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handlePress} disabled={loading}>
+
       <View style={styles.container}>
-        {/* Radar ping effect */}
         <Animated.View style={[styles.ripple, animatedRippleStyle]} />
-
-        {/* Glow */}
         <Animated.View style={[styles.glow, animatedGlowStyle]} />
-
-        {/* Button */}
         <Animated.View style={[styles.fab, animatedFabStyle]}>
           <BlurView
             style={styles.blurCircle}
@@ -194,10 +189,12 @@ const handlePress = useCallback(() => {
             blurAmount={8}
             reducedTransparencyFallbackColor="#10B981"
           />
+              <Pressable onPress={handlePress} disabled={loading}>
           <Animated.Image source={ballIcon} style={[styles.icon, animatedIconStyle]} />
+            </Pressable>
         </Animated.View>
       </View>
-    </TouchableWithoutFeedback>
+  
   );
 }
 
@@ -246,6 +243,6 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     resizeMode: 'contain',
-    borderRadius: 40
+    borderRadius: 40,
   },
 });

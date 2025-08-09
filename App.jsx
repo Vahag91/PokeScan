@@ -71,7 +71,7 @@ export default function App() {
 
   const handleOnboardingDone = async () => {
     setFirstLaunch(false);
-    const isPremiumUser = await AsyncStorage.getItem('@isPremium');
+    const isPremiumUser = await AsyncStorage.getItem('@isPremium');    
     if (isPremiumUser === 'true') return;
     const seenPaywall = await AsyncStorage.getItem('@seenPaywall');
     const seenOTO = await AsyncStorage.getItem('@seenOTO');

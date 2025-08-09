@@ -74,19 +74,25 @@ export default function DrawerModal({ visible, onClose }) {
 
         <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>Settings</Text>
 
-        {!isPremium && (
-          <>
-            <TouchableOpacity onPress={() => setShowPaywall(true)} style={styles.drawerItem}>
-              <Ionicons name="diamond-outline" size={20} color={theme.text} style={styles.drawerIcon} />
-              <Text style={[styles.drawerLabel, { color: theme.text }]}>Try Premium</Text>
-            </TouchableOpacity>
+ {!isPremium ? (
+  <>
+    <TouchableOpacity onPress={() => setShowPaywall(true)} style={styles.drawerItem}>
+      <Ionicons name="diamond-outline" size={20} color={theme.text} style={styles.drawerIcon} />
+      <Text style={[styles.drawerLabel, { color: theme.text }]}>Try Premium</Text>
+    </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleRestore} style={styles.drawerItem}>
-              <Ionicons name="refresh-circle-outline" size={20} color={theme.text} style={styles.drawerIcon} />
-              <Text style={[styles.drawerLabel, { color: theme.text }]}>Restore Purchase</Text>
-            </TouchableOpacity>
-          </>
-        )}
+    <TouchableOpacity onPress={handleRestore} style={styles.drawerItem}>
+      <Ionicons name="refresh-circle-outline" size={20} color={theme.text} style={styles.drawerIcon} />
+      <Text style={[styles.drawerLabel, { color: theme.text }]}>Restore Purchase</Text>
+    </TouchableOpacity>
+  </>
+) : (
+  <View style={styles.drawerItem}>
+    <Ionicons name="shield-checkmark-outline" size={20} color={theme.text} style={styles.drawerIcon} />
+    <Text style={[styles.drawerLabel, { color: theme.text }]}>You are Premium!</Text>
+  </View>
+)}
+
 
         <TouchableOpacity onPress={handleRateUs} style={styles.drawerItem}>
           <Ionicons name="star-outline" size={20} color={theme.text} style={styles.drawerIcon} />

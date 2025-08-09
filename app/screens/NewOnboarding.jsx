@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { ThemeContext } from '../context/ThemeContext';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const getSlides = (theme) => [
   {
@@ -229,47 +229,46 @@ const styles = StyleSheet.create({
   overlayContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingBottom: 50,
-    paddingTop: 60,
+    paddingTop: height * 0.04,
+    paddingBottom: height * 0.04,
   },
   slide: {
     width,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+    justifyContent: 'flex-end',
+    paddingHorizontal: width * 0.06,
     backfaceVisibility: 'hidden',
   },
   image: {
     width: width * 0.7,
-    height: 400,
-    marginBottom: 30,
+    height: height * 0.6,
+    marginBottom: 20,
   },
   imageLarger: {
     width: width * 0.95,
-    height: 450,
+    height: height * 0.65,
   },
   title: {
-    fontSize: 28,
+    fontSize: width < 768 ? 26 : 34,
     fontWeight: '800',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: width < 768 ? 16 : 20,
     textAlign: 'center',
     paddingHorizontal: 16,
-    marginBottom: 20,
+    marginBottom: 10,
     lineHeight: 24,
   },
   button: {
     paddingVertical: 16,
-    marginHorizontal: 40,
+    marginHorizontal: width * 0.1,
     borderRadius: 30,
     alignItems: 'center',
-    marginTop: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -279,7 +278,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: '700',
-    fontSize: 18,
+    fontSize: width < 768 ? 18 : 22,
     letterSpacing: 0.5,
   },
   dotsContainer: {
@@ -287,7 +286,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 6,
-    height: 16,
+    height: 20,
   },
   dot: {
     width: 10,

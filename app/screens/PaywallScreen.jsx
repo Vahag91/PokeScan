@@ -52,7 +52,7 @@ export default function PaywallModal({ visible, onClose }) {
           [
             { text: 'Cancel', style: 'cancel', onPress: onClose },
             { text: 'Try Again', onPress: () => checkConnection() },
-          ]
+          ],
         );
       }
     };
@@ -75,12 +75,20 @@ export default function PaywallModal({ visible, onClose }) {
     const selectedPkg = availablePackages[selectedPlan];
     if (!selectedPkg) return;
     setLoading(true);
+
     try {
       const result = await purchasePackage(selectedPkg);
       if (result?.customerInfo?.entitlements?.active?.Premium) {
         onClose();
       }
     } catch (e) {
+      if (e.message && e.message.includes('Purchase was cancelled')) {
+        Alert.alert(
+          'Purchase Canceled',
+          'The purchase process was interrupted. You can try again anytime.',
+        );
+        return;
+      }
       Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -91,10 +99,16 @@ export default function PaywallModal({ visible, onClose }) {
     try {
       const info = await restorePurchases();
       if (info?.entitlements?.active?.Premium) {
-        Alert.alert('Restored', 'Your subscription has been successfully restored.');
+        Alert.alert(
+          'Restored',
+          'Your subscription has been successfully restored.',
+        );
         onClose();
       } else {
-        Alert.alert('No Subscription', 'No active subscription found to restore.');
+        Alert.alert(
+          'No Subscription',
+          'No active subscription found to restore.',
+        );
       }
     } catch (e) {
       Alert.alert('Restore Failed', 'Something went wrong during restore.');
@@ -110,7 +124,6 @@ export default function PaywallModal({ visible, onClose }) {
     yearly: (() => {
       const yearly = availablePackages.yearly?.product;
       const weekly = availablePackages.weekly?.product;
-
       if (!yearly || !weekly) return null;
 
       const yearlyPrice = parseFloat(yearly.price);
@@ -120,13 +133,15 @@ export default function PaywallModal({ visible, onClose }) {
       const discount =
         weeklyPrice && yearlyPrice
           ? Math.round(
-              ((weeklyPrice * 52 - yearlyPrice) / (weeklyPrice * 52)) * 100
+              ((weeklyPrice * 52 - yearlyPrice) / (weeklyPrice * 52)) * 100,
             )
           : 0;
 
       return {
         title: 'Yearly Access',
-        price: `billed annualy at ${currency} ${yearlyPrice} per year`,
+        price: `billed annualy at ${currency} ${yearlyPrice.toFixed(
+          2,
+        )} per year`,
         sub: `${currency} ${weeklyRate} per week`,
         badge: discount > 0 ? `SAVE ${discount}%` : null,
       };
@@ -147,7 +162,6 @@ export default function PaywallModal({ visible, onClose }) {
     })(),
   };
 
-
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -161,7 +175,7 @@ export default function PaywallModal({ visible, onClose }) {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, [pulseAnim]);
 
@@ -184,22 +198,54 @@ export default function PaywallModal({ visible, onClose }) {
       </TouchableOpacity>
 
       <ImageBackground source={backgroundImage} style={styles.background}>
-        <View style={[styles.overlay, { backgroundColor: themeName === 'dark' ? '#0f0f0fcc' : '#ffffffdd' }]}>
-          <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-            <Text style={[styles.title, { color: theme.text }]}>Upgrade to Premium</Text>
-            <Text style={[styles.subtitle, { color: theme.text }]}>Unlock all features and scan with full power.</Text>
+        <View
+          style={[
+            styles.overlay,
+            {
+              backgroundColor: themeName === 'dark' ? '#0f0f0fcc' : '#ffffffdd',
+            },
+          ]}
+        >
+          <ScrollView
+            contentContainerStyle={styles.container}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={[styles.title, { color: theme.text }]}>
+              Upgrade to Premium
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.text }]}>
+              Unlock all features and scan with full power.
+            </Text>
 
             <View style={styles.stars}>
-              {Array(5).fill(0).map((_, i) => (
-                <Ionicons key={i} name="star" size={34} color="#fbbf24" />
-              ))}
+              {Array(5)
+                .fill(0)
+                .map((_, i) => (
+                  <Ionicons key={i} name="star" size={34} color="#fbbf24" />
+                ))}
             </View>
 
             <View style={styles.features}>
-              <Feature icon="scan-outline" text="Unlimited Card Scans" theme={theme} />
-              <Feature icon="filter-outline" text="Advanced Search Filters" theme={theme} />
-              <Feature icon="albums-outline" text="Unlimited Collections" theme={theme} />
-              <Feature icon="cash-outline" text="Live Market Prices" theme={theme} />
+              <Feature
+                icon="scan-outline"
+                text="Unlimited Card Scans"
+                theme={theme}
+              />
+              <Feature
+                icon="filter-outline"
+                text="Advanced Search Filters"
+                theme={theme}
+              />
+              <Feature
+                icon="albums-outline"
+                text="Unlimited Collections"
+                theme={theme}
+              />
+              <Feature
+                icon="cash-outline"
+                text="Live Market Prices"
+                theme={theme}
+              />
             </View>
 
             <View style={styles.plans}>
@@ -223,13 +269,21 @@ export default function PaywallModal({ visible, onClose }) {
                   >
                     <View style={styles.planHeader}>
                       <Ionicons
-                        name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                        name={
+                          isSelected ? 'checkmark-circle' : 'ellipse-outline'
+                        }
                         size={22}
                         color={isSelected ? '#10B981' : theme.text}
                       />
-                      <Text style={[styles.planTitle, { color: theme.text }]}>{plan.title}</Text>
+                      <Text style={[styles.planTitle, { color: theme.text }]}>
+                        {plan.title}
+                      </Text>
                     </View>
-                    {plan.sub && <Text style={[styles.planPrice, { color: theme.text }]}>{plan.sub}</Text>}
+                    {plan.sub && (
+                      <Text style={[styles.planPrice, { color: theme.text }]}>
+                        {plan.sub}
+                      </Text>
+                    )}
                     <Text style={styles.planSub}>{plan.price}</Text>
                     {plan.badge && (
                       <View style={styles.badge}>
@@ -241,21 +295,43 @@ export default function PaywallModal({ visible, onClose }) {
               })}
             </View>
 
-            <Animated.View style={[styles.continueBtnWrapper, { transform: [{ scale: pulseAnim }] }]}>
-              <TouchableOpacity style={styles.continueBtn} activeOpacity={0.8} onPress={handlePurchase} disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : (
+            <Animated.View
+              style={[
+                styles.continueBtnWrapper,
+                { transform: [{ scale: pulseAnim }] },
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.continueBtn}
+                activeOpacity={0.8}
+                onPress={handlePurchase}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
                   <Text style={styles.continueText}>
-                    {selectedPlan === 'weekly' ? 'Start Free Trial' : 'Continue'}
+                    {selectedPlan === 'weekly'
+                      ? 'Start Free Trial'
+                      : 'Continue'}
                   </Text>
                 )}
               </TouchableOpacity>
             </Animated.View>
 
             <View style={styles.footerLinks}>
-              <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/terms')}>
+              <TouchableOpacity
+                onPress={() =>
+                  Linking.openURL('https://www.tortnisoft.com/terms')
+                }
+              >
                 <Text style={styles.footerText}>Terms of Use</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/privacy')}>
+              <TouchableOpacity
+                onPress={() =>
+                  Linking.openURL('https://www.tortnisoft.com/privacy')
+                }
+              >
                 <Text style={styles.footerText}>Privacy Policy</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleRestore}>
@@ -272,7 +348,12 @@ export default function PaywallModal({ visible, onClose }) {
 function Feature({ icon, text, theme }) {
   return (
     <View style={styles.feature}>
-      <Ionicons name={icon} size={20} color="#10B981" style={styles.featureIcon} />
+      <Ionicons
+        name={icon}
+        size={20}
+        color="#10B981"
+        style={styles.featureIcon}
+      />
       <Text style={[styles.featureText, { color: theme.text }]}>{text}</Text>
     </View>
   );
@@ -281,7 +362,12 @@ function Feature({ icon, text, theme }) {
 const styles = StyleSheet.create({
   background: { flex: 1, width, height },
   overlay: { flex: 1, justifyContent: 'center' },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000000aa' },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000aa',
+  },
   closeBtn: {
     position: 'absolute',
     top: 40,
@@ -297,7 +383,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     alignItems: 'center',
   },
-  title: { fontSize: 24, marginBottom: 6, fontFamily: 'Lato-BoldItalic' },
+  title: { fontSize: 24, marginBottom: 6, fontFamily: 'Lato-Bold' },
   subtitle: {
     fontSize: 14,
     color: '#94A3B8',
@@ -324,7 +410,7 @@ const styles = StyleSheet.create({
   planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   planTitle: { fontSize: 16, fontWeight: '700', marginLeft: 10 },
   planPrice: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
-  planSub: { color: '#94A3B8', fontSize: 14, },
+  planSub: { color: '#94A3B8', fontSize: 14 },
   badge: {
     position: 'absolute',
     top: 10,
