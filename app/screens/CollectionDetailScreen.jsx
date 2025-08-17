@@ -19,12 +19,11 @@ import {
   getDBConnection,
   getCardsByCollectionId,
   removeCardFromCollectionByRowId,
-  addCardToCollection,
   removeAllCopiesOfCard,
+  duplicateOneCardRow
 } from '../lib/db';
 import CardGridItem from '../components/collections/CardGridItem';
 import AddCardItem from '../components/collections/AddCardItem';
-import { normalizeCardFromDb } from '../utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
 
@@ -46,6 +45,8 @@ export default function CollectionDetailScreen() {
   const [selectedSet, setSelectedSet] = useState(null);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [updateKey, setUpdateKey] = useState(0);
+console.log(cards,"cards in collectiondetailscreen");
+console.log(collection,"collectionInfo in collectiondetailscreen");
 
   const loadCollectionInfo = useCallback(async () => {
     const db = await getDBConnection();
@@ -72,24 +73,56 @@ export default function CollectionDetailScreen() {
     }, [loadCards]),
   );
 
+  // const handleQuantityChange = async (item, newQty) => {
+  //   console.log(item,"item in handleQuantityChange");
+    
+
+  //   if (newQty < 1) return;
+  //   const db = await getDBConnection();
+  //   const currentQty = item.quantity;
+
+  //   if (newQty > currentQty) {
+  //     const results = await db.executeSql(
+  //       `SELECT * FROM collection_cards WHERE cardId = ? AND collectionId = ? LIMIT 1`,
+  //       [item.cardId, item.collectionId],
+  //     );
+  //     const fullCard = results[0].rows.item(0);
+  //     if (fullCard) {
+  //       const normalizedCard = normalizeCardFromDb(fullCard);
+  //       console.log(normalizedCard,"normalizedCard in handleQuantityChange");
+        
+  //       await addCardToCollection(normalizedCard, fullCard.collectionId);
+  //     }
+  //   } else {
+  //     const results = await db.executeSql(
+  //       `SELECT rowid FROM collection_cards WHERE cardId = ? AND collectionId = ? LIMIT 1`,
+  //       [item.cardId, item.collectionId],
+  //     );
+  //     const row = results[0].rows.item(0);
+  //     if (row?.rowid) {
+  //       await removeCardFromCollectionByRowId(db, row.rowid, item.collectionId);
+  //     }
+  //   }
+
+  //   loadCards();
+  // };
+
   const handleQuantityChange = async (item, newQty) => {
     if (newQty < 1) return;
+  
     const db = await getDBConnection();
     const currentQty = item.quantity;
-
+  
     if (newQty > currentQty) {
-      const results = await db.executeSql(
-        `SELECT * FROM collection_cards WHERE cardId = ? AND collectionId = ? LIMIT 1`,
-        [item.cardId, item.collectionId],
-      );
-      const fullCard = results[0].rows.item(0);
-      if (fullCard) {
-        const normalizedCard = normalizeCardFromDb(fullCard);
-        await addCardToCollection(normalizedCard, fullCard.collectionId);
-      }
+      // Add one more copy by duplicating an existing row
+      await duplicateOneCardRow(db, item.cardId, item.collectionId);
     } else {
+      // Remove one copy (deterministic)
       const results = await db.executeSql(
-        `SELECT rowid FROM collection_cards WHERE cardId = ? AND collectionId = ? LIMIT 1`,
+        `SELECT rowid FROM collection_cards
+         WHERE cardId = ? AND collectionId = ?
+         ORDER BY rowid DESC
+         LIMIT 1`,
         [item.cardId, item.collectionId],
       );
       const row = results[0].rows.item(0);
@@ -97,15 +130,16 @@ export default function CollectionDetailScreen() {
         await removeCardFromCollectionByRowId(db, row.rowid, item.collectionId);
       }
     }
-
-    loadCards();
+  
+    await loadCards();
   };
-
+  
   const handleDeleteAllCopies = async item => {
     const db = await getDBConnection();
     await removeAllCopiesOfCard(db, item.cardId, item.collectionId);
-    loadCards();
+    await loadCards();
   };
+
 
   const uniqueSeries = useMemo(() => {
     const seriesSet = new Set(
@@ -157,8 +191,9 @@ export default function CollectionDetailScreen() {
     setSelectedSeries(null);
   };
 
+
   const renderHeader = () => (
-    <View>
+    <View key={collectionInfo?.updatedAt || updateKey}>
       <View style={styles.headerWrapper}>
         <Text style={[globalStyles.subheading, { color: theme.text }]}>
           {collectionInfo.name}
@@ -342,17 +377,18 @@ export default function CollectionDetailScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <FlatList
-          data={[...groupedCards]}
-          keyExtractor={item => item.cardId || 'add-button'}
-          renderItem={renderItem}
-          numColumns={2}
-          ListHeaderComponent={renderHeader}
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.list}
-          extraData={updateKey}
-          showsVerticalScrollIndicator={false}
-        />
+<FlatList
+  data={[...groupedCards]}
+  keyExtractor={item => item.cardId || 'add-button'}
+  renderItem={renderItem}
+  numColumns={2}
+  ListHeaderComponent={renderHeader}
+  columnWrapperStyle={styles.gridRow}
+  contentContainerStyle={styles.list}
+  extraData={updateKey + (collectionInfo?.updatedAt || '')}
+  showsVerticalScrollIndicator={false}
+/>
+
       )}
     </View>
   );

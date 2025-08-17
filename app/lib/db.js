@@ -313,6 +313,42 @@ export async function getAllCollectionsWithPreviewCards(db) {
   }
 }
 
+// Duplicate one existing collection_cards row (keeps same imagePath, setLogo, etc.)
+export async function duplicateOneCardRow(db, cardId, collectionId) {
+  const newId = uuid.v4();
+  const now = new Date().toISOString();
+
+  // Copy any existing row for that (collectionId, cardId) pair
+  await db.executeSql(
+    `
+    INSERT INTO collection_cards (
+      id, collectionId, cardId, addedAt,
+      customName, quantity, language, edition, notes, imagePath,
+      name, hp, rarity, types, subtypes,
+      setId, setName, seriesName, setLogo, releaseDate,
+      attacks, abilities, weaknesses, resistances, retreatCost,
+      artist, flavorText, number, tcgplayerUrl, cardmarketUrl,
+      tcgplayerPrices, cardmarketPrices
+    )
+    SELECT
+      ?, collectionId, cardId, ?,
+      customName, 1, language, edition, notes, imagePath,
+      name, hp, rarity, types, subtypes,
+      setId, setName, seriesName, setLogo, releaseDate,
+      attacks, abilities, weaknesses, resistances, retreatCost,
+      artist, flavorText, number, tcgplayerUrl, cardmarketUrl,
+      tcgplayerPrices, cardmarketPrices
+    FROM collection_cards
+    WHERE collectionId = ? AND cardId = ?
+    LIMIT 1
+    `,
+    [newId, now, collectionId, cardId]
+  );
+
+  await updateCollectionTotalValue(db, collectionId);
+}
+
+
 export async function getCardsForCollection(db, collectionId) {
   try {
     const [results] = await db.executeSql(
@@ -400,27 +436,45 @@ export async function updateCollectionTotalValue(db, collectionId) {
       [collectionId],
     );
 
+    const pickFirstNumber = (arr) => {
+      for (const v of arr) {
+        const n = parseFloat(v);
+        if (!Number.isNaN(n)) return n;
+      }
+      return NaN;
+    };
+
+    const extractTcgPrice = (tcgRaw) => {
+      const tcg = safeJsonParse(tcgRaw);
+      const src = tcg?.prices ?? tcg ?? {};
+      return pickFirstNumber([
+        src?.normal?.market,
+        src?.holofoil?.market,
+        src?.reverseHolofoil?.market,
+        src?.firstEditionHolofoil?.market,
+        src?.unlimitedHolofoil?.market,
+      ]);
+    };
+
+    const extractCmkPrice = (cmkRaw) => {
+      const cmk = safeJsonParse(cmkRaw);
+      const src = cmk?.prices ?? cmk ?? {};
+      return pickFirstNumber([
+        src?.averageSellPrice,
+        src?.trendPrice,
+        src?.lowPrice,
+      ]);
+    };
+
     let total = 0;
     const rows = results.rows;
 
     for (let i = 0; i < rows.length; i++) {
       const quantity = rows.item(i).quantity || 1;
 
-      const tcg = safeJsonParse(rows.item(i).tcgplayerPrices);
-      const cmk = safeJsonParse(rows.item(i).cardmarketPrices);
-
-      // Try TCGPlayer prices first
-      let price =
-        parseFloat(tcg?.normal?.market) ||
-        parseFloat(tcg?.holofoil?.market) ||
-        parseFloat(tcg?.reverseHolofoil?.market);
-
-      // If no valid TCG price, fallback to Cardmarket
-      if (isNaN(price)) {
-        price =
-          parseFloat(cmk?.averageSellPrice) ||
-          parseFloat(cmk?.trendPrice) ||
-          parseFloat(cmk?.lowPrice);
+      let price = extractTcgPrice(rows.item(i).tcgplayerPrices);
+      if (Number.isNaN(price)) {
+        price = extractCmkPrice(rows.item(i).cardmarketPrices);
       }
 
       if (!isNaN(price)) {
@@ -432,9 +486,10 @@ export async function updateCollectionTotalValue(db, collectionId) {
       `UPDATE collections SET totalValue = ?, updatedAt = ? WHERE id = ?`,
       [total, new Date().toISOString(), collectionId],
     );
-  } catch (_) {
-  }
+  } catch (_) {}
 }
+
+
 function safeJsonParse(input) {
   try {
     return JSON.parse(input || '{}');

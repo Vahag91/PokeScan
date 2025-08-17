@@ -9,6 +9,7 @@ import {
   getAllCollectionsWithPreviewCards,
   renameCollection,
   deleteCollection,
+  updateCollectionTotalValue
 } from '../lib/db';
 import { useFocusEffect } from '@react-navigation/native';
 import CollectionCard from '../components/collections/CollectionCard';
@@ -45,15 +46,23 @@ export default function CollectionsScreen({ navigation }) {
     }, [loadCollections]),
   );
 
-useFocusEffect(
-  useCallback(() => {
-    const syncPricesAndLoad = async () => {
-      await updateCollectionCardPrices();  
-      await loadCollections();             
-    };
-    syncPricesAndLoad();
-  }, [loadCollections])
-);
+  useFocusEffect(
+    useCallback(() => {
+      const syncPricesAndLoad = async () => {
+        await updateCollectionCardPrices();
+  
+        const db = await getDBConnection();
+        const all = await getAllCollectionsWithPreviewCards(db);
+        for (const c of all) {
+          await updateCollectionTotalValue(db, c.id);
+        }
+  
+        await loadCollections();
+      };
+      syncPricesAndLoad();
+    }, [loadCollections])
+  );
+
 
   useEffect(() => {
     Animated.parallel([

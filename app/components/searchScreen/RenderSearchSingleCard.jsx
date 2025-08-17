@@ -57,13 +57,22 @@ function RenderSearchSingleCard({ item, showCardNumber = false }) {
           </View>
 
           <View style={styles.infoSection}>
-            <View style={styles.nameNumber}>
+            <View style={styles.topRow}>
               <Text
                 style={[globalStyles.body, styles.cardName, { color: theme.text }]}
                 numberOfLines={1}
+                flex={1}
               >
                 {item.name}
               </Text>
+              <View style={styles.typeIconRow}>
+                {item.types?.map(type => (
+                  <Image key={type} source={typeIcons[type]} style={styles.typeIcon} />
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.bottomRow}>
               {showCardNumber && (
                 <Text
                   style={[
@@ -71,24 +80,17 @@ function RenderSearchSingleCard({ item, showCardNumber = false }) {
                     styles.cardNumber,
                     { color: theme.mutedText },
                   ]}
+                  numberOfLines={1}
                 >
                   #{item.number}/{item.set.total}
                 </Text>
               )}
-            </View>
-
-            <View style={styles.footerRow}>
-              <View style={styles.typeIconRow}>
-                {item.types?.map(type => (
-                  <Image key={type} source={typeIcons[type]} style={styles.typeIcon} />
-                ))}
-              </View>
               <Text
                 style={[
-                  globalStyles.caption,
+                  globalStyles.subheading,
                   styles.priceText,
                   {
-                    backgroundColor: theme.greenBadgeBackground,
+                    // backgroundColor: theme.greenBadgeBackground,
                     color: theme.greenBadgeText || '#388e3c',
                   },
                 ]}
@@ -160,23 +162,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  nameNumber: {
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 4,
   },
   cardName: {
     fontSize: 15,
     fontFamily: 'Lato-Bold',
-    marginBottom: 3,
+    flex: 1,
+    marginRight: 8,
   },
   cardNumber: {
     fontSize: 12,
     fontFamily: 'Lato-Regular',
-    marginTop: -2,
-    textAlign: 'left',
   },
-  footerRow: {
+  bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

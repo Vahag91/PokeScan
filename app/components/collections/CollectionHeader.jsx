@@ -32,9 +32,10 @@ export function CollectionHeader({ collections }) {
     return { totalCollections, totalCards, totalValue };
   }, [collections]);
 
-  const formatValue = (value) => `$${new Intl.NumberFormat('en-US').format(value.toFixed(0))}`;
+  const formatValue = (value) => `$${new Intl.NumberFormat('en-US').format(value.toFixed(2))}`;
   const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
+  
   const cards = [
     {
       icon: 'albums-outline',

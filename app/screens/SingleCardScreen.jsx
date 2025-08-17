@@ -75,7 +75,7 @@ export default function SingleCardScreen() {
         if (match) {
           try {
             currentCard = normalizeCardFromDb(match);
-            setCardData(currentCard);
+            setCardData(currentCard);            
           } catch (_) {}
         }
       }
@@ -84,7 +84,7 @@ export default function SingleCardScreen() {
         const supabaseCard = await fetchCardFromSupabase(cardId);
         if (supabaseCard) {
           currentCard = supabaseCard?.normalized;
-          setCardData(currentCard);
+          setCardData(currentCard);          
           fromIds = supabaseCard?.evolvesFrom || [];
           toIds = supabaseCard?.evolvesTo || [];
         } else {

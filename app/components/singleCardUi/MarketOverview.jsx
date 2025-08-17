@@ -30,7 +30,9 @@ export default function MarketOverview({
 
   const [activeTab, setActiveTab] = useState(available[0] || null);
   const market = activeTab === 'tcgplayer' ? tcgplayer : cardmarket;
-  const prices = useMemo(() => market?.prices || {}, [market]);
+  
+  const prices = useMemo(() => market?.prices?.prices || market?.prices || {}, [market]);
+
   const isTCG = activeTab === 'tcgplayer';
 
   const availableFoils = useMemo(() => {

@@ -284,7 +284,7 @@ export default function SearchScreen() {
         ref={flatListRef}
         data={filteredAndSortedResults}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => <RenderSearchSingleCard item={item} />}
+        renderItem={({ item }) => <RenderSearchSingleCard item={item} showCardNumber/>}
         numColumns={2}
         columnWrapperStyle={styles.rowWrapper}
         ListEmptyComponent={

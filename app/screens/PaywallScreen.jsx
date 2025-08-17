@@ -194,7 +194,7 @@ export default function PaywallModal({ visible, onClose }) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-        <Ionicons name="close" size={26} color={theme.text} />
+        <Ionicons name="close" size={22} color={theme.text} />
       </TouchableOpacity>
 
       <ImageBackground source={backgroundImage} style={styles.background}>
@@ -370,10 +370,10 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     position: 'absolute',
-    top: 40,
+    top: 50,
     right: 20,
     zIndex: 10,
-    backgroundColor: '#00000033',
+    // backgroundColor: '#00000033',
     padding: 8,
     borderRadius: 20,
   },
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   },
   planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   planTitle: { fontSize: 15, fontWeight: '700', marginLeft: 10 },
-  planPrice: { fontSize: 15, fontWeight: '700',marginTop:4 },
+  planPrice: { fontSize: 15, fontWeight: '600',marginTop:4,fontFamily: 'Lato-Bold' },
   planSub: { fontSize: 14 },
   badge: {
     position: 'absolute',
