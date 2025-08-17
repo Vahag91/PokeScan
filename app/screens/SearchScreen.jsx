@@ -30,8 +30,6 @@ import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
 import { mergeCardWithPrice } from '../../supabase/utils';
 import { SubscriptionContext } from '../context/SubscriptionContext';
-import { Alert } from 'react-native';
-import { Linking } from 'react-native';
 
 export default function SearchScreen() {
   const { theme } = useContext(ThemeContext);

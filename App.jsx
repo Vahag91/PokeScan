@@ -31,6 +31,7 @@ export default function App() {
   const [showStandardPaywall, setShowStandardPaywall] = useState(false);
   const [showOneTimeOffer, setShowOneTimeOffer] = useState(false);
 
+
   useEffect(() => {
     let isMounted = true;
     const initializeApp = async () => {

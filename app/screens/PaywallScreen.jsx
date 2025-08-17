@@ -280,11 +280,11 @@ export default function PaywallModal({ visible, onClose }) {
                       </Text>
                     </View>
                     {plan.sub && (
-                      <Text style={[styles.planPrice, { color: theme.text }]}>
+                      <Text style={[styles.planSub,{ color: theme.textSecondary }]}>
                         {plan.sub}
                       </Text>
                     )}
-                    <Text style={styles.planSub}>{plan.price}</Text>
+                    <Text style={[styles.planPrice, { color: theme.text }]}>{plan.price}</Text>
                     {plan.badge && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{plan.badge}</Text>
@@ -408,9 +408,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  planTitle: { fontSize: 16, fontWeight: '700', marginLeft: 10 },
-  planPrice: { fontSize: 13, fontWeight: '500', marginBottom: 4 },
-  planSub: { color: '#94A3B8', fontSize: 14 },
+  planTitle: { fontSize: 15, fontWeight: '700', marginLeft: 10 },
+  planPrice: { fontSize: 15, fontWeight: '700',marginTop:4 },
+  planSub: { fontSize: 14 },
   badge: {
     position: 'absolute',
     top: 10,
