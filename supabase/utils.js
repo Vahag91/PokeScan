@@ -60,6 +60,7 @@ export const fetchEvolutions = async (evolvesFrom, evolvesTo = []) => {
       if (error) throw error;
       evolutionFrom = data || [];
     }
+    
 
     if (Array.isArray(evolvesTo) && evolvesTo.length > 0) {
       const { data, error } = await supabase

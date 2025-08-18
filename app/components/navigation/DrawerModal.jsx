@@ -28,10 +28,22 @@ export default function DrawerModal({ visible, onClose }) {
     ['mail-outline', 'Support', 'https://www.tortnisoft.com/contact'],
   ];
 
-  const handleRateUs = () => {
-    Linking.openURL('itms-apps://itunes.apple.com/app/id6478329242?action=write-review');
+  const handleRateUs = async () => {
+    try {
+      // iOS: Try deep link first, then web fallback
+      try {
+        console.log('🔍 Trying iOS deep link...');
+        await Linking.openURL('itms-apps://itunes.apple.com/app/id6749329103?action=write-review');
+      } catch (deepLinkError) {
+        console.log('🔍 Deep link failed, trying web fallback...');
+        await Linking.openURL('https://apps.apple.com/app/id6749329103?action=write-review');
+      }
+    } catch (error) {
+      console.error('Error opening App Store:', error);
+    }
   };
 
+  
   const handleRestore = async () => {
     try {
       const info = await restorePurchases();

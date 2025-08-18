@@ -178,36 +178,41 @@ export default function SearchScreen() {
     });
   }, [dataToSort, sortKey]);
 
+
   const filteredAndSortedResults = useMemo(() => {
     return sortedResults.filter(card => {
       const matchesRarity =
         filters.rarity.length === 0 || filters.rarity.includes(card.rarity);
+  
       const matchesType =
         filters.type.length === 0 ||
-        card.types?.some(t => filters.type.includes(t));
+        (card.types || []).some(t => filters.type.includes(t));
+  
       const matchesAttack =
         filters.attack.length === 0 ||
         (card.attacks || []).some(attack =>
-          (attack.cost || []).some(costType =>
-            filters.attack.includes(costType),
-          ),
+          (attack.cost || []).some(costType => filters.attack.includes(costType))
         );
-      const hpValue = parseInt(card.hp, 10);
-      const hpRange = Array.isArray(filters.hp) ? filters.hp : [0, 999];
-      const matchesHp =
-        Number.isFinite(hpValue) &&
-        hpValue >= hpRange[0] &&
-        hpValue <= hpRange[1];
+  
+      // ✅ Only apply HP filter if user set a range
+      const hpRange = Array.isArray(filters.hp) ? filters.hp : null;
+      const hpVal = parseInt(card.hp, 10);
+      const matchesHp = !hpRange
+        ? true
+        : Number.isFinite(hpVal) && hpVal >= hpRange[0] && hpVal <= hpRange[1];
+  
+      const regulationMark = card.regulationMark ?? card.regulationmark; // handle both casings
       const matchesRegulation =
         filters.regulation.length === 0 ||
-        (card.regulationmark &&
-          filters.regulation.includes(card.regulationmark));
+        (regulationMark && filters.regulation.includes(regulationMark));
+  
       const matchesLegality =
         filters.legality.length === 0 ||
         (card.legalities &&
           filters.legality.some(
-            format => card.legalities[format.toLowerCase()] === 'Legal',
+            format => card.legalities[format.toLowerCase()] === 'Legal'
           ));
+  
       return (
         matchesRarity &&
         matchesType &&
@@ -218,6 +223,7 @@ export default function SearchScreen() {
       );
     });
   }, [sortedResults, filters]);
+  
 
   const resultsCount = filteredAndSortedResults.length;
 

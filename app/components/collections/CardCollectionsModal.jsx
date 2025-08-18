@@ -17,11 +17,13 @@ import {
   removeCardFromCollectionByRowId,
 } from '../../lib/db';
 import { ThemeContext } from '../../context/ThemeContext';
+import RateUsService from '../../services/RateUsService';
 export default function CardCollectionsModal({
   visible,
   onClose,
   card,
   onChange,
+  onRateUsTrigger,
 }) {
   const [collections, setCollections] = useState([]);
   const [collectionCounts, setCollectionCounts] = useState({});
@@ -54,6 +56,19 @@ export default function CardCollectionsModal({
         [collectionId]: (prev[collectionId] || 0) + 1,
       }));
       if (onChange) onChange();
+      
+      // Trigger rate us prompt after adding card to collection
+      setTimeout(async () => {
+        console.log('🔍 Checking if should show rate us modal...');
+        const shouldShow = await RateUsService.shouldShowRatePrompt();
+        console.log('🔍 Should show rate us modal:', shouldShow);
+        if (shouldShow && onRateUsTrigger) {
+          console.log('🔍 Triggering rate us modal!');
+          onRateUsTrigger();
+        } else {
+          console.log('🔍 Not triggering rate us modal. shouldShow:', shouldShow, 'onRateUsTrigger:', !!onRateUsTrigger);
+        }
+      }, 1000);
     } catch (_) {
     }
   };

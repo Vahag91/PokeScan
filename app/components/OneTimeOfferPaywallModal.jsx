@@ -144,10 +144,10 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <TouchableOpacity
-        style={[styles.closeBtn, { backgroundColor: theme.overlayDark }]}
+        style={styles.closeBtn}
         onPress={onClose}
       >
-        <Ionicons name="close" size={26} color={theme.text} />
+        <Ionicons name="close" size={22} color={theme.text} />
       </TouchableOpacity>
 
       <ImageBackground source={backgroundImage} style={styles.background}>
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'center' },
   closeBtn: {
     position: 'absolute',
-    top: 40,
+    top: 50,
     right: 20,
     zIndex: 10,
     padding: 8,

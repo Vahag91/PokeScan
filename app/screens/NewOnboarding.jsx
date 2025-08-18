@@ -153,9 +153,9 @@ export default function NewOnboarding({ onDone }) {
           const backgroundColor = dotPosition.interpolate({
             inputRange: [i - 1, i, i + 1],
             outputRange: [
-              'rgba(0,0,0,0.2)',
+              'rgba(255,255,255,0.3)',
               '#10B981',
-              'rgba(0,0,0,0.2)',
+              'rgba(255,255,255,0.3)',
             ],
             extrapolate: 'clamp',
           });
@@ -204,7 +204,7 @@ export default function NewOnboarding({ onDone }) {
 
         {renderDots()}
 
-        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+        <Animated.View style={{ transform: [{ scale: buttonScale }], marginTop: 6 }}>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: '#10B981' }]}
             onPress={handleNext}
@@ -285,8 +285,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 6,
-    height: 20,
+    marginTop: 0,
+    height: 18,
   },
   dot: {
     width: 10,

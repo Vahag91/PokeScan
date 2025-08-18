@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import {
   NavigationContainer,
   DefaultTheme,
@@ -150,22 +150,35 @@ export default function App() {
                         <Stack.Screen
                           name="SetDetail"
                           component={SetDetailScreen}
-                          options={{ title: 'Set Cards' }}
+                          options={({ navigation, route }) => ({
+                            title: 'Set Cards',
+                            headerTitleStyle: { fontSize: 20, fontWeight: '600' },
+                            headerBackTitle: 'Back',
+                          })}
                         />
                         <Stack.Screen
                           name="SingleCardScreen"
                           component={SingleCardScreen}
-                          options={{ title: 'Card Details' }}
+                          options={{
+                            title: 'Card Details',
+                            headerBackTitle: 'Back',
+                          }}
                         />
                         <Stack.Screen
                           name="CollectionDetail"
                           component={CollectionDetailScreen}
-                          options={{ title: 'Collection Details' }}
+                          options={{
+                            title: 'Collection Details',
+                            headerBackTitle: 'Back',
+                          }}
                         />
                         <Stack.Screen
                           name="SearchStandalone"
                           component={SearchScreen}
-                          options={{ title: 'Search Cards' }}
+                          options={{
+                            title: 'Search Cards',
+                            headerBackTitle: 'Back',
+                          }}
                         />
                       </Stack.Navigator>
 
@@ -188,6 +201,13 @@ export default function App() {
                           if (otoSeen !== 'true') {
                             setShowOneTimeOffer(true);
                           }
+                        }}
+                        onPurchaseSuccess={async () => {
+                          // Mark both paywalls as seen when purchase is successful
+                          await AsyncStorage.setItem('@seenPaywall', 'true');
+                          await AsyncStorage.setItem('@seenOTO', 'true');
+                          setShowStandardPaywall(false);
+                          // Don't show OneTimeOffer if purchase was successful
                         }}
                       />
 

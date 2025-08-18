@@ -19,7 +19,7 @@ import { SubscriptionContext } from '../context/SubscriptionContext';
 
 const { width, height } = Dimensions.get('window');
 
-export default function PaywallModal({ visible, onClose }) {
+export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
   const [selectedPlan, setSelectedPlan] = useState('yearly');
   const [loading, setLoading] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
@@ -79,6 +79,10 @@ export default function PaywallModal({ visible, onClose }) {
     try {
       const result = await purchasePackage(selectedPkg);
       if (result?.customerInfo?.entitlements?.active?.Premium) {
+        // Call success callback if provided
+        if (onPurchaseSuccess) {
+          onPurchaseSuccess();
+        }
         onClose();
       }
     } catch (e) {
@@ -103,6 +107,10 @@ export default function PaywallModal({ visible, onClose }) {
           'Restored',
           'Your subscription has been successfully restored.',
         );
+        // Call success callback if provided
+        if (onPurchaseSuccess) {
+          onPurchaseSuccess();
+        }
         onClose();
       } else {
         Alert.alert(
