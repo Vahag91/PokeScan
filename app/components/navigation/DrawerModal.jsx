@@ -32,14 +32,14 @@ export default function DrawerModal({ visible, onClose }) {
     try {
       // iOS: Try deep link first, then web fallback
       try {
-        console.log('🔍 Trying iOS deep link...');
+
         await Linking.openURL('itms-apps://itunes.apple.com/app/id6749329103?action=write-review');
       } catch (deepLinkError) {
-        console.log('🔍 Deep link failed, trying web fallback...');
+        
         await Linking.openURL('https://apps.apple.com/app/id6749329103?action=write-review');
       }
     } catch (error) {
-      console.error('Error opening App Store:', error);
+      // Handle error silently
     }
   };
 
@@ -119,7 +119,7 @@ export default function DrawerModal({ visible, onClose }) {
           </TouchableOpacity>
         ))}
 
-        <Text style={[styles.version, globalStyles.text, { color: theme.mutedText }]}>1.20</Text>
+        <Text style={[styles.version, globalStyles.text, { color: theme.mutedText }]}>1.1</Text>
       </View>
 
       <PaywallModal

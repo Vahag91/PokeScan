@@ -45,7 +45,6 @@ class RateUsService {
 
       return true;
     } catch (error) {
-      console.error('Error checking rate prompt:', error);
       return false;
     }
   }
@@ -59,12 +58,12 @@ class RateUsService {
       const isAvailable = await InAppReview.isAvailable();
       
       if (isAvailable) {
-        console.log('🔍 InAppReview is available, showing native dialog');
+    
         
         // Show native in-app review dialog
         const result = await InAppReview.RequestInAppReview();
         
-        console.log('🔍 InAppReview result:', result);
+
         
         // Mark that we showed the prompt today (regardless of user action)
         await this.markPromptShown();
@@ -73,12 +72,11 @@ class RateUsService {
         // The native dialog result doesn't tell us if user actually rated
         // So we'll let them see the prompt again after some time
       } else {
-        console.log('🔍 InAppReview not available, using fallback');
+
         // Fallback: open store directly
         await this.openStoreForReview();
       }
     } catch (error) {
-      console.error('Error showing rate prompt:', error);
       // Fallback to store
       await this.openStoreForReview();
     }
@@ -90,7 +88,7 @@ class RateUsService {
       const today = new Date().toISOString();
       await AsyncStorage.setItem(RATE_KEYS.LAST_PROMPT, today);
     } catch (error) {
-      console.error('Error marking prompt shown:', error);
+      // Handle error silently
     }
   }
 
@@ -100,10 +98,10 @@ class RateUsService {
       if (Platform.OS === 'ios') {
         // iOS: Try deep link first, then web fallback
         try {
-          console.log('🔍 Trying iOS deep link...');
+    
           await Linking.openURL(IOS_DEEP_LINK);
         } catch (deepLinkError) {
-          console.log('🔍 Deep link failed, trying web fallback...');
+          
           await Linking.openURL(IOS_WEB_FALLBACK);
         }
       } else {
@@ -113,7 +111,7 @@ class RateUsService {
       
       await this.markPromptShown();
     } catch (error) {
-      console.error('Error opening store:', error);
+      // Handle error silently
     }
   }
 
@@ -122,7 +120,7 @@ class RateUsService {
     try {
       await AsyncStorage.setItem(RATE_KEYS.DONT_ASK, 'true');
     } catch (error) {
-      console.error('Error setting dont ask:', error);
+      // Handle error silently
     }
   }
 
@@ -134,28 +132,27 @@ class RateUsService {
         AsyncStorage.removeItem(RATE_KEYS.DONT_ASK)
       ]);
     } catch (error) {
-      console.error('Error resetting rate us data:', error);
+      // Handle error silently
     }
   }
 
   // Test function to manually trigger rate us (for development)
   static async testRateUs() {
     try {
-      console.log('Testing Rate Us functionality...');
+  
       await this.resetRateUsData();
       
       const shouldShow = await this.shouldShowRatePrompt();
-      console.log('🔍 Should show rate prompt:', shouldShow);
+
       
       if (shouldShow) {
-        console.log('🔍 Testing InAppReview availability...');
+  
         const isAvailable = await InAppReview.isAvailable();
-        console.log('🔍 InAppReview available:', isAvailable);
+        
       }
       
       return shouldShow;
     } catch (error) {
-      console.error('Error testing rate us:', error);
       return false;
     }
   }

@@ -21,6 +21,7 @@ import SetHeaderSkeleton from '../components/skeletons/SetHeaderSkeleton';
 import { RenderSearchSingleCard } from '../components/searchScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { supabase } from '../../supabase/supabase';
+import { fetchEnglishSetCards, fetchJapaneseSetCards } from '../../supabase/utils';
 import { globalStyles } from '../../globalStyles';
 import SetHeader from '../components/setSearch/SetHeader';
 import { ThemeContext } from '../context/ThemeContext';
@@ -33,21 +34,21 @@ const CARD_WIDTH = (Dimensions.get('window').width - CARD_SPACING * 3) / 2;
 export default function SetDetailScreen() {
   const { theme } = useContext(ThemeContext);
   const route = useRoute();
-  const { setId } = route.params;
+  const { setId, language = 'en' } = route.params;
 
   const [sortAsc, setSortAsc] = useState(true);
   const flatListRef = useRef(null);
   const scrollTopOpacity = useRef(new Animated.Value(0)).current;
 
   const fetchCards = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('cards')
-      .select('*')
-      .filter('set->>id', 'eq', setId);
-
-    if (error) throw error;
-    return data || [];
-  }, [setId]);
+    if (language === 'en') {
+      // For English sets, fetch from database
+      return await fetchEnglishSetCards(setId);
+    } else {
+      // For Japanese sets, fetch from database
+      return await fetchJapaneseSetCards(setId);
+    }
+  }, [setId, language]);
 
   // ✅ Safe async logic
   const { data: cards = [], loading, error, retry } = useSafeAsync(fetchCards);
@@ -85,8 +86,14 @@ export default function SetDetailScreen() {
   };
 
   const renderItem = useCallback(
-    ({ item }) => <RenderSearchSingleCard item={item} showCardNumber />,
-    [],
+    ({ item }) => (
+      <RenderSearchSingleCard 
+        item={item} 
+        showCardNumber 
+        selectedLanguage={language} 
+      />
+    ),
+    [language],
   );
 
   const renderHeader = () => (

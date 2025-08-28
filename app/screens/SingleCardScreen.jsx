@@ -37,10 +37,11 @@ import RateUsService from '../services/RateUsService';
 
 const abilityIcon = require('../assets/icons/cardIcons/ability.png');
 
+
 export default function SingleCardScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { cardId } = route.params;
+  const { cardId, language = 'en' } = route.params;
   const { theme } = useContext(ThemeContext);
 
   const [cardData, setCardData] = useState(null);
@@ -84,8 +85,10 @@ export default function SingleCardScreen() {
       }
 
       if (!currentCard) {
-        const supabaseCard = await fetchCardFromSupabase(cardId);
+    
+        const supabaseCard = await fetchCardFromSupabase(cardId, language);
         if (supabaseCard) {
+
           currentCard = supabaseCard?.normalized;
           setCardData(currentCard);          
           fromIds = supabaseCard?.evolvesFrom || [];
@@ -103,7 +106,7 @@ export default function SingleCardScreen() {
       }
 
       if ((fromIds?.length || 0) > 0 || (toIds?.length || 0) > 0) {
-        const { evolutionFrom, evolutionTo } = await fetchEvolutions(fromIds, toIds);
+        const { evolutionFrom, evolutionTo } = await fetchEvolutions(fromIds, toIds, language);
         setFromData(evolutionFrom || []);
         setToData(evolutionTo || []);
       } else {
@@ -111,7 +114,7 @@ export default function SingleCardScreen() {
         setToData([]);
       }
     })();
-  }, [cardId]);
+  }, [cardId, language]);
 
   useEffect(() => {
     navigation.setOptions({ headerRight: headerRightButton });
@@ -119,7 +122,7 @@ export default function SingleCardScreen() {
 
   if (!cardData) return <SkeletonSingleCard />;
 
-  const navigateTo = id => navigation.push('SingleCardScreen', { cardId: id });
+  const navigateTo = id => navigation.push('SingleCardScreen', { cardId: id, language: language });
 
   const styles = getStyles(theme);
 
@@ -128,7 +131,7 @@ export default function SingleCardScreen() {
       <ScrollView style={styles.screen}>
         <EvolutionChain title="Evolves From" cards={fromData} onCardPress={navigateTo} />
         <EvolutionChain title="Evolves To" cards={toData} onCardPress={navigateTo} />
-        <CardSetHeader cardData={cardData} onPress={setId => navigation.navigate('SetDetail', { setId })} />
+        <CardSetHeader cardData={cardData} onPress={setId => navigation.navigate('SetDetail', { setId, language })} />
         <CardImageViewer imageSource={cardData.image} />
 
         <AnimatedSection style={styles.sectionCard}>
@@ -198,8 +201,9 @@ export default function SingleCardScreen() {
         onClose={() => setCollectionsModalVisible(false)}
         card={cardData}
         onChange={() => {}}
+        language={language}
         onRateUsTrigger={() => {
-          console.log('🔍 Rate us trigger called! Setting modal to visible');
+      
           setShowRateUsModal(true);
         }}
       />

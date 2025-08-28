@@ -34,6 +34,7 @@ export default function CollectionsScreen({ navigation }) {
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0.95))[0];
 
+
   const loadCollections = useCallback(async () => {
     const db = await getDBConnection();
     const all = await getAllCollectionsWithPreviewCards(db);

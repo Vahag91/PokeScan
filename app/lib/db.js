@@ -87,7 +87,7 @@ export async function createTables(db) {
 }
 
 
-export async function addCardToCollection(card, collectionId) {
+export async function addCardToCollection(card, collectionId, language = 'en') {
   const db = await getDBConnection();
 
   const {
@@ -164,7 +164,7 @@ export async function addCardToCollection(card, collectionId) {
 
       null,
       1,
-      'EN',
+      language.toUpperCase(),
       'Unlimited',
       null,
       imageFileName,
@@ -432,7 +432,7 @@ export async function getCollectionCountsForCard(db, cardId) {
 export async function updateCollectionTotalValue(db, collectionId) {
   try {
     const [results] = await db.executeSql(
-      `SELECT tcgplayerPrices, cardmarketPrices, quantity FROM collection_cards WHERE collectionId = ?`,
+      `SELECT tcgplayerPrices, cardmarketPrices, quantity, language FROM collection_cards WHERE collectionId = ?`,
       [collectionId],
     );
 
@@ -444,16 +444,30 @@ export async function updateCollectionTotalValue(db, collectionId) {
       return NaN;
     };
 
-    const extractTcgPrice = (tcgRaw) => {
+    const extractTcgPrice = (tcgRaw, language = 'EN') => {
       const tcg = safeJsonParse(tcgRaw);
       const src = tcg?.prices ?? tcg ?? {};
-      return pickFirstNumber([
-        src?.normal?.market,
-        src?.holofoil?.market,
-        src?.reverseHolofoil?.market,
-        src?.firstEditionHolofoil?.market,
-        src?.unlimitedHolofoil?.market,
-      ]);
+      
+      // Dynamic approach: find any foil type with a market price
+      const allPrices = [];
+      
+      // Recursively find all market prices in the prices object
+      const findMarketPrices = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        
+        for (const [key, value] of Object.entries(obj)) {
+          if (key === 'market' && typeof value === 'number' && value > 0) {
+            allPrices.push(value);
+          } else if (typeof value === 'object') {
+            findMarketPrices(value);
+          }
+        }
+      };
+      
+      findMarketPrices(src);
+      
+      // Return the first valid price found, or NaN if none
+      return allPrices.length > 0 ? allPrices[0] : NaN;
     };
 
     const extractCmkPrice = (cmkRaw) => {
@@ -471,8 +485,9 @@ export async function updateCollectionTotalValue(db, collectionId) {
 
     for (let i = 0; i < rows.length; i++) {
       const quantity = rows.item(i).quantity || 1;
+      const language = rows.item(i).language || 'EN';
 
-      let price = extractTcgPrice(rows.item(i).tcgplayerPrices);
+      let price = extractTcgPrice(rows.item(i).tcgplayerPrices, language);
       if (Number.isNaN(price)) {
         price = extractCmkPrice(rows.item(i).cardmarketPrices);
       }
@@ -538,26 +553,25 @@ export async function deleteDatabase() {
 export async function getOwnedCardCountsBySet() {
   const db = await getDBConnection();
 
+  // Get owned card counts grouped by setId and setName for better matching
   const [results] = await db.executeSql(`
-    SELECT setId, COUNT(DISTINCT cardId) as ownedCount
+    SELECT setId, setName, COUNT(DISTINCT cardId) as ownedCount
     FROM collection_cards
-    GROUP BY setId
+    WHERE setId IS NOT NULL
+    GROUP BY setId, setName
   `);
 
   const map = {};
   for (let i = 0; i < results.rows.length; i++) {
     const row = results.rows.item(i);
-    map[row.setId] = row.ownedCount;
+    // Use setId as primary key, but also store by setName as fallback
+    if (row.setId) {
+      map[row.setId] = row.ownedCount;
+    }
+    // Also map by setName for cases where setId might not match
+    if (row.setName) {
+      map[row.setName] = (map[row.setName] || 0) + row.ownedCount;
+    }
   }
   return map;
 }
-
-
-
-
-
-
-
-
-
-

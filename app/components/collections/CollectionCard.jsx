@@ -159,7 +159,7 @@ export default function CollectionCard({
                 <Text
                   style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
                 >
-                  {item.totalValue ? `$${item.totalValue.toFixed(2)}` : 'No value'}
+                  {item.totalValue ? `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.totalValue)}` : 'No value'}
                 </Text>
               </View>
             </View>

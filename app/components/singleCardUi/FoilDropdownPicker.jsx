@@ -10,6 +10,7 @@ import {
 import { formatFoilLabel } from '../../utils';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+
 export default function FoilDropdownPicker({
   selectedFoil,
   availableFoils,
@@ -40,7 +41,7 @@ export default function FoilDropdownPicker({
           />
         </View>
       </TouchableOpacity>
-
+      
       {showDropdown && (
         <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
           <View style={styles.fullscreenOverlay}>

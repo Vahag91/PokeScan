@@ -17,7 +17,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
 const IMAGE_HEIGHT = CARD_WIDTH * 1.35;
 
-function RenderSearchSingleCard({ item, showCardNumber = false }) {
+function RenderSearchSingleCard({ item, showCardNumber = false, selectedLanguage = 'en' }) {
   const nav = useNavigation();
   const price = getCardPrice(item);
   const rarityColor = rarityColors[item.rarity] || '#bdbdbd';
@@ -26,7 +26,7 @@ function RenderSearchSingleCard({ item, showCardNumber = false }) {
   return (
     <TouchableOpacity
       style={styles.cardContainer}
-      onPress={() => nav.push('SingleCardScreen', { cardId: item.id })}
+      onPress={() => nav.push('SingleCardScreen', { cardId: item.id, language: selectedLanguage })}
       activeOpacity={0.9}
     >
       <View style={[styles.cardShadow, { shadowColor: theme.shadowColor || '#000' }]}>

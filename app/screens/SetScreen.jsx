@@ -3,8 +3,9 @@ import React, {
   useMemo,
   useRef,
   useContext,
+  useCallback,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -13,10 +14,11 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { categories as originalCategories } from '../constants';
+import { fetchEnglishSets, fetchJapaneseSets } from '../../supabase/utils';
 import AnimatedRow from '../components/setSearch/AnimatedRow';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
@@ -28,8 +30,11 @@ export default function SetScreen() {
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
   const listRef = useRef(null);
+  const screenWidth = Dimensions.get('window').width;
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [language, setLanguage] = useState('en');
+  const [isLanguageSwitching, setIsLanguageSwitching] = useState(false);
 
   const fetchSetStats = useMemo(
     () => () => getOwnedCardCountsBySet(),
@@ -38,30 +43,196 @@ export default function SetScreen() {
 
   const { data: setStats, loading, error, retry } = useSafeAsync(fetchSetStats);
 
+  // Refresh set stats when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      retry();
+    }, [retry])
+  );
+
+  // Fetch English sets
+  const fetchEnglishSetsData = useMemo(
+    () => () => fetchEnglishSets(),
+    []
+  );
+
+  const { data: englishSets = [], loading: englishLoading } = useSafeAsync(fetchEnglishSetsData);
+
+  // Fetch Japanese sets
+  const fetchJapaneseSetsData = useMemo(
+    () => () => fetchJapaneseSets(),
+    []
+  );
+
+  const { data: japaneseSets = [], loading: japaneseLoading } = useSafeAsync(fetchJapaneseSetsData);
+
+  // Cache sets to prevent refetching
+  const cachedEnglishSets = useMemo(() => englishSets, [englishSets]);
+  const cachedJapaneseSets = useMemo(() => japaneseSets, [japaneseSets]);
+
+  // Handle language change with clearing
+  const handleLanguageChange = (newLanguage) => {
+    if (newLanguage !== language) {
+      setIsLanguageSwitching(true);
+      setLanguage(newLanguage);
+      // Clear search term when switching languages
+      setSearchTerm('');
+      // Reset switching state after a short delay
+      setTimeout(() => setIsLanguageSwitching(false), 100);
+    }
+  };
+
+  // Language Toggle Component
+  const LanguageToggle = ({ value, onChange }) => {
+    const getFontSize = () => {
+      if (screenWidth >= 450) return 16;
+      if (screenWidth >= 400) return 15;
+      if (screenWidth >= 350) return 14;
+      return 13;
+    };
+
+    return (
+      <View style={styles(theme).languageToggleWrapper}>
+        {['en', 'jp'].map(opt => (
+          <TouchableOpacity
+            key={opt}
+            onPress={() => onChange(opt)}
+            style={[
+              styles(theme).languageToggleBtn,
+              {
+                backgroundColor: value === opt ? '#10B981' : theme.cardBackground,
+                borderColor: value === opt ? '#10B981' : theme.border,
+                shadowColor: value === opt ? '#10B981' : theme.shadowColor,
+              }
+            ]}
+            activeOpacity={0.8}
+          >
+            <Text
+              numberOfLines={1}
+              style={[
+                styles(theme).languageToggleText,
+                {
+                  color: value === opt ? '#FFFFFF' : theme.text,
+                  fontWeight: value === opt ? '700' : '600',
+                  fontSize: getFontSize(),
+                }
+              ]}>
+              {opt === 'en' ? '🇺🇸 English Sets' : '🇯🇵 Japanese Sets'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
+  // Helper function to group sets by series
+  const groupSetsBySeries = (sets) => {
+    const grouped = {};
+
+    sets.forEach(set => {
+      const seriesName = set.series_name || 'Other';
+      if (!grouped[seriesName]) {
+        grouped[seriesName] = [];
+      }
+      grouped[seriesName].push(set);
+    });
+
+    return grouped;
+  };
+
   const flatData = useMemo(() => {
+    // Don't show data while switching languages
+    if (isLanguageSwitching) {
+      return [];
+    }
+
     const term = searchTerm.trim().toLowerCase();
     const result = [];
 
-    originalCategories.forEach(section => {
-      const filteredData = section.data.filter(item =>
-        item.title.toLowerCase().includes(term),
-      );
+    if (language === 'en') {
+      // Show English sets from database grouped by series
+      if (cachedEnglishSets && cachedEnglishSets.length > 0) {
+        const filteredEnglishSets = cachedEnglishSets.filter(set =>
+          set.name && set.name.toLowerCase().includes(term),
+        );
 
-      if (filteredData.length > 0) {
-        result.push({ type: 'header', title: section.title });
+        if (filteredEnglishSets.length > 0) {
+          const groupedSets = groupSetsBySeries(filteredEnglishSets);
 
-        for (let i = 0; i < filteredData.length; i += 2) {
-          result.push({
-            type: 'item',
-            pair: [filteredData[i], filteredData[i + 1] || null],
-            index: i / 2,
+          Object.entries(groupedSets).forEach(([seriesName, sets]) => {
+            if (sets.length > 0) {
+              result.push({ type: 'header', title: seriesName });
+
+              for (let i = 0; i < sets.length; i += 2) {
+                const set1 = sets[i];
+                const set2 = sets[i + 1];
+
+                result.push({
+                  type: 'item',
+                  pair: [
+                    {
+                      id: set1.id,
+                      title: set1.name,
+                      image: { uri: set1.logo_url }
+                    },
+                    set2 ? {
+                      id: set2.id,
+                      title: set2.name,
+                      image: { uri: set2.logo_url }
+                    } : null
+                  ],
+                  index: i / 2,
+                  isEnglish: true,
+                });
+              }
+            }
           });
         }
       }
-    });
+    } else {
+      // Show Japanese sets from database grouped by series
+      if (cachedJapaneseSets && cachedJapaneseSets.length > 0) {
+        const filteredJapaneseSets = cachedJapaneseSets.filter(set =>
+          set.name && set.name.toLowerCase().includes(term),
+        );
+
+        if (filteredJapaneseSets.length > 0) {
+          const groupedSets = groupSetsBySeries(filteredJapaneseSets);
+
+          Object.entries(groupedSets).forEach(([seriesName, sets]) => {
+            if (sets.length > 0) {
+              result.push({ type: 'header', title: seriesName });
+
+              for (let i = 0; i < sets.length; i += 2) {
+                const set1 = sets[i];
+                const set2 = sets[i + 1];
+
+                result.push({
+                  type: 'item',
+                  pair: [
+                    {
+                      id: set1.id,
+                      title: set1.name,
+                      image: { uri: set1.logo_url }
+                    },
+                    set2 ? {
+                      id: set2.id,
+                      title: set2.name,
+                      image: { uri: set2.logo_url }
+                    } : null
+                  ],
+                  index: i / 2,
+                  isEnglish: false,
+                });
+              }
+            }
+          });
+        }
+      }
+    }
 
     return result;
-  }, [searchTerm]);
+  }, [searchTerm, language, cachedEnglishSets, cachedJapaneseSets, isLanguageSwitching]);
 
   useMemo(() => {
     if (listRef.current && flatData.length > 0) {
@@ -93,7 +264,10 @@ export default function SetScreen() {
       <AnimatedRow
         itemPair={item.pair}
         index={item.index}
-        onPress={setId => navigation.navigate('SetDetail', { setId })}
+        onPress={setId => navigation.navigate('SetDetail', {
+          setId,
+          language: language
+        })}
         setStats={setStats || {}}
       />
     );
@@ -127,6 +301,11 @@ export default function SetScreen() {
         </Text>
       </View>
 
+      {/* Language Toggle - Above Search Bar */}
+      <View style={styles(theme).languageToggleContainer}>
+        <LanguageToggle value={language} onChange={handleLanguageChange} />
+      </View>
+
       <View style={styles(theme).searchBox}>
         <Icon
           name="search-outline"
@@ -153,8 +332,8 @@ export default function SetScreen() {
         )}
       </View>
 
-      {loading ? (
-        <ActivityIndicator style={styles(theme).loader} size="large" color={theme.text} />
+      {(loading || englishLoading || japaneseLoading || isLanguageSwitching) ? (
+        <ActivityIndicator style={styles(theme).loader} size="large" color={'#10B981'} />
       ) : error ? (
         <ErrorView message="Failed to load your set stats." onRetry={retry} />
       ) : flatData.length === 0 ? (
@@ -172,12 +351,18 @@ export default function SetScreen() {
           <FlatList
             ref={listRef}
             data={flatData}
-            keyExtractor={(_, index) => `item-${index}`}
+            keyExtractor={(item, idx) => {
+              if (item.type === 'header') return `hdr-${item.title}`;
+              const [a, b] = item.pair || [];
+              return `row-${a?.id || 'null'}-${b?.id || 'null'}-${item.index ?? idx}`;
+            }}
             renderItem={renderFlatItem}
             contentContainerStyle={styles(theme).gridContent}
             keyboardShouldPersistTaps="handled"
             style={styles(theme).flatListWrapper}
+            extraData={setStats}  // re-render rows when owned counts change
           />
+
         </>
       )}
     </SafeAreaView>
@@ -200,6 +385,34 @@ const styles = (theme) =>
     },
     pageTitle: {
       color: theme.text,
+    },
+    languageToggleContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+    },
+    languageToggleWrapper: {
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+    },
+    languageToggleBtn: {
+      flex: 1,
+      minHeight: 44,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    languageToggleText: {
+      fontFamily: 'Lato-Bold',
+      letterSpacing: 0.3,
+      textAlign: 'center',
     },
     searchBox: {
       flexDirection: 'row',

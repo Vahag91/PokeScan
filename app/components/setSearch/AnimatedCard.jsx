@@ -14,7 +14,8 @@ export default function AnimatedCard({ item, delay, onPress, setStats }) {
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const { theme } = useContext(ThemeContext);
 
-  const ownedCount = setStats?.[item.id] || 0;
+  // Try to match by setId first, then by setName as fallback
+  const ownedCount = setStats?.[item.id] || setStats?.[item.title] || 0;
 
   useEffect(() => {
     Animated.parallel([
@@ -68,7 +69,7 @@ export default function AnimatedCard({ item, delay, onPress, setStats }) {
       textAlign: 'center',
       color: theme.mutedText,
       fontFamily: 'Lato-Regular',
-    },
+    }
   }), [theme]);
 
   return (

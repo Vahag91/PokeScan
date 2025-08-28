@@ -23,7 +23,6 @@ const RateUsModal = ({ visible, onClose }) => {
       await RateUsService.showRatePrompt();
       onClose();
     } catch (error) {
-      console.error('Error showing rate prompt:', error);
       onClose();
     }
   };
@@ -34,7 +33,6 @@ const RateUsModal = ({ visible, onClose }) => {
       await RateUsService.markPromptShown();
       onClose();
     } catch (error) {
-      console.error('Error marking prompt shown:', error);
       onClose();
     }
   };
@@ -44,7 +42,6 @@ const RateUsModal = ({ visible, onClose }) => {
       await RateUsService.setDontAskAgain();
       onClose();
     } catch (error) {
-      console.error('Error setting dont ask:', error);
       onClose();
     }
   };

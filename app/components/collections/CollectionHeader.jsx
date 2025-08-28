@@ -32,7 +32,7 @@ export function CollectionHeader({ collections }) {
     return { totalCollections, totalCards, totalValue };
   }, [collections]);
 
-  const formatValue = (value) => `$${new Intl.NumberFormat('en-US').format(value.toFixed(2))}`;
+  const formatValue = (value) => `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)}`;
   const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
 
   

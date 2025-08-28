@@ -45,8 +45,7 @@ export default function CollectionDetailScreen() {
   const [selectedSet, setSelectedSet] = useState(null);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [updateKey, setUpdateKey] = useState(0);
-console.log(cards,"cards in collectiondetailscreen");
-console.log(collection,"collectionInfo in collectiondetailscreen");
+
 
   const loadCollectionInfo = useCallback(async () => {
     const db = await getDBConnection();
@@ -73,39 +72,7 @@ console.log(collection,"collectionInfo in collectiondetailscreen");
     }, [loadCards]),
   );
 
-  // const handleQuantityChange = async (item, newQty) => {
-  //   console.log(item,"item in handleQuantityChange");
-    
 
-  //   if (newQty < 1) return;
-  //   const db = await getDBConnection();
-  //   const currentQty = item.quantity;
-
-  //   if (newQty > currentQty) {
-  //     const results = await db.executeSql(
-  //       `SELECT * FROM collection_cards WHERE cardId = ? AND collectionId = ? LIMIT 1`,
-  //       [item.cardId, item.collectionId],
-  //     );
-  //     const fullCard = results[0].rows.item(0);
-  //     if (fullCard) {
-  //       const normalizedCard = normalizeCardFromDb(fullCard);
-  //       console.log(normalizedCard,"normalizedCard in handleQuantityChange");
-        
-  //       await addCardToCollection(normalizedCard, fullCard.collectionId);
-  //     }
-  //   } else {
-  //     const results = await db.executeSql(
-  //       `SELECT rowid FROM collection_cards WHERE cardId = ? AND collectionId = ? LIMIT 1`,
-  //       [item.cardId, item.collectionId],
-  //     );
-  //     const row = results[0].rows.item(0);
-  //     if (row?.rowid) {
-  //       await removeCardFromCollectionByRowId(db, row.rowid, item.collectionId);
-  //     }
-  //   }
-
-  //   loadCards();
-  // };
 
   const handleQuantityChange = async (item, newQty) => {
     if (newQty < 1) return;
@@ -142,24 +109,72 @@ console.log(collection,"collectionInfo in collectiondetailscreen");
 
 
   const uniqueSeries = useMemo(() => {
-    const seriesSet = new Set(
-      cards.map(card => card.seriesName).filter(Boolean),
-    );
-    return [...seriesSet];
+    const seriesMap = new Map();
+    
+    cards.forEach(card => {
+      if (card.seriesName) {
+        const language = card.language?.toLowerCase() || 'en';
+        const flag = language === 'jp' ? '🇯🇵' : '🇺🇸';
+        const key = `${card.seriesName}|${language}`;
+        const displayName = `${card.seriesName} ${flag}`;
+        
+        if (!seriesMap.has(key)) {
+          seriesMap.set(key, {
+            name: card.seriesName,
+            language: language,
+            displayName: displayName,
+            key: key
+          });
+        }
+      }
+    });
+    
+    return Array.from(seriesMap.values());
   }, [cards]);
 
   const uniqueSets = useMemo(() => {
-    const sets = cards
-      .filter(card => !selectedSeries || card.seriesName === selectedSeries)
-      .map(card => card.setName)
-      .filter(Boolean);
-    return [...new Set(sets)];
+    const setsMap = new Map();
+    
+    cards.forEach(card => {
+      if (card.setName) {
+        // Check if this set should be shown based on selected series
+        if (selectedSeries) {
+          const selectedLanguage = selectedSeries.language;
+          const cardLanguage = card.language?.toLowerCase() || 'en';
+          if (card.seriesName !== selectedSeries.name || cardLanguage !== selectedLanguage) {
+            return; // Skip this card if it doesn't match the selected series
+          }
+        }
+        
+        const language = card.language?.toLowerCase() || 'en';
+        const flag = language === 'jp' ? '🇯🇵' : '🇺🇸';
+        const key = `${card.setName}|${language}`;
+        const displayName = `${card.setName} ${flag}`;
+        
+        if (!setsMap.has(key)) {
+          setsMap.set(key, {
+            name: card.setName,
+            language: language,
+            displayName: displayName,
+            key: key
+          });
+        }
+      }
+    });
+    
+    return Array.from(setsMap.values());
   }, [cards, selectedSeries]);
 
   const filteredCards = useMemo(() => {
     return cards.filter(card => {
-      if (selectedSet) return card.setName === selectedSet;
-      if (selectedSeries) return card.seriesName === selectedSeries;
+      if (selectedSet) {
+        const cardLanguage = card.language?.toLowerCase() || 'en';
+        return card.setName === selectedSet.name && cardLanguage === selectedSet.language;
+      }
+      if (selectedSeries) {
+        const cardLanguage = card.language?.toLowerCase() || 'en';
+        return card.seriesName === selectedSeries.name && cardLanguage === selectedSeries.language;
+      }
       return true;
     });
   }, [cards, selectedSet, selectedSeries]);
@@ -241,14 +256,14 @@ console.log(collection,"collectionInfo in collectiondetailscreen");
         >
           {uniqueSeries.map(series => (
             <TouchableOpacity
-              key={series}
+              key={series.key}
               style={[
                 styles.filterBadge,
-                selectedSeries === series && styles.activeFilter,
+                selectedSeries?.key === series.key && styles.activeFilter,
               ]}
               onPress={() => {
                 setSelectedSeries(prev => {
-                  const newSeries = prev === series ? null : series;
+                  const newSeries = prev?.key === series.key ? null : series;
                   setSelectedSet(null);
                   return newSeries;
                 });
@@ -258,10 +273,10 @@ console.log(collection,"collectionInfo in collectiondetailscreen");
                 style={[
                   globalStyles.smallText,
                   styles.filterText,
-                  selectedSeries === series && styles.activeFilterText,
+                  selectedSeries?.key === series.key && styles.activeFilterText,
                 ]}
               >
-                {series}
+                {series.displayName}
               </Text>
             </TouchableOpacity>
           ))}
@@ -277,23 +292,23 @@ console.log(collection,"collectionInfo in collectiondetailscreen");
         >
           {uniqueSets.map(set => (
             <TouchableOpacity
-              key={set}
+              key={set.key}
               style={[
                 styles.filterBadge,
-                selectedSet === set && styles.activeFilter,
+                selectedSet?.key === set.key && styles.activeFilter,
               ]}
               onPress={() =>
-                setSelectedSet(prev => (prev === set ? null : set))
+                setSelectedSet(prev => (prev?.key === set.key ? null : set))
               }
             >
               <Text
                 style={[
                   globalStyles.smallText,
                   styles.filterText,
-                  selectedSet === set && styles.activeFilterText,
+                  selectedSet?.key === set.key && styles.activeFilterText,
                 ]}
               >
-                {set}
+                {set.displayName}
               </Text>
             </TouchableOpacity>
           ))}
@@ -326,7 +341,7 @@ console.log(collection,"collectionInfo in collectiondetailscreen");
         item={item}
         isSelected={isSelected}
         onPress={() =>
-          navigation.navigate('SingleCardScreen', { cardId: item.cardId })
+          navigation.navigate('SingleCardScreen', { cardId: item.cardId, language: item.language?.toLowerCase() || 'en' })
         }
         onLongPress={() => setSelectedCardId(isSelected ? null : item.cardId)}
         onDecrease={() => handleQuantityChange(item, item.quantity - 1)}

@@ -22,7 +22,11 @@ const platformData = {
 };
 
 export default function ExternalLinksSection({ cardData, theme }) {
-  if (!cardData?.tcgplayer?.url && !cardData?.cardmarket?.url) return null;
+  // Check if there are any valid market links with prices
+  const hasTCGPlayer = cardData?.tcgplayer?.url && cardData?.tcgplayer?.prices;
+  const hasCardmarket = cardData?.cardmarket?.url && cardData?.cardmarket?.prices;
+  
+  if (!hasTCGPlayer && !hasCardmarket) return null;
 
   const styles = getStyles(theme);
 
@@ -36,7 +40,10 @@ export default function ExternalLinksSection({ cardData, theme }) {
         {['tcgplayer', 'cardmarket'].map((key) => {
           const data = platformData[key];
           const url = cardData?.[key]?.url;
-          if (!url) return null;
+          const prices = cardData?.[key]?.prices;
+          
+          // Only show button if both URL and prices exist
+          if (!url || !prices) return null;
 
           return (
             <TouchableOpacity
@@ -80,7 +87,8 @@ const getStyles = (theme) =>
     },
     button: {
       flex: 1,
-      minWidth: '48%',
+      width: '48%', // Always take half width
+      maxWidth: '48%', // Ensure it doesn't expand beyond half
       flexDirection: 'row',
       alignItems: 'center',
       paddingVertical: 12,

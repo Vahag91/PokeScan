@@ -24,6 +24,7 @@ export default function CardCollectionsModal({
   card,
   onChange,
   onRateUsTrigger,
+  language = 'en',
 }) {
   const [collections, setCollections] = useState([]);
   const [collectionCounts, setCollectionCounts] = useState({});
@@ -50,7 +51,9 @@ export default function CardCollectionsModal({
 
   const increment = async (collectionId) => {
     try {
-      await addCardToCollection(card, collectionId);
+
+      
+      await addCardToCollection(card, collectionId, language);
       setCollectionCounts((prev) => ({
         ...prev,
         [collectionId]: (prev[collectionId] || 0) + 1,
@@ -59,14 +62,9 @@ export default function CardCollectionsModal({
       
       // Trigger rate us prompt after adding card to collection
       setTimeout(async () => {
-        console.log('🔍 Checking if should show rate us modal...');
         const shouldShow = await RateUsService.shouldShowRatePrompt();
-        console.log('🔍 Should show rate us modal:', shouldShow);
         if (shouldShow && onRateUsTrigger) {
-          console.log('🔍 Triggering rate us modal!');
           onRateUsTrigger();
-        } else {
-          console.log('🔍 Not triggering rate us modal. shouldShow:', shouldShow, 'onRateUsTrigger:', !!onRateUsTrigger);
         }
       }, 1000);
     } catch (_) {

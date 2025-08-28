@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Text,
+  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -25,13 +26,14 @@ import {
 } from '../components/searchScreen';
 import { getCardPrice } from '../utils';
 import { defaultSearchCards } from '../constants';
-import { searchCardsInSupabase } from '../../supabase/utils';
+import { searchCardsUnified } from '../../supabase/utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
 import { mergeCardWithPrice } from '../../supabase/utils';
 import { SubscriptionContext } from '../context/SubscriptionContext';
 
 export default function SearchScreen() {
+  const { width: screenWidth } = Dimensions.get('window');
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
   const [hydratedDefaults, setHydratedDefaults] = useState(defaultSearchCards);
@@ -49,9 +51,11 @@ export default function SearchScreen() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [sortKey, setSortKey] = useState(null);
   const [hasFetched, setHasFetched] = useState(false);
+  const [language, setLanguage] = useState('en'); 
+
   const loaderTimeoutRef = useRef(null);
   const flatListRef = useRef(null);
-
+  const requestIdRef = useRef(0); // ensures only latest request updates state
 
   const {
     purchasePackage,
@@ -60,57 +64,60 @@ export default function SearchScreen() {
     availablePackages,
   } = useContext(SubscriptionContext);
 
-  const fetchResults = useCallback(() => {
-    let isCancelled = false;
-    const doFetch = async () => {
-      const trimmed = term.trim();
-      if (!trimmed) return;
+  // Explicit snapshot-based fetch (avoid closure over stale language)
+  const fetchResults = useCallback(
+    async (q, lang) => {
+      const query = (q ?? term).trim();
+      const selectedLang = lang ?? language;
+      if (!query) return;
 
-      setResults([]);
+      const myRequestId = ++requestIdRef.current;
+
       setErrorType(null);
       setErrorMessage(null);
+      setHasFetched(false);
+      setResults([]);
+
       clearTimeout(loaderTimeoutRef.current);
       setShowLoader(false);
-
-      loaderTimeoutRef.current = setTimeout(() => setShowLoader(true), 200);
+      loaderTimeoutRef.current = setTimeout(() => {
+        if (myRequestId === requestIdRef.current) setShowLoader(true);
+      }, 200);
 
       try {
-        const data = await searchCardsInSupabase(trimmed);
-        if (!isCancelled) {
-          setHasFetched(true);
-          if (!data || data.length === 0) {
-            setErrorType('noResults');
-            setErrorMessage(`No results for “${trimmed}”.`);
-          } else {
-            setResults(data);
-          }
+        const data = await searchCardsUnified(query, { language: selectedLang });
+        if (myRequestId !== requestIdRef.current) return; // stale response
+        setHasFetched(true);
+
+        if (!data || data.length === 0) {
+          setErrorType('noResults');
+          setErrorMessage(`No results for “${query}”.`);
+          setResults([]);
+        } else {
+          setResults(data);
         }
       } catch (e) {
-        if (!isCancelled) {
-          setErrorType('network');
-          setErrorMessage('Unable to connect. Please try again later.');
-        }
+        if (myRequestId !== requestIdRef.current) return; // stale response
+        setHasFetched(true);
+        setErrorType('network');
+        setErrorMessage('Unable to connect. Please try again.');
       } finally {
-        if (!isCancelled) {
-          clearTimeout(loaderTimeoutRef.current);
-          setShowLoader(false);
-        }
+        if (myRequestId !== requestIdRef.current) return; // stale response
+        clearTimeout(loaderTimeoutRef.current);
+        setShowLoader(false);
       }
-    };
-    doFetch();
+    },
+    [term, language]
+  );
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [term]);
-
+  // Debounce search on both term and language (single source of truth)
   useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      if (term.trim()) fetchResults();
+    if (!term.trim()) return;
+    const id = setTimeout(() => {
+      fetchResults(term, language); // pass explicit snapshots
     }, 400);
-
-    return () => clearTimeout(delayDebounce);
-  }, [term, fetchResults]);
+    return () => clearTimeout(id);
+  }, [term, language, fetchResults]);
 
   useEffect(() => {
     setHasFetched(false);
@@ -123,15 +130,14 @@ export default function SearchScreen() {
   }, [filters, sortKey]);
 
   useEffect(() => {
-    const hydrate = async () => {
+    (async () => {
       const updated = await Promise.all(
-        defaultSearchCards.map(card => mergeCardWithPrice(card)),
+        defaultSearchCards.map(card => mergeCardWithPrice(card))
       );
       setHydratedDefaults(updated);
-    };
-
-    hydrate();
+    })();
   }, []);
+
   const clearSearch = () => {
     Keyboard.dismiss();
     setTerm('');
@@ -139,11 +145,57 @@ export default function SearchScreen() {
     setErrorType(null);
     setErrorMessage(null);
     setHasFetched(false);
+    requestIdRef.current++; // cancel any in-flight requests
+    clearTimeout(loaderTimeoutRef.current);
+    setShowLoader(false);
   };
 
-  const retryFetch = () => fetchResults();
+  const retryFetch = () => fetchResults(term, language);
 
-  const dataToSort = term.trim() ? results : hydratedDefaults;
+  const dataToSort = term.trim() ? results : language === 'en' ? hydratedDefaults : [];
+
+  function LanguageToggle({ value, onChange }) {
+    // Responsive font size based on screen width
+    const getFontSize = () => {
+      if (screenWidth >= 450) return 16;
+      if (screenWidth >= 400) return 15;
+      if (screenWidth >= 350) return 14;
+      return 13;
+    };
+
+    return (
+      <View style={styles.languageToggleWrapper}>
+        {['en', 'jp'].map(opt => (
+          <TouchableOpacity
+            key={opt}
+            onPress={() => onChange(opt)}
+            style={[
+              styles.languageToggleBtn,
+              {
+                backgroundColor: value === opt ? '#10B981' : theme.cardBackground,
+                borderColor: value === opt ? '#10B981' : theme.border,
+                shadowColor: value === opt ? '#10B981' : theme.shadowColor,
+              }
+            ]}
+            activeOpacity={0.8}
+          >
+            <Text 
+              numberOfLines={1}
+              style={[
+                styles.languageToggleText,
+                {
+                  color: value === opt ? '#FFFFFF' : theme.text,
+                  fontWeight: value === opt ? '700' : '600',
+                  fontSize: getFontSize(),
+                }
+              ]}>
+              {opt === 'en' ? '🇺🇸 English Card' : '🇯🇵 Japanese Card'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  }
 
   const sortedResults = useMemo(() => {
     if (!dataToSort.length || !sortKey) return dataToSort;
@@ -158,7 +210,7 @@ export default function SearchScreen() {
           return getCardPrice(item) ?? 0;
         case 'date':
           return new Date(
-            (item.set?.releaseDate || '2000/01/01').replace(/\//g, '-'),
+            (item.set?.releaseDate || '2000/01/01').replace(/\//g, '-')
           ).getTime();
         default:
           return '';
@@ -178,41 +230,39 @@ export default function SearchScreen() {
     });
   }, [dataToSort, sortKey]);
 
-
   const filteredAndSortedResults = useMemo(() => {
     return sortedResults.filter(card => {
       const matchesRarity =
         filters.rarity.length === 0 || filters.rarity.includes(card.rarity);
-  
+
       const matchesType =
         filters.type.length === 0 ||
         (card.types || []).some(t => filters.type.includes(t));
-  
+
       const matchesAttack =
         filters.attack.length === 0 ||
         (card.attacks || []).some(attack =>
           (attack.cost || []).some(costType => filters.attack.includes(costType))
         );
-  
-      // ✅ Only apply HP filter if user set a range
+
       const hpRange = Array.isArray(filters.hp) ? filters.hp : null;
       const hpVal = parseInt(card.hp, 10);
       const matchesHp = !hpRange
         ? true
         : Number.isFinite(hpVal) && hpVal >= hpRange[0] && hpVal <= hpRange[1];
-  
-      const regulationMark = card.regulationMark ?? card.regulationmark; // handle both casings
+
+      const regulationMark = card.regulationMark ?? card.regulationmark;
       const matchesRegulation =
         filters.regulation.length === 0 ||
         (regulationMark && filters.regulation.includes(regulationMark));
-  
+
       const matchesLegality =
         filters.legality.length === 0 ||
         (card.legalities &&
           filters.legality.some(
             format => card.legalities[format.toLowerCase()] === 'Legal'
           ));
-  
+
       return (
         matchesRarity &&
         matchesType &&
@@ -223,12 +273,16 @@ export default function SearchScreen() {
       );
     });
   }, [sortedResults, filters]);
-  
 
   const resultsCount = filteredAndSortedResults.length;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>  
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Language Toggle - Above Search Bar */}
+      <View style={styles.languageToggleContainer}>
+        <LanguageToggle value={language} onChange={setLanguage} />
+      </View>
+      
       <View
         style={[
           styles.searchBar,
@@ -254,7 +308,7 @@ export default function SearchScreen() {
           returnKeyType="search"
           onSubmitEditing={() => {
             Keyboard.dismiss();
-            if (term.trim()) fetchResults();
+            if (term.trim()) fetchResults(term, language); // explicit snapshots
           }}
         />
         {!!term && hasFetched && !showLoader && (
@@ -281,7 +335,7 @@ export default function SearchScreen() {
       </View>
 
       {showLoader && (
-        <View style={styles.loaderOverlay}>
+        <View className="loader" style={styles.loaderOverlay}>
           <ActivityIndicator size="large" color={'#10B981'} />
         </View>
       )}
@@ -289,8 +343,11 @@ export default function SearchScreen() {
       <FlatList
         ref={flatListRef}
         data={filteredAndSortedResults}
+        extraData={language} // force refresh across language flips
         keyExtractor={item => item.id}
-        renderItem={({ item }) => <RenderSearchSingleCard item={item} showCardNumber/>}
+        renderItem={({ item }) => (
+          <RenderSearchSingleCard item={item} showCardNumber selectedLanguage={language} />
+        )}
         numColumns={2}
         columnWrapperStyle={styles.rowWrapper}
         ListEmptyComponent={
@@ -312,6 +369,39 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  languageToggleContainer: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  languageToggleWrapper: {
+    flexDirection: 'row',
+    gap: 8,
+    width: '100%',
+  },
+  languageToggleBtn: {
+    borderRadius: 28,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    minHeight: 42,
+    flex: 1,
+    marginHorizontal: 2,
+  },
+  languageToggleText: {
+    letterSpacing: 0.1,
+    textAlign: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'nowrap',
+    numberOfLines: 1,
+    fontFamily: "Lato-Bold",
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -327,11 +417,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   searchIcon: { marginRight: 8 },
-  input: {
-    flex: 1,
-    paddingVertical: 4,
-    lineHeight: 20,
-  },
+  input: { flex: 1, paddingVertical: 4, lineHeight: 20 },
   loaderOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -351,12 +437,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     gap: 4,
   },
-  resultBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    overflow: 'hidden',
-  },
-  clearBtn: {
-    padding: 2,
-  },
+  resultBadge: { paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  clearBtn: { padding: 2 },
 });

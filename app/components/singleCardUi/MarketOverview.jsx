@@ -28,6 +28,9 @@ export default function MarketOverview({
   if (tcgplayer?.prices) available.push('tcgplayer');
   if (cardmarket?.prices) available.push('cardmarket');
 
+  // Don't render anything if no prices are available
+  if (available.length === 0) return null;
+
   const [activeTab, setActiveTab] = useState(available[0] || null);
   const market = activeTab === 'tcgplayer' ? tcgplayer : cardmarket;
   
@@ -191,14 +194,17 @@ export default function MarketOverview({
         Last updated: {new Date().toISOString().split('T')[0]}
       </Text>
 
-      <MarketLinkButton
-        scale={scale}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        url={market.url}
-        activeTab={activeTab}
-        theme={theme}
-      />
+      {/* Only show market link button if there are prices and a valid URL */}
+      {market.url && (
+        <MarketLinkButton
+          scale={scale}
+          onPressIn={onPressIn}
+          onPressOut={onPressOut}
+          url={market.url}
+          activeTab={activeTab}
+          theme={theme}
+        />
+      )}
     </View>
   );
 }

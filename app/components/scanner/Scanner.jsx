@@ -18,12 +18,11 @@ import CardPreview from './CardPreview';
 import CardCarouselPreview from './CardCarouselPreview';
 import CameraView from './CameraView';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { fetchScannerCardFromSupabase } from '../../../supabase/utils';
+import { fetchScannerCardFromSupabaseJPStrict } from '../../../supabase/utils';
 import { supabase } from '../../../supabase/supabase';
 import RNFS from 'react-native-fs';
 import { SubscriptionContext } from '../../context/SubscriptionContext';
-import { hasExceededLimit, incrementScanCount } from '../../utils';
-import PaywallModal from '../../screens/PaywallScreen';
+
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -35,9 +34,7 @@ export default function ScannerScreen({ navigation }) {
   const [cardData, setCardData] = useState(null);
   const [cardResults, setCardResults] = useState([]);
   const [noResult, setNoResult] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
 
-  const { isPremium } = useContext(SubscriptionContext);
   const device = useCameraDevice('back');
 
   const cameraRef = useRef(null);
@@ -69,16 +66,9 @@ export default function ScannerScreen({ navigation }) {
     if (!overlayLayout) return;
     if (loading) return;
 
-    if (!isPremium) {
-      const exceeded = await hasExceededLimit();
-      if (exceeded) {
-        setShowPaywall(true);
-        return;
-      } else {
-        await incrementScanCount();
-      }
-    }
 
+
+    
     try {
       setLoading(true);
       setCardName(null);
@@ -123,11 +113,12 @@ export default function ScannerScreen({ navigation }) {
       };
 
       const { data: dataFromEdge, error } = await supabase.functions.invoke(
-        'classify-card',
+        'clever-api',
         {
           body: bodyPayload,
         },
       );
+      console.log('dataFromEdge', dataFromEdge);
 
       if (error) {
         console.error('[SCAN] classify-card error:', error);
@@ -136,13 +127,15 @@ export default function ScannerScreen({ navigation }) {
 
       setCardName(dataFromEdge.name);
 
-      const matches = await fetchScannerCardFromSupabase(
+      const matches = await fetchScannerCardFromSupabaseJPStrict(
         dataFromEdge.name,
         dataFromEdge.number,
         dataFromEdge.hp,
         dataFromEdge.illustrator,
       );
 
+      console.log('matches', matches);
+      
       if (matches?.length === 1) {
         setCardData(matches[0]);
         setCardResults([]);
@@ -264,10 +257,7 @@ export default function ScannerScreen({ navigation }) {
         )}
       </View>
 
-      <PaywallModal
-        visible={showPaywall}
-        onClose={() => setShowPaywall(false)}
-      />
+
     </SafeAreaView>
   );
 }

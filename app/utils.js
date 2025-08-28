@@ -221,6 +221,35 @@ const getFullPath = filename =>
 
 function formatFoilLabel(key) {
   if (!key) return '';
+  
+  // Convert all the specific foil types to "Normal"
+  const normalFoils = [
+    'nonolo',
+    'mirroreverseolo',
+    'promo',
+    'holo',
+    'normalinderace',
+    'normalikachu',
+    'mirageolo',
+    'normalewtwo',
+    'normalyranitar',
+    'normalaichu',
+    'normalharizard',
+    'normaloloaichu',
+    'normaloloewtwo',
+    'normalewtwo16',
+    'normaloloharizard',
+    'normaloloikachu',
+    'unpeeledardidoof',
+    'unpeeledardpinarak',
+    'unpeeledardumel'
+  ];
+  
+  // If the key matches any of the normal foils, return "Normal"
+  if (normalFoils.includes(key)) {
+    return 'Normal';
+  }
+  
   return key
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/^1stEdition/, '1st Edition')
@@ -229,7 +258,10 @@ function formatFoilLabel(key) {
     .replace(/^holofoil/, 'Holofoil')
     .replace(/^reverse Holofoil/, 'Reverse Holofoil')
     .replace(/^etched Holofoil/, 'Etched Holofoil')
-    .replace(/^promo Holofoil/, 'Promo Holofoil');
+    .replace(/^promo Holofoil/, 'Promo Holofoil')
+    .replace(/^pokallolo/, 'Poke Ball Holo')
+    .replace(/^reverseolo/, 'Reverse Holofoil')
+    .replace(/^masterallolo/, 'Master Baell Holo');
 }
 
 export {
