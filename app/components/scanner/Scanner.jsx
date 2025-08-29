@@ -21,6 +21,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fetchScannerCardFromSupabaseJPStrict } from '../../../supabase/utils';
 import { supabase } from '../../../supabase/supabase';
 import RNFS from 'react-native-fs';
+import { hasExceededLimit, incrementScanCount } from '../../utils';
+import PaywallModal from '../../screens/PaywallScreen';
 import { SubscriptionContext } from '../../context/SubscriptionContext';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -34,7 +36,9 @@ export default function ScannerScreen({ navigation }) {
   const [cardData, setCardData] = useState(null);
   const [cardResults, setCardResults] = useState([]);
   const [noResult, setNoResult] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
+  const { isPremium } = useContext(SubscriptionContext);
   const device = useCameraDevice('back');
 
   const cameraRef = useRef(null);
@@ -68,6 +72,15 @@ export default function ScannerScreen({ navigation }) {
 
 
 
+    // if (!isPremium) {
+    //   const exceeded = await hasExceededLimit();
+    //   if (exceeded) {
+    //     setShowPaywall(true);
+    //     return;
+    //   } else {
+    //     await incrementScanCount();
+    //   }
+    // }
     
     try {
       setLoading(true);
@@ -124,6 +137,7 @@ export default function ScannerScreen({ navigation }) {
         console.error('[SCAN] classify-card error:', error);
         throw error;
       }
+
 
       setCardName(dataFromEdge.name);
 
@@ -257,7 +271,10 @@ export default function ScannerScreen({ navigation }) {
         )}
       </View>
 
-
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
     </SafeAreaView>
   );
 }
