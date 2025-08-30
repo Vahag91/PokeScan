@@ -4,282 +4,531 @@ import { getDBConnection } from '../app/lib/db';
 import { defaultSearchCards } from '../app/constants';
 
 
-
-function pad3(n) {
-  const s = String(n).trim();
-  return s.padStart(3, '0');
-}
-
-function escapeForILike(s) {
-  if (!s) return '';
-  return String(s).replace(/[%_]/g, ch => `\\${ch}`).trim();
-}
-
-// Normalize JP promo numbers: SVP007 -> SV-P007, SM P33 -> SM-P033
-function normalizeJPPromo(num) {
-  if (!num) return null;
-  let s = String(num).trim().toUpperCase().replace(/\s+/g, '');
-  s = s.replace(/^(SVP)(\d{1,3})$/, (_, p, n) => `SV-P${pad3(n)}`);
-  s = s.replace(/^(SP)(\d{1,3})$/,   (_, p, n) => `S-P${pad3(n)}`);
-  s = s.replace(/^(SMP)(\d{1,3})$/,  (_, p, n) => `SM-P${pad3(n)}`);
-  s = s.replace(/^(XYP)(\d{1,3})$/,  (_, p, n) => `XY-P${pad3(n)}`);
-  s = s.replace(/^(BWP)(\d{1,3})$/,  (_, p, n) => `BW-P${pad3(n)}`);
-  s = s.replace(/^(DPP)(\d{1,3})$/,  (_, p, n) => `DP-P${pad3(n)}`);
-  s = s.replace(/^(SV-P)(\d{1,3})$/, (_, p, n) => `${p}${pad3(n)}`);
-  s = s.replace(/^(S-P)(\d{1,3})$/,  (_, p, n) => `${p}${pad3(n)}`);
-  s = s.replace(/^(SM-P)(\d{1,3})$/, (_, p, n) => `${p}${pad3(n)}`);
-  s = s.replace(/^(XY-P)(\d{1,3})$/, (_, p, n) => `${p}${pad3(n)}`);
-  s = s.replace(/^(BW-P)(\d{1,3})$/, (_, p, n) => `${p}${pad3(n)}`);
-  s = s.replace(/^(DP-P)(\d{1,3})$/, (_, p, n) => `${p}${pad3(n)}`);
-  return s;
-}
-
-// Return variations we will try for number equality
-function buildNumberCandidates(numStr) {
-  if (!numStr) return [];
-  const s = String(numStr).trim();
-  const arr = new Set();
-
-  // Promo normalized
-  const promo = normalizeJPPromo(s);
-  if (promo && /^(?:SV-P|S-P|SM-P|XY-P|BW-P|DP-P)\d{3}$/.test(promo)) {
-    arr.add(promo);
-    return Array.from(arr);
-  }
-
-  // Fraction forms
-  const m = s.match(/^(\d{1,3})\/(\d{1,3})$/);
-  if (m) {
-    const left = m[1].replace(/^0+/, '') || '0';
-    const right = m[2].replace(/^0+/, '') || '0';
-    const exact = `${m[1].padStart(3, '0')}/${m[2].padStart(3, '0')}`; // "005/063"
-    const trimmed = `${left}/${right}`;                                // "5/63"
-    arr.add(s);        // as-is
-    arr.add(exact);
-    arr.add(trimmed);
-    // also try bare left variants ("5", "005") because some datasets store just left part
-    arr.add(left);
-    arr.add(pad3(left));
-    return Array.from(arr);
-  }
-
-  // Bare numeric
-  if (/^\d{1,3}$/.test(s)) {
-    const bare = s.replace(/^0+/, '') || '0';
-    arr.add(bare);
-    arr.add(pad3(bare));
-  }
-
-  return Array.from(arr);
-}
-
-function buildNamePattern(nameEN) {
-  if (!nameEN) return null;
-  const cleaned = nameEN
-    .toLowerCase()
-    .replace(/’|‘|`/g, "'")
-    .replace(/[^a-z0-9\s'\-\.]/g, '') // keep basic punctuation like apostrophe, dash, dot
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!cleaned) return null;
-  return `%${escapeForILike(cleaned)}%`;
-}
-
-// ---------- main ----------
-// --- helpers stay the same: pad3, escapeForILike, normalizeJPPromo, buildNumberCandidates, buildNamePattern ---
-
 export async function fetchScannerCardFromSupabaseJPStrict(
-  nameEN,            // English name from JP edge fn
-  number,            // e.g., "005/063" or "SV-P007"
-  hp = null,         // numeric or string
-  artist = null      // used for Tier A and trainer/supporter tier
+  nameEN,            // string or null
+  number,            // string or null (e.g., "038/063", "SV-P007")
+  hp = null,         // number or string; coerced to number or null
+  artist = null      // string or null
 ) {
-  const hpNum = hp == null ? null : Number(hp);
-  const namePattern = buildNamePattern(nameEN);
-  const artistPattern = artist ? `%${escapeForILike(artist)}%` : null;
-  const numberCandidates = buildNumberCandidates(number);
+  try {
+    // Normalize inputs -> null if empty
+    const p_name_en = nameEN && String(nameEN).trim() ? String(nameEN).trim() : null;
+    const p_number  = number && String(number).trim() ? String(number).trim() : null;
 
-  async function run(q) {
-    const { data, error } = await q;
-    if (!error && data?.length) return [data[0]];
+    const hpNum = Number(hp);
+    const p_hp = Number.isFinite(hpNum) ? hpNum : null;
+
+    const p_artist = artist && String(artist).trim() ? String(artist).trim() : null;
+
+    const { data, error } = await supabase.rpc('match_card_jp', {
+      p_name_en,
+      p_number,
+      p_hp,
+      p_artist,
+    });
+
+    if (error) {
+      console.error('[match_card_jp] RPC error:', error, 'payload:', { p_name_en, p_number, p_hp, p_artist });
+      return null;
+    }
+
+    if (!data || !data.length) return null;
+
+    // The RPC already limits to 1 or (fallback) <= 3; keep it consistent
+    return data.slice(0, 3);
+  } catch (e) {
+    console.error('[match_card_jp] thrown error:', e);
     return null;
   }
-
-  // Helper for the rescue tier to ensure uniqueness (return only if exactly 1 match)
-  async function runUnique(q) {
-    const { data, error } = await q;
-    if (error || !data) return null;
-    if (data.length === 1) return [data[0]];
-    return null; // not unique → don't guess
-  }
-
-  // ======== PATH 1: HP is provided (Pokémon) — keep your strict tiers ========
-  if (Number.isFinite(hpNum)) {
-    if (!namePattern) return null; // your rule: Name + HP must exist
-
-    // Tier A: name + hp + number + artist
-    if (artistPattern && numberCandidates.length > 0) {
-      const q = supabase
-        .from('cards_jp')
-        .select('*')
-        .ilike('name', namePattern)
-        .eq('hp', hpNum)
-        .in('number', numberCandidates)
-        .ilike('artist', artistPattern)
-        .limit(1);
-      const hit = await run(q);
-      console.log("Tier 111111",hit);
-      
-      if (hit) return hit;
-    }
-
-    // Tier B: name + hp + number
-    if (numberCandidates.length > 0) {
-      let q = supabase
-        .from('cards_jp')
-        .select('*')
-        .ilike('name', namePattern)
-        .eq('hp', hpNum)
-        .in('number', numberCandidates)
-        .limit(1);
-      let hit = await run(q);
-      console.log("Tier 222222",hit);
-      if (hit) return hit;
-
-      // If original looked like NNN/NNN, try left prefix with strict name+hp
-      const frac = String(number || '').match(/^(\d{1,3})\/(\d{1,3})$/);
-      if (frac) {
-        const left = frac[1].replace(/^0+/, '') || '0';
-        q = supabase
-          .from('cards_jp')
-          .select('*')
-          .ilike('name', namePattern)
-          .eq('hp', hpNum)
-          .ilike('number', `${left}/%`)
-          .limit(1);
-        hit = await run(q);
-        console.log("Tier 333333",hit);
-        if (hit) return hit;
-      }
-    }
-
-    // ── Tier M (RESCUE): hp + number [+ artist], ignore name BUT only accept if unique ──
-    // Handles GPT misnaming when number & hp (and often artist) are correct.
-    if (numberCandidates.length > 0) {
-      // M1: number + hp + artist (unique)
-      if (artistPattern) {
-        const q1 = supabase
-          .from('cards_jp')
-          .select('*')
-          .eq('hp', hpNum)
-          .in('number', numberCandidates)
-          .ilike('artist', artistPattern)
-          .limit(3); // check uniqueness
-        const unique1 = await runUnique(q1);
-        console.log("Tier 444444",unique1);
-        if (unique1) return unique1;
-      }
-
-      // M2: number + hp (unique)
-      const q2 = supabase
-        .from('cards_jp')
-        .select('*')
-        .eq('hp', hpNum)
-        .in('number', numberCandidates)
-        .limit(3); // check uniqueness
-      const unique2 = await runUnique(q2);
-      console.log("Tier 555555",unique2);
-      if (unique2) return unique2;
-
-      // M3: if input looked like NNN/NNN, try left prefix + hp (unique), with/without artist
-      const frac = String(number || '').match(/^(\d{1,3})\/(\d{1,3})$/);
-      if (frac) {
-        const left = frac[1].replace(/^0+/, '') || '0';
-
-        if (artistPattern) {
-          const q3a = supabase
-            .from('cards_jp')
-            .select('*')
-            .eq('hp', hpNum)
-            .ilike('number', `${left}/%`)
-            .ilike('artist', artistPattern)
-            .limit(3);
-          const unique3a = await runUnique(q3a);
-          if (unique3a) return unique3a;
-        }
-
-        const q3b = supabase
-          .from('cards_jp')
-          .select('*')
-          .eq('hp', hpNum)
-          .ilike('number', `${left}/%`)
-          .limit(3);
-        const unique3b = await runUnique(q3b);
-        if (unique3b) return unique3b;
-      }
-    }
-
-    // Tier C: name + hp
-    {
-      const q = supabase
-        .from('cards_jp')
-        .select('*')
-        .ilike('name', namePattern)
-        .eq('hp', hpNum)
-        .limit(1);
-      const hit = await run(q);
-      if (hit) return hit;
-    }
-
-    return null;
-  }
-
-  // ======== PATH 2: HP is null (Trainer/Supporter/Item/etc.) ========
-  // Last tier, as requested: rely on number + artist; ignore name (can be wrong).
-  // We also ensure hp IS NULL to avoid pulling Pokémon.
-  if (artistPattern && numberCandidates.length > 0) {
-    // Tier TS-1: exact number + artist + hp IS NULL
-    let q = supabase
-      .from('cards_jp')
-      .select('*')
-      .is('hp', null)
-      .in('number', numberCandidates)
-      .ilike('artist', artistPattern)
-      .limit(1);
-    let hit = await run(q);
-    if (hit) return hit;
-
-    // Tier TS-2: if number is NNN/NNN, also try left prefix with hp IS NULL
-    const frac = String(number || '').match(/^(\d{1,3})\/(\d{1,3})$/);
-    if (frac) {
-      const left = frac[1].replace(/^0+/, '') || '0';
-      q = supabase
-        .from('cards_jp')
-        .select('*')
-        .is('hp', null)
-        .ilike('number', `${left}/%`)
-        .ilike('artist', artistPattern)
-        .limit(1);
-      hit = await run(q);
-      if (hit) return hit;
-    }
-  }
-
-  // Optional TS-3 fallback (if artist missing but number is very distinctive)
-  // if (numberCandidates.length > 0) {
-  //   const q = supabase.from('cards_jp')
-  //     .select('*')
-  //     .is('hp', null)
-  //     .in('number', numberCandidates)
-  //     .limit(1);
-  //   const hit = await run(q);
-  //   if (hit) return hit;
-  // }
-
-  return null;
 }
 
+export async function matchCardENStrict({ name, number, hp, illustrator }) {
+  // Normalize inputs for the RPC
+  const p_name   = name ?? null;
+  const p_number = (typeof number === 'string' && number.trim().length) ? number.trim() : null;
+  const p_artist = illustrator ?? null;
 
+  let p_hp = null;
+  if (hp !== null && hp !== undefined) {
+    const n = Number(hp);
+    // Trainers sometimes come as 0 → treat as NULL so trainer tiers are used
+    p_hp = Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  try {
+    const payload = { p_name, p_number, p_hp, p_artist };
+    console.log('payload', payload);
+    
+    const { data, error } = await supabase.rpc('match_card_en', payload);
+
+    if (error) {
+      console.error('[match_card_en] RPC error:', error, 'payload:', payload);
+      return null;
+    }
+    return Array.isArray(data) && data.length ? data.slice(0, 3) : null;
+  } catch (err) {
+    console.error('[match_card_en] RPC exception:', err);
+    return null;
+  }
+}
+// export async function fetchScannerCardFromSupabaseJPStrict(
+
+//   nameEN,            // English name from JP edge fn
+//   number,            // e.g., "005/063" or "SV-P007"
+//   hp = null,         // numeric or string
+//   artist = null      // used for Tier A and trainer/supporter tier
+// ) {
+//   const hpNum = hp == null ? null : Number(hp);
+//   const namePattern = buildNamePattern(nameEN);
+//   const artistPattern = artist ? `%${escapeForILike(artist)}%` : null;
+//   const numberCandidates = buildNumberCandidates(number);
+
+//   async function run(q) {
+//     const { data, error } = await q;
+//     if (!error && data?.length) return [data[0]];
+//     return null;
+//   }
+
+//   // Helper for the rescue tier to ensure uniqueness (return only if exactly 1 match)
+//   async function runUnique(q) {
+//     const { data, error } = await q;
+//     if (error || !data) return null;
+//     if (data.length === 1) return [data[0]];
+//     return null; // not unique → don't guess
+//   }
+
+//   // ======== PATH 1: HP is provided (Pokémon) — keep your strict tiers ========
+//   if (Number.isFinite(hpNum)) {
+//     if (!namePattern) return null; // your rule: Name + HP must exist
+
+//     // Tier A: name + hp + number + artist
+//     if (artistPattern && numberCandidates.length > 0) {
+//       const q = supabase
+//         .from('cards_jp')
+//         .select('*')
+//         .ilike('name', namePattern)
+//         .eq('hp', hpNum)
+//         .in('number', numberCandidates)
+//         .ilike('artist', artistPattern)
+//         .limit(1);
+//       const hit = await run(q);
+//       if (hit) return hit;
+//     }
+
+//     // Tier B: name + hp + number
+//     if (numberCandidates.length > 0) {
+//       let q = supabase
+//         .from('cards_jp')
+//         .select('*')
+//         .ilike('name', namePattern)
+//         .eq('hp', hpNum)
+//         .in('number', numberCandidates)
+//         .limit(1);
+//       let hit = await run(q);
+//       if (hit) return hit;
+
+//       // If original looked like NNN/NNN, try left prefix with strict name+hp
+//       const frac = String(number || '').match(/^(\d{1,3})\/(\d{1,3})$/);
+//       if (frac) {
+//         const left = frac[1].replace(/^0+/, '') || '0';
+//         q = supabase
+//           .from('cards_jp')
+//           .select('*')
+//           .ilike('name', namePattern)
+//           .eq('hp', hpNum)
+//           .ilike('number', `${left}/%`)
+//           .limit(1);
+//         hit = await run(q);
+//         if (hit) return hit;
+//       }
+//     }
+
+//     // ── Tier H (HP-tolerant): name + number [+ artist], ignore hp ──
+//     // Use this ONLY when number is present; it fixes cases where OCR misreads HP
+//     if (numberCandidates.length > 0) {
+//       // H1: name + number + artist (strongest)
+//       if (artistPattern) {
+//         const qH1 = supabase
+//           .from('cards_jp')
+//           .select('*')
+//           .ilike('name', namePattern)
+//           .in('number', numberCandidates)
+//           .ilike('artist', artistPattern)
+//           .limit(1);
+//         const h1 = await run(qH1);
+//         if (h1) return h1;
+//       }
+//       // H2: name + number (no artist)
+//       {
+//         const qH2 = supabase
+//           .from('cards_jp')
+//           .select('*')
+//           .ilike('name', namePattern)
+//           .in('number', numberCandidates)
+//           .limit(1);
+//         const h2 = await run(qH2);
+//         if (h2) return h2;
+//       }
+//       // H3: if fraction, try left-prefix with name (±artist)
+//       const frac = String(number || '').match(/^(\d{1,3})\/(\d{1,3})$/);
+//       if (frac) {
+//         const left = frac[1].replace(/^0+/, '') || '0';
+//         if (artistPattern) {
+//           const qH3a = supabase
+//             .from('cards_jp')
+//             .select('*')
+//             .ilike('name', namePattern)
+//             .ilike('number', `${left}/%`)
+//             .ilike('artist', artistPattern)
+//             .limit(1);
+//           const h3a = await run(qH3a);
+//           if (h3a) return h3a;
+//         }
+//         const qH3b = supabase
+//           .from('cards_jp')
+//           .select('*')
+//           .ilike('name', namePattern)
+//           .ilike('number', `${left}/%`)
+//           .limit(1);
+//         const h3b = await run(qH3b);
+//         if (h3b) return h3b;
+//       }
+//     }
+
+//     // ── Tier M (RESCUE): hp + number [+ artist], ignore name BUT only accept if unique ──
+//     // (kept as-is; this will usually fail when hp is misread—which is why Tier H exists)
+//     if (numberCandidates.length > 0) {
+//       if (artistPattern) {
+//         const q1 = supabase
+//           .from('cards_jp')
+//           .select('*')
+//           .eq('hp', hpNum)
+//           .in('number', numberCandidates)
+//           .ilike('artist', artistPattern)
+//           .limit(3); // check uniqueness
+//         const unique1 = await runUnique(q1);
+//         if (unique1) return unique1;
+//       }
+
+//       const q2 = supabase
+//         .from('cards_jp')
+//         .select('*')
+//         .eq('hp', hpNum)
+//         .in('number', numberCandidates)
+//         .limit(3); // check uniqueness
+//       const unique2 = await runUnique(q2);
+//       if (unique2) return unique2;
+
+//       const frac = String(number || '').match(/^(\d{1,3})\/(\d{1,3})$/);
+//       if (frac) {
+//         const left = frac[1].replace(/^0+/, '') || '0';
+
+//         if (artistPattern) {
+//           const q3a = supabase
+//             .from('cards_jp')
+//             .select('*')
+//             .eq('hp', hpNum)
+//             .ilike('number', `${left}/%`)
+//             .ilike('artist', artistPattern)
+//             .limit(3);
+//           const unique3a = await runUnique(q3a);
+//           if (unique3a) return unique3a;
+//         }
+
+//         const q3b = supabase
+//           .from('cards_jp')
+//           .select('*')
+//           .eq('hp', hpNum)
+//           .ilike('number', `${left}/%`)
+//           .limit(3);
+//         const unique3b = await runUnique(q3b);
+//         if (unique3b) return unique3b;
+//       }
+//     }
+
+//     // Tier C: name + hp
+//     {
+//       const q = supabase
+//         .from('cards_jp')
+//         .select('*')
+//         .ilike('name', namePattern)
+//         .eq('hp', hpNum)
+//         .limit(1);
+//       const hit = await run(q);
+//       if (hit) return hit;
+//     }
+
+//     return null;
+//   }
+
+//   // ======== PATH 2: HP is null (Trainer/Supporter/Item/etc.) ========
+//   if (artistPattern && numberCandidates.length > 0) {
+//     // Tier TS-1: exact number + artist + hp IS NULL
+//     let q = supabase
+//       .from('cards_jp')
+//       .select('*')
+//       .is('hp', null)
+//       .in('number', numberCandidates)
+//       .ilike('artist', artistPattern)
+//       .limit(1);
+//     let hit = await run(q);
+//     if (hit) return hit;
+
+//     // Tier TS-2: if number is NNN/NNN, also try left prefix with hp IS NULL
+//     const frac = String(number || '').match(/^(\d{1,3})\/(\d{1,3})$/);
+//     if (frac) {
+//       const left = frac[1].replace(/^0+/, '') || '0';
+//       q = supabase
+//         .from('cards_jp')
+//         .select('*')
+//         .is('hp', null)
+//         .ilike('number', `${left}/%`)
+//         .ilike('artist', artistPattern)
+//         .limit(1);
+//       hit = await run(q);
+//       if (hit) return hit;
+//     }
+//   }
+
+//   return null;
+// }
+
+
+
+
+// --- helpers ---
+
+// === EN helper: keep Unicode (é) so ILIKE matches names like “Pokémon Catcher”
+
+
+
+
+
+
+// export async function fetchScannerCardFromSupabase(
+//   name,     // EN name from OCR/edge fn
+//   number,   // e.g., "SVP033", "063/197", "TG02/TG30"
+//   hp = null,
+//   artist = null
+// ) {
+//   const hpNum = hp == null ? null : Number(hp);
+//   const namePattern   = buildNamePatternENRelaxed(name); // Unicode-safe for EN
+//   const artistPattern = artist ? `%${escapeForILike(artist)}%` : null;
+//   const { leftNumbers, textCands, galleryPrefixes, leftPrefix, promoInfo } =
+//     buildNumberBucketsEN(number);
+
+//   async function first(q) {
+//     const { data, error } = await q;
+//     if (!error && data?.length) return [data[0]];
+//     return null;
+//   }
+//   async function uniqueOnly(q) {
+//     const { data, error } = await q;
+//     if (error || !data) return null;
+//     if (data.length === 1) return [data[0]];
+//     return null;
+//   }
+
+//   // ===== PATH 1: Pokémon (hp present) — A → B → M → C =====
+//   if (Number.isFinite(hpNum)) {
+//     if (!namePattern) return null;
+
+//     // Promo fast-lane (SVP/SWSH/SM/XY/BW/DP)
+//     if (promoInfo?.setId) {
+//       if (artistPattern) {
+//         let q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .eq('number', promoInfo.numNumeric)
+//           .contains('set', { setId: promoInfo.setId })
+//           .ilike('artist', artistPattern).limit(1);
+//         let hit = await first(q); if (hit) return hit;
+
+//         q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .eq('number', promoInfo.code)
+//           .ilike('artist', artistPattern).limit(1);
+//         hit = await first(q); if (hit) return hit;
+//       }
+//       {
+//         let q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .eq('number', promoInfo.numNumeric)
+//           .contains('set', { setId: promoInfo.setId }).limit(1);
+//         let hit = await first(q); if (hit) return hit;
+
+//         q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .eq('number', promoInfo.code).limit(1);
+//         hit = await first(q); if (hit) return hit;
+//       }
+//       {
+//         let q = supabase.from('cards').select('*')
+//           .eq('hp', hpNum)
+//           .eq('number', promoInfo.numNumeric)
+//           .contains('set', { setId: promoInfo.setId }).limit(2);
+//         let u = await uniqueOnly(q); if (u) return u;
+
+//         q = supabase.from('cards').select('*')
+//           .eq('hp', hpNum)
+//           .eq('number', promoInfo.code).limit(2);
+//         u = await uniqueOnly(q); if (u) return u;
+//       }
+//     }
+
+//     // Tier A: name + hp + number + artist
+//     if (artistPattern && (leftNumbers.length || textCands.length)) {
+//       if (leftNumbers.length) {
+//         const q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .in('number', leftNumbers).ilike('artist', artistPattern).limit(1);
+//         const hit = await first(q); if (hit) return hit;
+//       }
+//       if (textCands.length) {
+//         const q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .in('number', textCands).ilike('artist', artistPattern).limit(1);
+//         const hit = await first(q); if (hit) return hit;
+//       }
+//     }
+
+//     // Tier B: name + hp + number
+//     if (leftNumbers.length || textCands.length) {
+//       if (leftNumbers.length) {
+//         const q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .in('number', leftNumbers).limit(1);
+//         const hit = await first(q); if (hit) return hit;
+//       }
+//       if (textCands.length) {
+//         const q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .in('number', textCands).limit(1);
+//         const hit = await first(q); if (hit) return hit;
+//       }
+//       if (galleryPrefixes?.length) {
+//         for (const gp of galleryPrefixes) {
+//           const q = supabase.from('cards').select('*')
+//             .ilike('name', namePattern).eq('hp', hpNum)
+//             .ilike('number', `${gp}/%`).limit(1);
+//           const hit = await first(q); if (hit) return hit;
+//         }
+//       }
+//       if (leftPrefix) {
+//         const q = supabase.from('cards').select('*')
+//           .ilike('name', namePattern).eq('hp', hpNum)
+//           .ilike('number', `${leftPrefix}/%`).limit(1);
+//         const hit = await first(q); if (hit) return hit;
+//       }
+//     }
+
+//     // Tier M: rescue (ignore name), must be UNIQUE
+//     if (leftNumbers.length || textCands.length) {
+//       if (artistPattern) {
+//         if (leftNumbers.length) {
+//           const q1 = supabase.from('cards').select('*')
+//             .eq('hp', hpNum).in('number', leftNumbers)
+//             .ilike('artist', artistPattern).limit(3);
+//           const u1 = await uniqueOnly(q1); if (u1) return u1;
+//         }
+//         if (textCands.length) {
+//           const q1b = supabase.from('cards').select('*')
+//             .eq('hp', hpNum).in('number', textCands)
+//             .ilike('artist', artistPattern).limit(3);
+//           const u1b = await uniqueOnly(q1b); if (u1b) return u1b;
+//         }
+//       }
+//       if (leftNumbers.length) {
+//         const q2 = supabase.from('cards').select('*')
+//           .eq('hp', hpNum).in('number', leftNumbers).limit(3);
+//         const u2 = await uniqueOnly(q2); if (u2) return u2;
+//       }
+//       if (textCands.length) {
+//         const q2b = supabase.from('cards').select('*')
+//           .eq('hp', hpNum).in('number', textCands).limit(3);
+//         const u2b = await uniqueOnly(q2b); if (u2b) return u2b;
+//       }
+//       if (galleryPrefixes?.length) {
+//         for (const gp of galleryPrefixes) {
+//           const q3 = supabase.from('cards').select('*')
+//             .eq('hp', hpNum).ilike('number', `${gp}/%`).limit(3);
+//           const u3 = await uniqueOnly(q3); if (u3) return u3;
+//         }
+//       }
+//       if (leftPrefix) {
+//         const q4 = supabase.from('cards').select('*')
+//           .eq('hp', hpNum).ilike('number', `${leftPrefix}/%`).limit(3);
+//         const u4 = await uniqueOnly(q4); if (u4) return u4;
+//       }
+//     }
+
+//     // Tier C: name + hp
+//     {
+//       const q = supabase.from('cards').select('*')
+//         .ilike('name', namePattern).eq('hp', hpNum).limit(1);
+//       const hit = await first(q); if (hit) return hit;
+//     }
+
+//     return null;
+//   }
+
+//   // ===== PATH 2: Trainer/Supporter/Item (hp null) =====
+
+//   // 1) Number + artist (exact-ish text forms)
+//   if (artistPattern && (leftNumbers.length || textCands.length || galleryPrefixes.length || leftPrefix)) {
+//     if (textCands.length) {
+//       const q = supabase.from('cards').select('*')
+//         .is('hp', null).in('number', textCands)
+//         .ilike('artist', artistPattern).limit(1);
+//       const hit = await first(q); if (hit) return hit;
+//     }
+//     if (galleryPrefixes?.length) {
+//       for (const gp of galleryPrefixes) {
+//         const q = supabase.from('cards').select('*')
+//           .is('hp', null).ilike('number', `${gp}/%`)
+//           .ilike('artist', artistPattern).limit(1);
+//         const hit = await first(q); if (hit) return hit;
+//       }
+//     }
+//     if (leftPrefix) {
+//       const q = supabase.from('cards').select('*')
+//         .is('hp', null).ilike('number', `${leftPrefix}/%`)
+//         .ilike('artist', artistPattern).limit(1);
+//       const hit = await first(q); if (hit) return hit;
+//     }
+//   }
+
+//   // 2) Ranked name fallback (handles reprints & diacritics like “Pokémon”)
+//   if (namePattern) {
+//     const { data, error } = await supabase.from('cards').select('*')
+//       .is('hp', null).ilike('name', namePattern).limit(10);
+
+//     if (!error && data?.length) {
+//       const wantArtist = artist ? artist.toLowerCase() : null;
+
+//       const scored = data
+//         .map(c => {
+//           const a = (c.artist || '').toLowerCase();
+//           const setId = c.set?.setId || '';
+//           const dateStr = c.set?.releaseDate || c.set?.updatedAt || '';
+//           const ts = Date.parse(String(dateStr).replace(/\//g, '-')) || 0;
+
+//           const scoreArtist = wantArtist && a.includes(wantArtist) ? 2 : 0;
+//           const scoreSV     = /^sv/i.test(setId) ? 1 : 0;
+//           const scoreDate   = ts / 1e13; // tiny tie-breaker
+//           const score       = scoreArtist * 10 + scoreSV * 5 + scoreDate;
+
+//           return { c, score };
+//         })
+//         .sort((x, y) => y.score - x.score)
+//         .map(x => x.c);
+
+//       if (scored.length === 1) return [scored[0]];
+//       return scored.slice(0, 3);
+//     }
+//   }
+
+//   return null;
+// }
 
 
 
@@ -416,74 +665,6 @@ export const fetchEvolutions = async (evolvesFrom, evolvesTo = [], language = 'e
 
   return { evolutionFrom, evolutionTo };
 };
-export async function fetchScannerCardFromSupabase(
-  name,
-  number,
-  hp = null,
-  artist = null,
-) {
-  if (!name) return null;
-
-  const cleanedName = name
-    .toLowerCase()
-    .replace(/’|‘|`/g, "'") // normalize various apostrophes to single quote
-    .replace(/[^a-z0-9\s']/g, '') // allow letters, numbers, spaces, apostrophes
-    .replace(/\s+/g, ' ') // normalize extra whitespace
-    .trim();
-
-  const pattern = `%${cleanedName}%`;
-
-  let extractedNumber = null;
-  if (number?.includes('/')) {
-    extractedNumber = number.split('/')[0]?.replace(/^0+/, '');
-  } else {
-    extractedNumber = number?.replace(/^0+/, '');
-  }
-
-  // 1. Match: name + number
-  if (extractedNumber) {
-    const { data, error } = await supabase
-      .from('cards')
-      .select('*')
-      .ilike('name', pattern)
-      .eq('number', extractedNumber);
-
-    if (!error && data?.length) return data.slice(0, 3);
-  }
-
-  // 2. Match: name + hp + artist
-  if (hp != null) {
-    const { data, error } = await supabase
-      .from('cards')
-      .select('*')
-      .ilike('name', pattern)
-      .eq('hp', hp);
-
-    if (!error && data?.length) {
-      if (artist) {
-        const matches = data.filter(c =>
-          c.artist?.toLowerCase().includes(artist.toLowerCase()),
-        );
-        if (matches.length) return matches.slice(0, 3);
-      }
-      return data.slice(0, 3); // fallback if artist doesn't match
-    }
-  }
-
-  // 3. Match: name only
-  const { data: looseData, error: looseError } = await supabase
-    .from('cards')
-    .select('*')
-    .ilike('name', pattern)
-    .limit(3);
-
-  if (!looseError && looseData?.length) return looseData;
-
-  return null;
-}
-
-
-
 
 export const updateDefaultCardPrices = async () => {
   const db = await getDBConnection();

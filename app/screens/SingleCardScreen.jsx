@@ -50,6 +50,7 @@ export default function SingleCardScreen() {
   const [fromData, setFromData] = useState([]);
   const [toData, setToData] = useState([]);
   const [showRateUsModal, setShowRateUsModal] = useState(false);
+console.log(cardData,"cardData");
 
   const headerRightButton = useCallback(
     () => (

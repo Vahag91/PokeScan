@@ -12,14 +12,14 @@ import { useNavigation } from '@react-navigation/native';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.8;
 
-export default function CardPreview({ cardName, cardData }) {
+export default function CardPreview({ cardName, cardData, language = 'en' }) {
   const navigation = useNavigation();
 
   if (!cardName && !cardData) return null;
 
   const handlePress = () => {
     if (cardData?.id) {
-      navigation.navigate('SingleCardScreen', { cardId: cardData.id });
+      navigation.navigate('SingleCardScreen', { cardId: cardData.id, language });
     }
   };
 

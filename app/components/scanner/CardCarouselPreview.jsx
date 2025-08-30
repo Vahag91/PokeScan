@@ -18,7 +18,7 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.75;
 const CARD_SPACING = 16;
 const FULL_CARD_WIDTH = CARD_WIDTH + CARD_SPACING;
 
-export default function CardCarouselPreview({ cards }) {
+export default function CardCarouselPreview({ cards, language = 'en' }) {
   const navigation = useNavigation();
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,7 +42,7 @@ export default function CardCarouselPreview({ cards }) {
   }, [currentIndex, cards.length]);
 
   const handleNavigate = cardId => {
-    navigation.navigate('SingleCardScreen', { cardId });
+    navigation.navigate('SingleCardScreen', { cardId, language });
   };
 
   const scrollToCard = index => {

@@ -18,7 +18,7 @@ import CardPreview from './CardPreview';
 import CardCarouselPreview from './CardCarouselPreview';
 import CameraView from './CameraView';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { fetchScannerCardFromSupabaseJPStrict } from '../../../supabase/utils';
+import { fetchScannerCardFromSupabaseJPStrict,fetchScannerCardFromSupabase,matchCardENStrict } from '../../../supabase/utils';
 import { supabase } from '../../../supabase/supabase';
 import RNFS from 'react-native-fs';
 import { hasExceededLimit, incrementScanCount } from '../../utils';
@@ -37,6 +37,13 @@ export default function ScannerScreen({ navigation }) {
   const [cardResults, setCardResults] = useState([]);
   const [noResult, setNoResult] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [scanLanguage, setScanLanguage] = useState('jp'); // 'en' or 'jp'
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+
+  // Clear scan results when language changes
+  useEffect(() => {
+    clearScanResult();
+  }, [scanLanguage]);
 
   const { isPremium } = useContext(SubscriptionContext);
   const device = useCameraDevice('back');
@@ -72,6 +79,7 @@ export default function ScannerScreen({ navigation }) {
 
 
 
+
     // if (!isPremium) {
     //   const exceeded = await hasExceededLimit();
     //   if (exceeded) {
@@ -89,8 +97,11 @@ export default function ScannerScreen({ navigation }) {
       setCardResults([]);
       setNoResult(false);
 
+      // Step 1: Take photo
       const photo = await cameraRef.current.takePhoto();
 
+      // Step 2: Process image path
+      const pathStartTime = Date.now();
       const uri = photo.path.startsWith('file://')
         ? photo.path
         : `file://${photo.path}`;
@@ -108,14 +119,20 @@ export default function ScannerScreen({ navigation }) {
       const targetWidth = 700;
       const aspectRatio = box.height / box.width;
       const targetHeight = Math.round(targetWidth * aspectRatio);
+      const pathTime = Date.now() - pathStartTime;
 
+      // Step 3: Crop image
+      const cropStartTime = Date.now();
       const croppedPath = await PhotoManipulator.crop(
         uri,
         box,
         { width: targetWidth, height: targetHeight },
         'image/jpeg',
       );
+      const cropTime = Date.now() - cropStartTime;
 
+      // Step 4: Read file and prepare payload
+      const fileStartTime = Date.now();
       const fileExt = croppedPath.split('.').pop();
       const fileName = `scan-${Date.now()}.${fileExt}`;
       const fileData = await RNFS.readFile(croppedPath, 'base64');
@@ -124,32 +141,50 @@ export default function ScannerScreen({ navigation }) {
         fileName,
         base64Image: fileData,
       };
+      const fileTime = Date.now() - fileStartTime;
 
+      // Step 5: Call Supabase function
+      const supabaseStartTime = Date.now();
       const { data: dataFromEdge, error } = await supabase.functions.invoke(
-        'clever-api',
+        scanLanguage === 'en' ? 'classify-card' : 'clever-api',
         {
           body: bodyPayload,
         },
       );
-      console.log('dataFromEdge', dataFromEdge);
+      const supabaseTime = Date.now() - supabaseStartTime;
 
       if (error) {
         console.error('[SCAN] classify-card error:', error);
         throw error;
       }
 
-
+      console.log('dataFromEdge', dataFromEdge);
       setCardName(dataFromEdge.name);
 
-      const matches = await fetchScannerCardFromSupabaseJPStrict(
-        dataFromEdge.name,
-        dataFromEdge.number,
-        dataFromEdge.hp,
-        dataFromEdge.illustrator,
-      );
+      // Step 6: Database matching
+      let matches = null;
+
+      if (scanLanguage === 'jp') {
+        // Use Japanese matching function
+        matches = await fetchScannerCardFromSupabaseJPStrict(
+          dataFromEdge.name,
+          dataFromEdge.number,
+          dataFromEdge.hp,
+          dataFromEdge.illustrator,
+        );
+      } else {
+        // Use English matching function
+        matches = await matchCardENStrict({
+          name: dataFromEdge.name,
+          number: dataFromEdge.number,
+          hp: dataFromEdge.hp,
+          illustrator: dataFromEdge.illustrator,
+        })
+      }
 
       console.log('matches', matches);
-      
+     
+      // Step 7: Set results
       if (matches?.length === 1) {
         setCardData(matches[0]);
         setCardResults([]);
@@ -163,8 +198,8 @@ export default function ScannerScreen({ navigation }) {
         setCardResults([]);
         setNoResult(true);
       }
+
     } catch (e) {
-      // Alert.alert('Scan Failed', e?.message || 'Unexpected error');
       setCardName('Error');
       setNoResult(true);
     } finally {
@@ -229,21 +264,79 @@ export default function ScannerScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Language Toggle Dropdown */}
+      <View style={styles.languageToggleContainer}>
+        <TouchableOpacity
+          style={styles.languageToggleButton}
+          onPress={() => setShowLanguageDropdown(!showLanguageDropdown)}
+        >
+          <Text style={styles.languageToggleText}>
+            {scanLanguage === 'en' ? '🇺🇸  Scan in English' : '🇯🇵 Scan in Japanese'}
+          </Text>
+          <Ionicons 
+            name={showLanguageDropdown ? "chevron-up" : "chevron-down"} 
+            size={16} 
+            color="#fff" 
+          />
+        </TouchableOpacity>
+        
+        {showLanguageDropdown && (
+          <View style={styles.dropdownMenu}>
+            <TouchableOpacity
+              style={[
+                styles.dropdownItem,
+                scanLanguage === 'en' && styles.dropdownItemActive
+              ]}
+              onPress={() => {
+                setScanLanguage('en');
+                setShowLanguageDropdown(false);
+              }}
+            >
+              <Text style={[
+                styles.dropdownItemText,
+                scanLanguage === 'en' && styles.dropdownItemTextActive
+              ]}>
+                🇺🇸 Scan in English
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.dropdownItem,
+                scanLanguage === 'jp' && styles.dropdownItemActive
+              ]}
+              onPress={() => {
+                setScanLanguage('jp');
+                setShowLanguageDropdown(false);
+              }}
+            >
+              <Text style={[
+                styles.dropdownItemText,
+                scanLanguage === 'jp' && styles.dropdownItemTextActive
+              ]}>
+                🇯🇵 Scan in Japanese
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
       <View style={styles.overlay}>
         <ScrollView
           contentContainerStyle={styles.scrollArea}
           showsVerticalScrollIndicator={false}
         >
           {cardData ? (
-            <CardPreview cardName={cardName} cardData={cardData} />
+            <CardPreview cardName={cardName} cardData={cardData} language={scanLanguage} />
           ) : cardResults.length > 0 ? (
-            <CardCarouselPreview cards={cardResults} />
+            <CardCarouselPreview cards={cardResults} language={scanLanguage} />
           ) : noResult ? (
             <View style={styles.noResultWrapper}>
-              <Text style={styles.noResultTitle}>No cards found</Text>
+              <Text style={styles.noResultTitle}>
+                No cards found
+              </Text>
               <Text style={styles.noResultDescription}>
-                We couldn't find a match for this scan. Try again with better
-                lighting or clearer framing.
+                We couldn't find a match for this scan. Try again with better lighting or clearer framing.
               </Text>
             </View>
           ) : null}
@@ -296,7 +389,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     left: 20,
-    zIndex: 100,
+    zIndex: 150,
     padding: 8,
     borderRadius: 24,
   },
@@ -412,5 +505,72 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
     fontFamily: 'Lato-Bold',
+  },
+  languageToggleContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  languageToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    gap: 10,
+    minWidth: 160,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  languageToggleText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+    fontFamily: 'Lato-Bold',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 50,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    overflow: 'hidden',
+    minWidth: 160,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  dropdownItem: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  dropdownItemActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+  },
+  dropdownItemText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '500',
+    fontFamily: 'Lato-Regular',
+    textAlign: 'center',
+  },
+  dropdownItemTextActive: {
+    color: '#10B981',
+    fontWeight: '600',
   },
 });
