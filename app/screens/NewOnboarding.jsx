@@ -10,50 +10,52 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
-const getSlides = (theme) => [
+const getSlides = (theme, t) => [
   {
     key: '1',
     image:  require('../assets/onboarding/scandark.png'),
-    title: 'Scan your cards',
-    subtitle: 'Get detailed information!',
+    title: t('onboarding.slide1.title'),
+    subtitle: t('onboarding.slide1.subtitle'),
   },
   {
     key: '2',
     image: theme === 'dark'
       ? require('../assets/onboarding/searchdark.png')
       : require('../assets/onboarding/searchlight.png'),
-    title: 'Search any cards',
-    subtitle: 'Use our advanced filters!',
+    title: t('onboarding.slide2.title'),
+    subtitle: t('onboarding.slide2.subtitle'),
   },
   {
     key: '3',
     image: theme === 'dark'
       ? require('../assets/onboarding/collectiondark.png')
       : require('../assets/onboarding/collectionlight.png'),
-    title: 'Create your card collection',
-    subtitle: 'Track collection value!',
+    title: t('onboarding.slide3.title'),
+    subtitle: t('onboarding.slide3.subtitle'),
   },
   {
     key: '4',
     image: theme === 'dark'
       ? require('../assets/onboarding/pricedark.png')
       : require('../assets/onboarding/pricelight.png'),
-    title: 'Get Card Information',
-    subtitle: 'Access details about price, stats and rarities info',
+    title: t('onboarding.slide4.title'),
+    subtitle: t('onboarding.slide4.subtitle'),
   },
 ];
 
 export default function NewOnboarding({ onDone }) {
+  const { t } = useTranslation();
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
   const buttonScale = useRef(new Animated.Value(1)).current;
   const { themeName, theme } = useContext(ThemeContext);
-  const slides = useMemo(() => getSlides(themeName), [themeName]);
+  const slides = useMemo(() => getSlides(themeName, t), [themeName, t]);
 
   const backgroundImage = themeName === 'dark'
     ? require('../assets/onboarding/darkpaywall.png')
@@ -211,7 +213,7 @@ export default function NewOnboarding({ onDone }) {
             activeOpacity={0.8}
           >
             <Text style={styles.buttonText}>
-              {currentIndex === slides.length - 1 ? 'Get Started' : 'Continue'}
+              {currentIndex === slides.length - 1 ? t('onboarding.getStarted') : t('onboarding.continue')}
             </Text>
           </TouchableOpacity>
         </Animated.View>

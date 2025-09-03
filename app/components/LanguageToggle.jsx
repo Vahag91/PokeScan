@@ -1,6 +1,7 @@
 // LanguageToggleChips.js
 import React, { useContext, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../context/ThemeContext';
 
 // --- helpers -------------------------------------------------
@@ -57,20 +58,26 @@ function isLightTheme(theme) {
 export default function LanguageToggleChips({
   value,
   onChange,
-  options = [
-    { key: 'en', label: '🇺🇸 English cards' },
-    { key: 'jp', label: '🇯🇵 Japanese cards' },
-  ],
+  options,
   style = {},
   textStyle = {},
   chipPaddingHorizontal = 12, // Default to 12px, can be overridden
 }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const lightUI = useMemo(() => isLightTheme(theme), [theme]);
 
+  // Default options with translations
+  const defaultOptions = [
+    { key: 'en', label: t('languageToggle.englishCards') },
+    { key: 'jp', label: t('languageToggle.japaneseCards') },
+  ];
+
+  const finalOptions = options || defaultOptions;
+
   return (
     <View style={[styles.row, style]}>
-      {options.map(opt => {
+      {finalOptions.map(opt => {
         const selected = value === opt.key;
 
         const bg = selected

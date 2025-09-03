@@ -9,9 +9,11 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../../context/ThemeContext';
 import { globalStyles } from '../../../../globalStyles';
 export default function FilterBtns({ handleClear, handleApply }) {
+  const { t } = useTranslation();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const { theme } = useContext(ThemeContext);
 
@@ -51,7 +53,7 @@ export default function FilterBtns({ handleClear, handleApply }) {
             globalStyles.smallText,
           ]}
         >
-          Clear
+          {t('common.clear')}
         </Text>
       </TouchableOpacity>
 
@@ -76,7 +78,7 @@ export default function FilterBtns({ handleClear, handleApply }) {
               { color: '#FFFFFF', fontFamily: 'Lato-Bold' },
             ]}
           >
-            Apply
+            {t('common.apply')}
           </Text>
         </Animated.View>
       </TouchableWithoutFeedback>

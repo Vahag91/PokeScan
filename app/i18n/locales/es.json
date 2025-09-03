@@ -1,0 +1,325 @@
+{
+  "common": {
+    "search": "Buscar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "retry": "Reintentar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior"
+  },
+
+  "paywall": {
+    "title": "Actualizar a Premium",
+    "subtitle": "Desbloquea escaneos ilimitados y funciones premium",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "bestValue": "Mejor valor",
+    "freeTrial": "Prueba gratuita",
+    "noPaymentDue": "No hay pago pendiente",
+    "restore": "Restaurar compras",
+    "terms": "Términos de servicio",
+    "privacy": "Política de privacidad",
+    "week": "Semana",
+    "year": "Año",
+    "freeTrialEnabled": "Prueba gratuita habilitada",
+    "tryForFree": "Probar gratis",
+    "continue": "Continuar",
+    "unlockFeatures": "Desbloquea todas las funciones y escanea con toda la potencia.",
+    "features": {
+      "unlimitedScans": "Escaneos de cartas ilimitados",
+      "advancedFilters": "Filtros de búsqueda avanzados",
+      "unlimitedCollections": "Colecciones ilimitadas",
+      "liveMarketPrices": "Precios del mercado en vivo"
+    },
+    "footer": {
+      "termsOfUse": "Términos de uso",
+      "privacyPolicy": "Política de privacidad",
+      "restore": "Restaurar"
+    }
+  },
+  "onboarding": {
+    "continue": "Continuar",
+    "getStarted": "Comenzar",
+    "slide1": {
+      "title": "Escanear tus cartas",
+      "subtitle": "¡Obtén información detallada!"
+    },
+    "slide2": {
+      "title": "Buscar cualquier carta",
+      "subtitle": "¡Usa nuestros filtros avanzados!"
+    },
+    "slide3": {
+      "title": "Crear tu colección de cartas",
+      "subtitle": "¡Organiza y rastrea tus cartas!"
+    },
+    "slide4": {
+      "title": "Obtener información de cartas",
+      "subtitle": "Accede a detalles sobre precio, estadísticas e información de rarezas"
+    }
+  },
+  "errors": {
+    "oops": "¡Ups!",
+    "tryAgain": "Reintentar",
+    "somethingWentWrong": "Algo salió mal.",
+    "pleaseTryAgainLater": "Por favor, inténtalo más tarde.",
+    "unableToConnect": "No se puede conectar. Por favor, inténtalo de nuevo.",
+    "noResultsFor": "No se encontraron resultados para \"{{query}}\".",
+    "noResultsFound": "No se encontraron resultados"
+  },
+
+  "scanner": {
+    "title": "Escáner",
+    "scanning": "Escaneando...",
+    "noResult": "No se encontró carta",
+    "multipleResults": "Se encontraron múltiples cartas",
+    "addToCollection": "Añadir a colección",
+    "freeScansLeft": "{{count}} escaneos gratis restantes",
+    "upgradeToPremium": "Actualiza a Premium para escaneos ilimitados",
+    "loadingCamera": "Cargando cámara…",
+    "cameraAccessNeeded": "Se necesita acceso a la cámara",
+    "cameraAccessNeededMessage": "Por favor, permite el acceso a la cámara en Configuración para escanear cartas Pokémon.",
+    "openSettings": "Abrir configuración",
+    "noCardsFound": "No se encontraron cartas",
+    "clear": "Limpiar",
+    "detected": "Detectado:",
+    "positionCard": "Posiciona la carta, toca ESCANEAR",
+    "howToGetBestScan": "Cómo obtener el mejor escaneo",
+    "scanInstructions": "• Mantén la foto clara — evita el deslumbramiento y el desenfoque de movimiento.",
+    "scanInstructions2": "• Incluye estos detalles: Nombre, PS, número de carta, Ilustrador.",
+    "scanHint": "Toca para escanear",
+    "clearFloating": "Limpiar",
+    "scan": "ESCANEAR"
+  },
+
+  "cards": {
+    "rarity": "Rareza",
+    "type": "Tipo",
+    "hp": "PS",
+    "attack": "Ataque",
+    "artist": "Artista",
+    "number": "Número",
+    "set": "Serie",
+    "series": "Serie",
+    "marketOverview": "Vista general del mercado",
+    "abilities": "Habilidades",
+    "attacks": "Ataques",
+    "details": "Detalles",
+    "evolutionChain": "Cadena de evolución",
+    "externalLinks": "Enlaces externos",
+    "evolvesFrom": "Evoluciona de",
+    "evolvesTo": "Evoluciona a",
+    "types": "Tipos",
+    "subtype": "Subtipo",
+    "illustrator": "Ilustrador",
+    "releaseYear": "Año de lanzamiento",
+    "card": "carta",
+    "cards": "cartas",
+    "noValue": "Sin valor",
+    "unknown": "Desconocido",
+    "market": {
+      "midPrice": "Precio medio",
+      "lowPrice": "Precio bajo",
+      "highPrice": "Precio alto",
+      "marketPrice": "Precio de mercado",
+      "directLow": "Directo bajo",
+      "avgSell": "Venta prom",
+      "trend": "Tendencia",
+      "priceTrend": "Tendencia de precio",
+      "avg1": "1D prom",
+      "avg7": "7D prom",
+      "avg30": "30D prom",
+      "germanLow": "Alemán bajo",
+      "suggested": "Sugerido",
+      "lastUpdated": "Última actualización"
+    }
+  },
+  "search": {
+    "placeholder": "Buscar cartas...",
+    "noResults": "No se encontraron resultados",
+    "filters": "Filtros",
+    "sortBy": "Ordenar por",
+    "sort": "Ordenar",
+    "sortByPrice": "Precio",
+    "sortByName": "Nombre",
+    "sortByDate": "Fecha",
+    "sortByNameAsc": "Nombre del producto: A a Z",
+    "sortByNameDesc": "Nombre del producto: Z a A",
+    "sortByPriceAsc": "Precio: Bajo a alto",
+    "sortByPriceDesc": "Precio: Alto a bajo",
+    "sortByDateAsc": "Fecha de lanzamiento: Más antigua",
+    "sortByDateDesc": "Fecha de lanzamiento: Más reciente",
+    "results": "{{count}} resultados",
+    "searchBy": "🔍 Puedes buscar por:",
+    "searchTags": {
+      "name": "Nombre",
+      "type": "Tipo",
+      "rarity": "Rareza",
+      "set": "Serie",
+      "artist": "Artista",
+      "number": "Número"
+    },
+    "searchBySetName": "Buscar por nombre de serie...",
+    "searchPlaceholder": "Buscar",
+    "showingResultsFor": "Mostrando resultados para:",
+    "deselectAll": "Deseleccionar todo {{label}}",
+    "selectAll": "Seleccionar todo {{label}}",
+    "filtersRarity": "Rareza",
+    "filtersEnergyType": "Tipo de energía",
+    "filtersType": "Tipo",
+    "filtersAttackCost": "Tipo de energía de ataque",
+    "filtersAttack": "Ataque",
+    "filtersHPRange": "Rango de PS",
+    "filtersRegulationMark": "Marca de regulación",
+    "filtersCardLegality": "Legalidad de la carta",
+    "advancedFiltersLocked": "Filtros avanzados bloqueados",
+    "advancedFiltersSubtitle": "Desbloquea Premium para usar filtros de tipo, rareza, costo de ataque y PS.",
+    "unlockPremium": "Desbloquear Premium",
+    "legality": {
+      "standard": "Estándar",
+      "expanded": "Expandido",
+      "unlimited": "Ilimitado"
+    },
+    "supertype": {
+      "pokemon": "Pokémon",
+      "trainer": "Entrenador",
+      "energy": "Energía"
+    }
+  },
+  "navigation": {
+    "collections": "Colecciones",
+    "scanner": "Escáner",
+    "search": "Búsqueda",
+    "sets": "Series",
+    "theme": "Tema",
+    "darkMode": "Modo oscuro",
+    "settings": "Configuración",
+    "tryPremium": "Probar Premium",
+    "restorePurchase": "Restaurar compra",
+    "youArePremium": "¡Eres Premium!",
+    "rateUs": "Califícanos",
+    "legal": "Legal",
+    "version": "1.1",
+    "termsOfUse": "Términos de uso",
+    "privacy": "Privacidad",
+    "support": "Soporte"
+  },
+  "collections": {
+    "title": "Colecciones",
+    "myCollections": "Mis colecciones",
+    "create": "Crear colección",
+    "edit": "Editar colección",
+    "delete": "Eliminar colección",
+    "addCard": "Añadir carta",
+    "addToCollections": "Añadir a colecciones",
+    "empty": "Aún no hay colecciones",
+    "emptySubtitle": "Crea tu primera colección",
+    "name": "Nombre de la colección",
+    "cards": "cartas",
+    "totalValue": "Valor total",
+    "done": "Hecho",
+    "editCollection": "Editar",
+    "deleteCollection": "Eliminar",
+    "enterCollectionName": "Ingresa el nombre de la colección",
+    "enterNewName": "Ingresa el nuevo nombre",
+    "nameRequired": "El nombre de la colección es requerido.",
+    "failedToLoadStats": "Error al cargar tus estadísticas de serie.",
+    "other": "Otro",
+    "emptyState": {
+      "title": "Nada aquí aún...",
+      "subtitle": "Toca el botón + para crear tu primera colección."
+    },
+    "detail": {
+      "card": "carta",
+      "cards": "cartas",
+      "noValue": "Sin valor",
+      "clearFilters": "Limpiar filtros",
+      "noCardsYet": "Aún no hay cartas",
+      "startBuilding": "Comienza a construir tu colección agregando cartas.",
+      "findCards": "Encontrar cartas"
+    },
+    "card": {
+      "today": "Hoy",
+      "day": "día",
+      "days": "días",
+      "ago": "hace",
+      "lastUpdated": "Última actualización:",
+      "noValue": "Sin valor"
+    }
+  },
+  "sets": {
+    "title": "Series",
+    "series": "Serie",
+    "cards": "Cartas",
+    "releaseDate": "Fecha de lanzamiento",
+    "release": "Lanzamiento",
+    "searchCardSets": "Buscar series de cartas",
+    "failedToLoadStats": "Error al cargar tus estadísticas de serie."
+  },
+  "oneTimeOffer": {
+    "exclusiveOffer": "Oferta exclusiva única",
+    "specialOfferBadge": "Nunca verás esto de nuevo",
+    "fiftyPercentOff": "50% DE DESCUENTO",
+    "offerSubtitle": "Esta actualización premium solo está disponible una vez a este precio especial. ¡No pierdas la oportunidad de desbloquear todas las funciones!",
+    "restorePurchase": "Restaurar compra",
+    "termsOfUse": "Términos de uso",
+    "privacyPolicy": "Política de privacidad",
+    "features": {
+      "unlimitedScans": "Escaneos de cartas ilimitados",
+      "advancedFilters": "Filtros de búsqueda avanzados",
+      "unlimitedCollections": "Colecciones ilimitadas",
+      "realTimePricing": "Precios del mercado en tiempo real"
+    },
+    "alerts": {
+      "purchaseFailed": "Compra fallida",
+      "purchaseFailedMessage": "Algo salió mal. Por favor, inténtalo de nuevo.",
+      "restored": "Restaurado",
+      "restoredMessage": "Tu suscripción se restauró exitosamente.",
+      "noSubscription": "Sin suscripción",
+      "noSubscriptionMessage": "No se encontró suscripción activa para restaurar.",
+      "restoreFailed": "Restauración fallida",
+      "restoreFailedMessage": "Algo salió mal durante la restauración.",
+      "noInternet": "Sin conexión a Internet",
+      "noInternetMessage": "Por favor, verifica tu red e inténtalo de nuevo."
+    }
+  },
+  "rateUs": {
+    "title": "Califica nuestra aplicación",
+    "subtitle": "¿Te gusta Pokémon Card Scanner?\n¡Tus comentarios nos ayudan a mejorar!",
+    "rateNow": "Calificar ahora",
+    "opening": "Abriendo...",
+    "maybeLater": "Quizás más tarde",
+    "dontAskAgain": "No preguntar de nuevo"
+  },
+  "alerts": {
+    "restored": "Restaurado",
+    "restoredMessage": "Tu suscripción ha sido restaurada.",
+    "notFound": "No encontrado",
+    "notFoundMessage": "No hay compras activas para restaurar.",
+    "restoreError": "Error",
+    "restoreErrorMessage": "Error al restaurar las compras."
+  },
+  "lockedOverlay": {
+    "collectionLimitReached": "Límite de colección alcanzado",
+    "upgradeSubtitle": "Actualiza a Premium para crear colecciones ilimitadas y organizar tus cartas libremente.",
+    "upgradeNow": "Actualizar ahora"
+  },
+  "languageToggle": {
+    "englishCards": "🇺🇸 Cartas en inglés",
+    "japaneseCards": "🇯🇵 Cartas en japonés"
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "retry": "Reintentar",
+    "loading": "Cargando...",
+    "done": "Hecho",
+    "clear": "Limpiar",
+    "apply": "Aplicar"
+  }
+}

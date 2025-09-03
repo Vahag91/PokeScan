@@ -18,6 +18,7 @@ import {
   Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 import {
   RenderSearchSingleCard,
   EmptyState,
@@ -34,6 +35,7 @@ import { SubscriptionContext } from '../context/SubscriptionContext';
 import LanguageToggle from '../components/LanguageToggle';
 
 export default function SearchScreen() {
+  const { t } = useTranslation();
   const { width: screenWidth } = Dimensions.get('window');
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
@@ -168,8 +170,8 @@ export default function SearchScreen() {
         : [];
 
   const languageOptions = [
-    { key: 'en', label: '🇺🇸 English Cards' },
-    { key: 'jp', label: '🇯🇵 Japanese Cards' }
+    { key: 'en', label: t('languageToggle.englishCards') },
+    { key: 'jp', label: t('languageToggle.japaneseCards') }
   ];
 
   const sortedResults = useMemo(() => {
@@ -281,7 +283,7 @@ export default function SearchScreen() {
         />
         <TextInput
           style={[globalStyles.body, styles.input, { color: theme.text }]}
-          placeholder="Search"
+                      placeholder={t('search.searchPlaceholder')}
           placeholderTextColor={theme.placeholder}
           value={term}
           onChangeText={setTerm}
@@ -300,7 +302,7 @@ export default function SearchScreen() {
                 { color: theme.secondaryText },
               ]}
             >
-              results: {resultsCount}
+              {t('search.results', { count: resultsCount })}
             </Text>
             <TouchableOpacity onPress={clearSearch} style={styles.clearBtn}>
               <Icon name="close" size={20} color={theme.text} />

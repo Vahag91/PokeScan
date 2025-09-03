@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
+import i18n from './app/i18n'; // initialize once via side-effect module
 import {
   NavigationContainer,
   DefaultTheme,
@@ -31,7 +32,15 @@ export default function App() {
   const [firstLaunch, setFirstLaunch] = useState(null);
   const [showStandardPaywall, setShowStandardPaywall] = useState(false);
   const [showOneTimeOffer, setShowOneTimeOffer] = useState(false);
+  const [i18nReady, setI18nReady] = useState(i18n.isInitialized);
 
+
+  useEffect(() => {
+    if (i18n.isInitialized) return;
+    const onInit = () => setI18nReady(true);
+    i18n.on('initialized', onInit);
+    return () => i18n.off('initialized', onInit);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -121,6 +130,16 @@ export default function App() {
       }, 1000);
     }
   };
+
+  // Show loading until i18n is ready
+  if (!i18nReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#10B981" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#6B7280' }}>Loading...</Text>
+      </View>
+    );
+  }
 
   if (firstLaunch === null) {
     return (

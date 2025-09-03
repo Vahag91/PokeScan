@@ -14,6 +14,7 @@ import {
   Linking,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../context/ThemeContext';
 import { SubscriptionContext } from '../context/SubscriptionContext';
 
@@ -34,6 +35,7 @@ function Feature({ icon, text, theme }) {
 }
 
 export default function OneTimeOfferPaywall({ visible, onClose }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -60,11 +62,11 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
       } catch (e) {
         setHasInternet(false);
         Alert.alert(
-          'No Internet Connection',
-          'Please check your network and try again.',
+          t('oneTimeOffer.alerts.noInternet'),
+          t('oneTimeOffer.alerts.noInternetMessage'),
           [
-            { text: 'Cancel', style: 'cancel', onPress: onClose },
-            { text: 'Retry', onPress: () => checkConnection() },
+            { text: t('common.cancel'), style: 'cancel', onPress: onClose },
+            { text: t('common.retry'), onPress: () => checkConnection() },
           ]
         );
       }
@@ -92,7 +94,7 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
       if (result?.customerInfo?.entitlements?.active?.Premium) onClose();
     } catch (e) {
       if (!e.userCancelled) {
-        Alert.alert("Purchase Failed", "Something went wrong. Please try again.");
+        Alert.alert(t('oneTimeOffer.alerts.purchaseFailed'), t('oneTimeOffer.alerts.purchaseFailedMessage'));
       }
     } finally {
       setLoading(false);
@@ -103,13 +105,13 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
     try {
       const info = await restorePurchases();
       if (info?.entitlements?.active?.Premium) {
-        Alert.alert("Restored", "Your subscription has been successfully restored.");
+        Alert.alert(t('oneTimeOffer.alerts.restored'), t('oneTimeOffer.alerts.restoredMessage'));
         onClose();
       } else {
-        Alert.alert("No Subscription", "No active subscription found to restore.");
+        Alert.alert(t('oneTimeOffer.alerts.noSubscription'), t('oneTimeOffer.alerts.noSubscriptionMessage'));
       }
     } catch (e) {
-      Alert.alert("Restore Failed", "Something went wrong during restore.");
+              Alert.alert(t('oneTimeOffer.alerts.restoreFailed'), t('oneTimeOffer.alerts.restoreFailedMessage'));
     }
   };
 
@@ -166,20 +168,20 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
             <View style={styles.content}>
               <View style={styles.specialOfferContainer}>
                 <View style={styles.specialOfferBadge}>
-                  <Text style={styles.specialOfferBadgeText}>You will never see this again</Text>
+                  <Text style={styles.specialOfferBadgeText}>{t('oneTimeOffer.specialOfferBadge')}</Text>
                 </View>
-                <Text style={[styles.offerTitle, { color: theme.text }]}>Exclusive One-Time Offer</Text>
+                                  <Text style={[styles.offerTitle, { color: theme.text }]}>{t('oneTimeOffer.exclusiveOffer')}</Text>
                 <View style={styles.offerHighlight}>
-                  <Text style={styles.offerHighlightText}>50% OFF</Text>
+                                      <Text style={styles.offerHighlightText}>{t('oneTimeOffer.fiftyPercentOff')}</Text>
                 </View>
-                <Text style={[styles.offerSubtitle, { color: theme.text }]}>This premium upgrade is available only once at this special price. Don't miss this opportunity to unlock all features!</Text>
+                                  <Text style={[styles.offerSubtitle, { color: theme.text }]}>{t('oneTimeOffer.offerSubtitle')}</Text>
               </View>
 
               <View style={styles.featureList}>
-                <Feature icon="scan-outline" text="Unlimited Card Scans" theme={theme} />
-                <Feature icon="filter-outline" text="Advanced Search Filters" theme={theme} />
-                <Feature icon="albums-outline" text="Unlimited Collections" theme={theme} />
-                <Feature icon="cash-outline" text="Real-Time Market Pricing" theme={theme} />
+                              <Feature icon="scan-outline" text={t('oneTimeOffer.features.unlimitedScans')} theme={theme} />
+              <Feature icon="filter-outline" text={t('oneTimeOffer.features.advancedFilters')} theme={theme} />
+              <Feature icon="albums-outline" text={t('oneTimeOffer.features.unlimitedCollections')} theme={theme} />
+              <Feature icon="cash-outline" text={t('oneTimeOffer.features.realTimePricing')} theme={theme} />
               </View>
 
               <Animated.View style={[styles.ctaBtnWrapper, { transform: [{ scale: pulseAnim }] }]}>
@@ -193,22 +195,22 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text style={styles.ctaText}>
-                      Upgrade Now {currency} {price} per year
+                      {t('lockedOverlay.upgradeNow')} {currency} {price} per year
                     </Text>
                   )}
                 </TouchableOpacity>
               </Animated.View>
 
               <TouchableOpacity onPress={handleRestore}>
-                <Text style={styles.restoreText}>Restore Purchase</Text>
+                <Text style={styles.restoreText}>{t('oneTimeOffer.restorePurchase')}</Text>
               </TouchableOpacity>
 
               <View style={styles.footerLinks}>
                 <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/terms')}>
-                  <Text style={styles.footerText}>Terms of Use</Text>
+                  <Text style={styles.footerText}>{t('oneTimeOffer.termsOfUse')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => Linking.openURL('https://www.tortnisoft.com/privacy')}>
-                  <Text style={styles.footerText}>Privacy Policy</Text>
+                  <Text style={styles.footerText}>{t('oneTimeOffer.privacyPolicy')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

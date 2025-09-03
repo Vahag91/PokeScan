@@ -825,71 +825,98 @@ export const mergeCardWithPrice = async card => {
 export const updateCollectionCardPrices = async () => {
   const db = await getDBConnection();
 
-  try {
-    // Get cardId AND language for each unique card
-    const result = await db.executeSql(`SELECT DISTINCT cardId, language FROM collection_cards`);
-    const rows = result[0]?.rows || [];
-    const count = rows.length;
+  const hoursSince = (ts) => {
+    if (!ts) return Infinity;
+    const iso = ts.includes('T') ? ts : ts.replace(' ', 'T') + 'Z';
+    const t = Date.parse(iso);
+    return Number.isNaN(t) ? Infinity : (Date.now() - t) / 36e5;
+  };
 
-    for (let i = 0; i < count; i++) {
-      const cardId = rows.item(i).cardId;
-      const cardLanguage = rows.item(i).language?.toLowerCase() || 'en';
+  const fetchPrices = async (tableName, cardId) => {
+    let lastErr;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('tcgplayer, cardmarket')
+        .eq('id', cardId)
+        .single();
+      if (!error && data) return data;
+      lastErr = error;
+      await new Promise(r => setTimeout(r, 300 * (attempt + 1)));
+    }
+    throw lastErr || new Error('Fetch failed');
+  };
+
+  try {
+    const res = await db.executeSql(`
+      SELECT DISTINCT cardId, LOWER(COALESCE(language,'en')) AS language
+      FROM collection_cards
+    `);
+    const rows = res[0]?.rows || [];
+    let updated = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+      if (updated >= 50) break; // throttle
+      const { cardId, language } = rows.item(i);
+      if (!cardId) continue;
+      const lang = (language === 'jp') ? 'jp' : 'en';
 
       try {
-        // 1. Check cache in card_prices
-        const res = await db.executeSql(
-          `SELECT updatedAt FROM card_prices WHERE cardId = ? LIMIT 1`,
-          [cardId]
-        );
-        const row = res[0]?.rows?.length ? res[0].rows.item(0) : null;
+        // quick pre-check outside tx
+        let fresh = false;
+        try {
+          const r0 = await db.executeSql(
+            `SELECT updatedAt FROM card_prices WHERE cardId = ? LIMIT 1`,
+            [cardId]
+          );
+          const row0 = r0[0]?.rows?.length ? r0[0].rows.item(0) : null;
+          fresh = hoursSince(row0?.updatedAt) < 24;
+        } catch {}
 
-        if (row?.updatedAt) {
-          const lastUpdated = new Date(row.updatedAt).getTime();
-          const now = Date.now();
-          const hoursSinceUpdate = (now - lastUpdated) / (1000 * 60 * 60);
+        if (fresh) continue;
 
-          if (hoursSinceUpdate < 24) {
-            continue; // Skip if recently updated
+        const tableName = lang === 'jp' ? 'cards_jp' : 'cards';
+        const { tcgplayer, cardmarket } = await fetchPrices(tableName, cardId);
+        const tcgJson = JSON.stringify(tcgplayer ?? null);
+        const cmJson  = JSON.stringify(cardmarket ?? null);
+        const nowIso  = new Date().toISOString();
+
+        await db.executeSql('BEGIN IMMEDIATE');
+        try {
+          // re-check inside tx to close race
+          const r1 = await db.executeSql(
+            `SELECT updatedAt FROM card_prices WHERE cardId = ? LIMIT 1`,
+            [cardId]
+          );
+          const row1 = r1[0]?.rows?.length ? r1[0].rows.item(0) : null;
+          const stillStale = hoursSince(row1?.updatedAt) >= 24;
+
+          if (stillStale) {
+            await db.executeSql(
+              `INSERT OR REPLACE INTO card_prices
+               (cardId, tcgplayerPrices, cardmarketPrices, updatedAt)
+               VALUES (?, ?, ?, ?)`,
+              [cardId, tcgJson, cmJson, nowIso]
+            );
+            await db.executeSql(
+              `UPDATE collection_cards
+               SET tcgplayerPrices = ?, cardmarketPrices = ?
+               WHERE cardId = ?`,
+              [tcgJson, cmJson, cardId]
+            );
+            updated++;
           }
+
+          await db.executeSql('COMMIT');
+        } catch (txErr) {
+          await db.executeSql('ROLLBACK');
+          console.error('[prices][tx]', cardId, String(txErr?.message || txErr));
         }
-
-        // 2. Select correct table based on language
-        const tableName = cardLanguage === 'jp' ? 'cards_jp' : 'cards';
-        
-        // 3. Fetch fresh prices from Supabase with correct table
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('tcgplayer, cardmarket')
-          .eq('id', cardId)
-          .single();
-
-        if (error || !data) {
-          continue; // Skip this card if fetch failed
-        }
-
-        const tcgJson = JSON.stringify(data.tcgplayer);
-        const cardmarketJson = JSON.stringify(data.cardmarket);
-
-        // 4. Update card_prices table
-        await db.executeSql(
-          `INSERT OR REPLACE INTO card_prices
-           (cardId, tcgplayerPrices, cardmarketPrices, updatedAt)
-           VALUES (?, ?, ?, datetime('now'))`,
-          [cardId, tcgJson, cardmarketJson]
-        );
-
-        // 5. Update prices in collection_cards for this cardId
-        await db.executeSql(
-          `UPDATE collection_cards
-           SET tcgplayerPrices = ?, cardmarketPrices = ?
-           WHERE cardId = ?`,
-          [tcgJson, cardmarketJson, cardId]
-        );
       } catch (err) {
-        continue; // Skip this card on error
+        console.error('[prices][card]', cardId, String(err?.message || err));
       }
     }
   } catch (err) {
-    // Fail silently
+    console.error('[prices] enumerate failed', String(err?.message || err));
   }
 };

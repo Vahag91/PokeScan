@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet, Animated } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import CreateCollectionModal from '../components/collections/CreateCollectionModal';
 import EditCollectionModal from '../components/collections/EditCollectionModal';
 import AddCollectionCard from '../components/collections/AddCollectionCard';
@@ -24,6 +25,7 @@ import { updateCollectionCardPrices } from '../../supabase/utils';
 export default function CollectionsScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
   const { isPremium } = useContext(SubscriptionContext);
+  const { t } = useTranslation();
 
   const [collections, setCollections] = useState([]);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -170,7 +172,7 @@ export default function CollectionsScreen({ navigation }) {
                 { color: theme.text },
               ]}
             >
-              Nothing here yet...
+              {t('collections.emptyState.title')}
             </Text>
             <Text
               style={[
@@ -179,7 +181,7 @@ export default function CollectionsScreen({ navigation }) {
                 { color: theme.mutedText },
               ]}
             >
-              Tap the + button to create your first collection.
+              {t('collections.emptyState.subtitle')}
             </Text>
           </View>
         }
@@ -202,9 +204,9 @@ export default function CollectionsScreen({ navigation }) {
       {/* 🔒 Show overlay then open paywall */}
       {showLockedOverlay && (
         <LockedBlurOverlay
-          title="Collection Limit Reached"
-          subtitle="Upgrade to premium to create unlimited collections and organize your cards freely."
-          buttonText="Upgrade Now"
+                  title={t('lockedOverlay.collectionLimitReached')}
+        subtitle={t('lockedOverlay.upgradeSubtitle')}
+        buttonText={t('lockedOverlay.upgradeNow')}
           onPress={() => {
             setShowLockedOverlay(false);
             setTimeout(() => setShowPaywall(true), 250);

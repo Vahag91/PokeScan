@@ -87,6 +87,119 @@ export async function createTables(db) {
 }
 
 
+// export async function addCardToCollection(card, collectionId, language = 'en') {
+//   const db = await getDBConnection();
+
+//   const {
+//     id,
+//     name,
+//     hp,
+//     rarity,
+//     types,
+//     subtypes,
+//     attacks,
+//     abilities,
+//     weaknesses,
+//     resistances,
+//     retreatCost,
+//     artist,
+//     flavorText,
+//     number,
+//     tcgplayer,
+//     cardmarket,
+//     set,
+//     image,
+//   } = card;
+
+//   const rowId = uuid.v4();
+//   const setLogoId = uuid.v4();
+
+//   const cardImageUrl = image || null;
+//   const setLogoUrl = set?.logo || null;
+
+//   const localCardImagePath = cardImageUrl
+//     ? await downloadImageIfNeeded(cardImageUrl, `${rowId}.jpeg`)
+//     : null;
+
+//   const localSetLogoPath = setLogoUrl
+//     ? await downloadImageIfNeeded(setLogoUrl, `${setLogoId}_logo.jpeg`)
+//     : null;
+
+//   const imageFileName = localCardImagePath
+//     ? localCardImagePath.split('/').pop()
+//     : null;
+
+//   const setLogoFileName = localSetLogoPath
+//     ? localSetLogoPath.split('/').pop()
+//     : null;
+
+//   const safeJson = (val, fallback = '[]') => {
+//     try {
+//       return JSON.stringify(val ?? []);
+//     } catch {
+//       return fallback;
+//     }
+//   };
+
+//   const setId = set?.setId ?? null;
+
+//   await db.executeSql(
+//     `
+//     INSERT INTO collection_cards (
+//       id, collectionId, cardId, addedAt,
+//       customName, quantity, language, edition, notes, imagePath,
+//       name, hp, rarity, types, subtypes,
+//       setId, setName, seriesName, setLogo, releaseDate,
+//       attacks, abilities, weaknesses, resistances, retreatCost,
+//       artist, flavorText, number, tcgplayerUrl, cardmarketUrl,
+//       tcgplayerPrices, cardmarketPrices
+//     )
+//     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//     `,
+//     [
+//       rowId,
+//       collectionId,
+//       id,
+//       new Date().toISOString(),
+
+//       null,
+//       1,
+//       language.toUpperCase(),
+//       'Unlimited',
+//       null,
+//       imageFileName,
+
+//       name ?? null,
+//       hp ?? null,
+//       rarity ?? null,
+//       safeJson(types),
+//       safeJson(subtypes),
+
+//       setId,
+//       set?.name ?? null,
+//       set?.series ?? null,
+//       setLogoFileName,
+//       set?.releaseDate ?? null,
+
+//       safeJson(attacks),
+//       safeJson(abilities),
+//       safeJson(weaknesses),
+//       safeJson(resistances),
+//       safeJson(retreatCost),
+
+//       artist ?? null,
+//       flavorText ?? null,
+//       number ?? null,
+//       tcgplayer?.url ?? null,
+//       cardmarket?.url ?? null,
+
+//       safeJson(tcgplayer?.prices, '{}'),
+//       safeJson(cardmarket?.prices, '{}'),
+//     ]
+//   );
+
+//   await updateCollectionTotalValue(db, collectionId);
+// }
 export async function addCardToCollection(card, collectionId, language = 'en') {
   const db = await getDBConnection();
 
@@ -135,13 +248,17 @@ export async function addCardToCollection(card, collectionId, language = 'en') {
 
   const safeJson = (val, fallback = '[]') => {
     try {
-      return JSON.stringify(val ?? []);
+      return JSON.stringify(val ?? JSON.parse(fallback));
     } catch {
       return fallback;
     }
   };
 
   const setId = set?.setId ?? null;
+
+  // ✅ Minimal, safe normalization (new rows only)
+  const langRaw = String(language || 'en').toLowerCase();
+  const safeLang = (langRaw === 'jp' || langRaw === 'en') ? langRaw : 'en';
 
   await db.executeSql(
     `
@@ -164,7 +281,7 @@ export async function addCardToCollection(card, collectionId, language = 'en') {
 
       null,
       1,
-      language.toUpperCase(),
+      safeLang,                 // ⬅️ was language.toUpperCase()
       'Unlimited',
       null,
       imageFileName,
@@ -200,6 +317,7 @@ export async function addCardToCollection(card, collectionId, language = 'en') {
 
   await updateCollectionTotalValue(db, collectionId);
 }
+
 export async function downloadImageIfNeeded(url, filename) {
   try {
     const localPath = `${RNFS.DocumentDirectoryPath}/${filename}`;
@@ -503,8 +621,6 @@ export async function updateCollectionTotalValue(db, collectionId) {
     );
   } catch (_) {}
 }
-
-
 function safeJsonParse(input) {
   try {
     return JSON.parse(input || '{}');

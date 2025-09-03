@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { foilOrder } from '../../constants';
 import { getPriceColor } from '../../utils';
 import { MarketLinkButton, MarketSegmentedControl, FoilPickerModal } from '.';
@@ -17,6 +18,7 @@ export default function MarketOverview({
   cardmarket,
   loading = false,
 }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const scale = useRef(new Animated.Value(1)).current;
   const onPressIn = () =>
@@ -76,18 +78,18 @@ export default function MarketOverview({
       ? (() => {
           const tier = prices[selectedFoil] || {};
           return [
-            ['Mid Price', tier.mid != null ? `$${tier.mid.toFixed(2)}` : '–'],
-            ['Low Price', tier.low != null ? `$${tier.low.toFixed(2)}` : '–'],
+            [t('cards.market.midPrice'), tier.mid != null ? `$${tier.mid.toFixed(2)}` : '–'],
+            [t('cards.market.lowPrice'), tier.low != null ? `$${tier.low.toFixed(2)}` : '–'],
             [
-              'High Price',
+              t('cards.market.highPrice'),
               tier.high != null ? `$${tier.high.toFixed(2)}` : '–',
             ],
             [
-              'Market Price',
+              t('cards.market.marketPrice'),
               tier.market != null ? `$${tier.market.toFixed(2)}` : '–',
             ],
             [
-              'Direct Low',
+              t('cards.market.directLow'),
               tier.directLow != null ? `$${tier.directLow.toFixed(2)}` : '–',
             ],
           ];
@@ -96,28 +98,28 @@ export default function MarketOverview({
           const cm = market.prices;
           return [
             [
-              'Avg Sell',
+              t('cards.market.avgSell'),
               cm.averageSellPrice != null
                 ? `$${cm.averageSellPrice.toFixed(2)}`
                 : '–',
             ],
             [
-              'Low Price',
+              t('cards.market.lowPrice'),
               cm.lowPrice != null ? `$${cm.lowPrice.toFixed(2)}` : '–',
             ],
             [
-              'Trend',
+              t('cards.market.trend'),
               cm.trendPrice != null ? `$${cm.trendPrice.toFixed(2)}` : '–',
             ],
-            ['1D Avg', cm.avg1 != null ? `$${cm.avg1.toFixed(2)}` : '–'],
-            ['7D Avg', cm.avg7 != null ? `$${cm.avg7.toFixed(2)}` : '–'],
-            ['30D Avg', cm.avg30 != null ? `$${cm.avg30.toFixed(2)}` : '–'],
+            [t('cards.market.avg1'), cm.avg1 != null ? `$${cm.avg1.toFixed(2)}` : '–'],
+            [t('cards.market.avg7'), cm.avg7 != null ? `$${cm.avg7.toFixed(2)}` : '–'],
+            [t('cards.market.avg30'), cm.avg30 != null ? `$${cm.avg30.toFixed(2)}` : '–'],
             [
-              'German Low',
+              t('cards.market.germanLow'),
               cm.germanProLow != null ? `$${cm.germanProLow.toFixed(2)}` : '–',
             ],
             [
-              'Suggested',
+              t('cards.market.suggested'),
               cm.suggestedPrice > 0 ? `$${cm.suggestedPrice.toFixed(2)}` : '–',
             ],
           ];
@@ -125,11 +127,11 @@ export default function MarketOverview({
 
   const mainIndex = activeTab === 'tcgplayer' ? 3 : 2;
   const [label, value] = stats[mainIndex];
-  const mainLabel = label === 'Trend' ? 'Price Trend' : label;
+  const mainLabel = label === t('cards.market.trend') ? t('cards.market.priceTrend') : label;
   const mainValue = value;
   const subStats = stats.filter((_, i) => i !== mainIndex).slice(0, 3);
 
-  const trendColor = ['Price Trend', 'Market Price'].includes(mainLabel)
+  const trendColor = [t('cards.market.priceTrend'), t('cards.market.marketPrice')].includes(mainLabel)
     ? { color: '#4CAF50' }
     : { color: theme.text };
 
@@ -191,7 +193,7 @@ export default function MarketOverview({
       </View>
 
       <Text style={[styles.updatedAt, { color: theme.mutedText }]}>
-        Last updated: {new Date().toISOString().split('T')[0]}
+        {t('cards.market.lastUpdated')}: {new Date().toISOString().split('T')[0]}
       </Text>
 
       {/* Only show market link button if there are prices and a valid URL */}

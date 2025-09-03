@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -17,6 +18,7 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.52;
 const CARD_HEIGHT = 90;
 
 export function CollectionHeader({ collections }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
   const scaleAnims = useRef([
@@ -39,19 +41,19 @@ export function CollectionHeader({ collections }) {
   const cards = [
     {
       icon: 'cash-outline',
-      label: 'Total Value',
+      label: t('collections.totalValue'),
       value: formatValue(summary.totalValue),
       gradient: ['#DB2777', '#EC4899'],
     },
     {
       icon: 'layers-outline',
-      label: 'Cards',
+      label: t('collections.cards'),
       value: formatNumber(summary.totalCards),
       gradient: ['#2563EB', '#3B82F6'],
     },
     {
       icon: 'albums-outline',
-      label: 'Collections',
+      label: t('collections.title'),
       value: formatNumber(summary.totalCollections),
       gradient: ['#4F46E5', '#6366F1'],
     },
@@ -69,7 +71,7 @@ export function CollectionHeader({ collections }) {
   return (
     <View style={styles.container}>
       <Text style={[globalStyles.heading, styles.headerText, { color: theme.text }]}>
-        My Collections
+        {t('myCollections')}
       </Text>
       <ScrollView
         horizontal

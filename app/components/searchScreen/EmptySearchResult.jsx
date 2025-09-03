@@ -1,8 +1,10 @@
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 
 function EmptyState({ errorType, errorMessage, retryFetch }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
   if (errorType === 'network') {
@@ -16,7 +18,7 @@ function EmptyState({ errorType, errorMessage, retryFetch }) {
           style={[styles.retryButton, { backgroundColor: theme.text }]}
         >
           <Text style={[styles.retryText, { color: theme.background }]}>
-            Try Again
+            {t('common.retry')}
           </Text>
         </TouchableOpacity>
       </View>

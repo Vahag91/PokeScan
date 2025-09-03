@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { fetchEnglishSets, fetchJapaneseSets } from '../../supabase/utils';
 import AnimatedRow from '../components/setSearch/AnimatedRow';
 import { ThemeContext } from '../context/ThemeContext';
@@ -28,6 +29,7 @@ import useSafeAsync from '../hooks/useSafeAsync';
 import LanguageToggle from '../components/LanguageToggle';
 
 export default function SetScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
   const listRef = useRef(null);
@@ -84,8 +86,8 @@ export default function SetScreen() {
   };
 
   const languageOptions = [
-    { key: 'en', label: '🇺🇸 English Sets' },
-    { key: 'jp', label: '🇯🇵 Japanese Sets' }
+    { key: 'en', label: t('languageToggle.englishCards') },
+    { key: 'jp', label: t('languageToggle.japaneseCards') }
   ];
 
   // Helper function to group sets by series
@@ -246,7 +248,7 @@ export default function SetScreen() {
           { color: theme.placeholder },
         ]}
       >
-        No results found
+        {t('search.noResults')}
       </Text>
     </View>
   );
@@ -260,7 +262,7 @@ export default function SetScreen() {
             styles(theme).pageTitle,
           ]}
         >
-          Search Card Sets
+          {t('sets.searchCardSets')}
         </Text>
       </View>
 
@@ -282,7 +284,7 @@ export default function SetScreen() {
           style={styles(theme).searchIcon}
         />
         <TextInput
-          placeholder="Search by set name..."
+          placeholder={t('search.searchBySetName')}
           placeholderTextColor={theme.placeholder}
           style={styles(theme).input}
           value={searchTerm}
@@ -303,14 +305,14 @@ export default function SetScreen() {
       {(loading || englishLoading || japaneseLoading || isLanguageSwitching) ? (
         <ActivityIndicator style={styles(theme).loader} size="large" color={'#10B981'} />
       ) : error ? (
-        <ErrorView message="Failed to load your set stats." onRetry={retry} />
+        <ErrorView message={t('sets.failedToLoadStats')} onRetry={retry} />
       ) : flatData.length === 0 ? (
         renderEmpty()
       ) : (
         <>
           {searchTerm.trim().length > 0 && flatData.length > 0 && (
             <Text style={[globalStyles.smallText, styles(theme).resultLabel]}>
-              Showing results for:{' '}
+              {t('search.showingResultsFor')}{' '}
               <Text style={styles(theme).resultHighlight}>
                 "{searchTerm.trim()}"
               </Text>

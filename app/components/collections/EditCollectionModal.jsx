@@ -10,6 +10,7 @@ import {
   Keyboard,
   StyleSheet,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 export default function EditCollectionModal({
@@ -18,6 +19,7 @@ export default function EditCollectionModal({
   onSave,
   initialName,
 }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const [name, setName] = useState('');
   const [showError, setShowError] = useState(false);
@@ -49,11 +51,11 @@ export default function EditCollectionModal({
             <KeyboardAvoidingView behavior="padding">
               <View style={[styles.container, { backgroundColor: theme.cardCollectionBackground }]}>
                 <Text style={[globalStyles.subheading, styles.title, { color: theme.text }]}>
-                  Edit Collection Name
+                  {t('collections.edit')}
                 </Text>
 
                 <TextInput
-                  placeholder="Enter new name"
+                  placeholder={t('collections.enterNewName')}
                   placeholderTextColor={theme.placeholder}
                   value={name}
                   onChangeText={(text) => {
@@ -73,19 +75,19 @@ export default function EditCollectionModal({
 
                 {showError && (
                   <Text style={[globalStyles.smallText, styles.errorText]}>
-                    Name cannot be empty.
+                                          {t('collections.nameRequired')}
                   </Text>
                 )}
 
                 <View style={styles.buttons}>
                   <TouchableOpacity onPress={onClose} style={styles.btnSecondary}>
                     <Text style={[globalStyles.body, { color: theme.mutedText }]}>
-                      Cancel
+                                              {t('common.cancel')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleSave} style={styles.btnPrimary}>
                     <Text style={[globalStyles.body, styles.btnPrimaryText]}>
-                      Save
+                                              {t('collections.done')}
                     </Text>
                   </TouchableOpacity>
                 </View>

@@ -15,12 +15,14 @@ import {
   Switch,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../context/ThemeContext';
 import { SubscriptionContext } from '../context/SubscriptionContext';
 
 const { width, height } = Dimensions.get('window');
 
 export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
+  const { t } = useTranslation();
   const [selectedPlan, setSelectedPlan] = useState('yearly');
   const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -207,7 +209,7 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
       if (isNaN(weeklyPrice) || weeklyPrice <= 0) return null;
       
       return {
-        title: 'Week',
+        title: t('paywall.week'),
         price: `3 Days free then ${currency}${weeklyPrice.toFixed(2)}/week`,
         badge: null,
       };
@@ -230,7 +232,7 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
       const discount = Math.round(((originalPrice - yearlyPrice) / originalPrice) * 100);
 
       return {
-        title: 'Year',
+        title: t('paywall.year'),
         originalPrice: `${currency}${originalPrice.toFixed(2)}`,
         currentPrice: `${currency}${yearlyPrice.toFixed(2)}/year`,
         badge: `SAVE ${discount}%`,
@@ -313,12 +315,12 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={[styles.title, { color: theme.text }]}>
-              Upgrade to Premium
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.text }]}>
-              Unlock all features and scan with full power.
-            </Text>
+                          <Text style={[styles.title, { color: theme.text }]}>
+                {t('paywall.title')}
+              </Text>
+              <Text style={[styles.subtitle, { color: theme.text }]}>
+                {t('paywall.unlockFeatures')}
+              </Text>
 
             <View style={styles.stars}>
               {Array(5)
@@ -329,26 +331,26 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
             </View>
 
             <View style={styles.features}>
-              <Feature
-                icon="scan-outline"
-                text="Unlimited Card Scans"
-                theme={theme}
-              />
-              <Feature
-                icon="filter-outline"
-                text="Advanced Search Filters"
-                theme={theme}
-              />
-              <Feature
-                icon="albums-outline"
-                text="Unlimited Collections"
-                theme={theme}
-              />
-              <Feature
-                icon="cash-outline"
-                text="Live Market Prices"
-                theme={theme}
-              />
+                              <Feature
+                  icon="scan-outline"
+                  text={t('paywall.features.unlimitedScans')}
+                  theme={theme}
+                />
+                <Feature
+                  icon="filter-outline"
+                  text={t('paywall.features.advancedFilters')}
+                  theme={theme}
+                />
+                <Feature
+                  icon="albums-outline"
+                  text={t('paywall.features.unlimitedCollections')}
+                  theme={theme}
+                />
+                <Feature
+                  icon="cash-outline"
+                  text={t('paywall.features.liveMarketPrices')}
+                  theme={theme}
+                />
             </View>
 
             <View style={styles.plans}>
@@ -416,7 +418,7 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
 
             {/* Free Trial Toggle */}
             <View style={styles.freeTrialToggle}>
-              <Text style={[styles.freeTrialText, { color: theme.text }]}>Free trial enabled</Text>
+                              <Text style={[styles.freeTrialText, { color: theme.text }]}>{t('paywall.freeTrialEnabled')}</Text>
               <Switch
                 value={freeTrialEnabled}
                 onValueChange={setFreeTrialEnabled}
@@ -442,9 +444,9 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={styles.continueText}>
-                    {selectedPlan === 'weekly'
-                      ? 'Try For Free'
-                      : 'Continue'}
+                                          {selectedPlan === 'weekly'
+                        ? t('paywall.tryForFree')
+                        : t('paywall.continue')}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -454,12 +456,12 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
             {freeTrialEnabled ? (
               <View style={styles.noPaymentSection}>
                 <Ionicons name="checkmark" size={16} color={theme.text} />
-                <Text style={[styles.noPaymentText, { color: theme.text }]}>No payment due now</Text>
+                                  <Text style={[styles.noPaymentText, { color: theme.text }]}>{t('paywall.noPaymentDue')}</Text>
               </View>
             ) : (
               <View style={styles.bestValueSection}>
                 <Ionicons name="star" size={16} color="#FCD34D" />
-                <Text style={[styles.bestValueText, { color: theme.text }]}>Best value</Text>
+                                  <Text style={[styles.bestValueText, { color: theme.text }]}>{t('paywall.bestValue')}</Text>
               </View>
             )}
 
@@ -469,17 +471,17 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
                   Linking.openURL('https://www.tortnisoft.com/terms')
                 }
               >
-                <Text style={styles.footerText}>Terms of Use</Text>
+                <Text style={styles.footerText}>{t('paywall.footer.termsOfUse')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() =>
                   Linking.openURL('https://www.tortnisoft.com/privacy')
                 }
               >
-                <Text style={styles.footerText}>Privacy Policy</Text>
+                <Text style={styles.footerText}>{t('paywall.footer.privacyPolicy')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleRestore}>
-                <Text style={styles.footerText}>Restore</Text>
+                <Text style={styles.footerText}>{t('paywall.footer.restore')}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

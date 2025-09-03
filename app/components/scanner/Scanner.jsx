@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 import PhotoManipulator from 'react-native-photo-manipulator';
+import { useTranslation } from 'react-i18next';
 import ScanButton from './ScanButton';
 import CardPreview from './CardPreview';
 import CardCarouselPreview from './CardCarouselPreview';
@@ -39,6 +40,7 @@ const UI_STAGES = {
 };
 
 export default function ScannerScreen({ navigation }) {
+  const { t } = useTranslation();
   const [permissionStatus, setPermissionStatus] = useState('not-determined');
   const [loading, setLoading] = useState(false);
   const [overlayLayout, setOverlayLayout] = useState(null);
@@ -82,19 +84,19 @@ export default function ScannerScreen({ navigation }) {
       } else {
         const newStatus = await Camera.requestCameraPermission();
         if (newStatus === 'denied') {
-          Alert.alert(
-            'Camera Access Needed',
-            'Please allow camera access in Settings to scan Pokémon cards.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Open Settings', onPress: () => Linking.openSettings() },
-            ],
-          );
+                      Alert.alert(
+              t('scanner.cameraAccessNeeded'),
+              t('scanner.cameraAccessNeededMessage'),
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('scanner.openSettings'), onPress: () => Linking.openSettings() },
+              ],
+            );
         }
         setPermissionStatus(newStatus);
       }
     })();
-  }, []);
+  }, [t]);
 
   const onScan = async () => {
     if (!overlayLayout) return;
@@ -311,7 +313,7 @@ export default function ScannerScreen({ navigation }) {
       {!isPremium && (
         <View style={styles.freeAttemptsContainer}>
           <Text style={styles.freeAttemptsText}>
-            {remainingAttempts} free scans left
+                            {t('scanner.freeScansLeft', { count: remainingAttempts })}
           </Text>
         </View>
       )}

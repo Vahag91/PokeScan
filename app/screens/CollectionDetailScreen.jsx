@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import {
   useRoute,
   useNavigation,
@@ -34,6 +35,7 @@ export const HeaderAddButton = memo(({ onPress }) => (
 ));
 
 export default function CollectionDetailScreen() {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const route = useRoute();
   const navigation = useNavigation();
@@ -45,7 +47,6 @@ export default function CollectionDetailScreen() {
   const [selectedSet, setSelectedSet] = useState(null);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [updateKey, setUpdateKey] = useState(0);
-
 
   const loadCollectionInfo = useCallback(async () => {
     const db = await getDBConnection();
@@ -226,7 +227,7 @@ export default function CollectionDetailScreen() {
             <Ionicons name="layers-outline" size={16} color="#fff" />
           </LinearGradient>
           <Text style={[globalStyles.smallText, { color: theme.text }]}>
-            {cards.length} {cards.length === 1 ? 'card' : 'cards'}
+            {cards.length} {cards.length === 1 ? t('collections.detail.card') : t('collections.detail.cards')}
           </Text>
         </View>
 
@@ -242,7 +243,7 @@ export default function CollectionDetailScreen() {
           <Text style={[globalStyles.smallText, { color: theme.text }]}>
             {collectionInfo.totalValue > 0
               ? `$${collectionInfo.totalValue.toFixed(2)}`
-              : 'No value'}
+                              : t('collections.detail.noValue')}
           </Text>
         </View>
       </View>
@@ -319,7 +320,7 @@ export default function CollectionDetailScreen() {
         <TouchableOpacity style={styles.clearBtn} onPress={clearFilters}>
           <Ionicons name="close-outline" size={18} color="#fff" />
           <Text style={[globalStyles.smallText, styles.clearText]}>
-            Clear filters
+                          {t('collections.detail.clearFilters')}
           </Text>
         </TouchableOpacity>
       )}
@@ -369,7 +370,7 @@ export default function CollectionDetailScreen() {
               { color: theme.text },
             ]}
           >
-            No cards yet
+                          {t('collections.detail.noCardsYet')}
           </Text>
           <Text
             style={[
@@ -378,7 +379,7 @@ export default function CollectionDetailScreen() {
               { color: theme.mutedText },
             ]}
           >
-            Start building your collection by adding cards.
+                          {t('collections.detail.startBuilding')}
           </Text>
 
           <TouchableOpacity
@@ -387,7 +388,7 @@ export default function CollectionDetailScreen() {
           >
             <Ionicons name="search" size={16} color="#fff" />
             <Text style={[globalStyles.smallText, styles.emptyButtonText]}>
-              Find Cards
+                              {t('collections.detail.findCards')}
             </Text>
           </TouchableOpacity>
         </View>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import SkeletonSingleCard from '../components/skeletons/SkeletonSingleCard';
 import { rarityColors } from '../constants';
 import {
@@ -37,6 +38,7 @@ const abilityIcon = require('../assets/icons/cardIcons/ability.png');
 
 
 export default function SingleCardScreen() {
+  const { t } = useTranslation();
   const route = useRoute();
   const navigation = useNavigation();
   const { cardId, language = 'en' } = route.params;
@@ -127,19 +129,19 @@ console.log(cardData,"cardData");
   return (
     <>
       <ScrollView style={styles.screen}>
-        <EvolutionChain title="Evolves From" cards={fromData} onCardPress={navigateTo} />
-        <EvolutionChain title="Evolves To" cards={toData} onCardPress={navigateTo} />
+        <EvolutionChain title={t('cards.evolvesFrom')} cards={fromData} onCardPress={navigateTo} />
+        <EvolutionChain title={t('cards.evolvesTo')} cards={toData} onCardPress={navigateTo} />
         <CardSetHeader cardData={cardData} onPress={setId => navigation.navigate('SetDetail', { setId, language })} />
         <CardImageViewer imageSource={cardData.image} />
 
         <AnimatedSection style={styles.sectionCard}>
-          <Text style={[globalStyles.subheading, styles.sectionTitle]}>Market Overview</Text>
+          <Text style={[globalStyles.subheading, styles.sectionTitle]}>{t('cards.marketOverview')}</Text>
           <MarketOverview tcgplayer={cardData.tcgplayer} cardmarket={cardData.cardmarket} />
         </AnimatedSection>
 
         {cardData.abilities?.length > 0 && (
           <AnimatedSection style={styles.sectionCard}>
-            <Text style={[globalStyles.subheading, styles.sectionTitle]}>Abilities</Text>
+            <Text style={[globalStyles.subheading, styles.sectionTitle]}>{t('cards.abilities')}</Text>
             {cardData.abilities.map(ab => (
               <LabelRow
                 key={ab.name}
@@ -157,8 +159,8 @@ console.log(cardData,"cardData");
 
         {cardData.attacks?.length > 0 && (
           <AnimatedSection style={styles.sectionCard}>
-            <Text style={[globalStyles.subheading, styles.sectionTitle]}>Attacks</Text>
-            <LabelRow label={<LabelWithIcon types={[cardData.types?.[0]]} text="HP" />} value={cardData.hp || 'N/A'} />
+            <Text style={[globalStyles.subheading, styles.sectionTitle]}>{t('cards.attacks')}</Text>
+            <LabelRow label={<LabelWithIcon types={[cardData.types?.[0]]} text={t('cards.hp')} />} value={cardData.hp || t('cards.unknown')} />
             {cardData.attacks.map(atk => (
               <LabelRow
                 key={atk.name}
@@ -171,18 +173,18 @@ console.log(cardData,"cardData");
         )}
 
         <AnimatedSection style={styles.sectionCard}>
-          <Text style={[globalStyles.subheading, styles.sectionTitle]}>Details</Text>
-          {cardData.types?.length > 0 && <LabelRow label="Types" value={cardData.types.join(', ')} />}
-          {cardData.subtypes?.[0] && <LabelRow label="Subtype" value={cardData.subtypes[0]} />}
+          <Text style={[globalStyles.subheading, styles.sectionTitle]}>{t('cards.details')}</Text>
+          {cardData.types?.length > 0 && <LabelRow label={t('cards.types')} value={cardData.types.join(', ')} />}
+          {cardData.subtypes?.[0] && <LabelRow label={t('cards.subtype')} value={cardData.subtypes[0]} />}
           <SetLabelRow set={cardData.set} />
-          {cardData.artist && <LabelRow label="Illustrator" value={cardData.artist} />}
-          <LabelRow label="Number" value={cardData.number} />
+          {cardData.artist && <LabelRow label={t('cards.illustrator')} value={cardData.artist} />}
+          <LabelRow label={t('cards.number')} value={cardData.number} />
           <LabelRow
-            label="Rarity"
+            label={t('cards.rarity')}
             value={<Text style={[globalStyles.body, styles.rarityText, { color: rarityColors[cardData.rarity] }]}>{cardData.rarity}</Text>}
           />
-          <LabelRow label="Release Year" value={cardData.set?.releaseDate} />
-          <LabelRow label="Series" value={cardData.set?.series} />
+          <LabelRow label={t('cards.releaseYear')} value={cardData.set?.releaseDate} />
+          <LabelRow label={t('cards.series')} value={cardData.set?.series} />
         </AnimatedSection>
 
         {cardData.flavorText && (

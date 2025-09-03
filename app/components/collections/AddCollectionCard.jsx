@@ -7,10 +7,12 @@ import {
   Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 
 export default function AddCollectionCard({ onPress }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
   return (
@@ -31,7 +33,7 @@ export default function AddCollectionCard({ onPress }) {
       <Text
         style={[globalStyles.smallText, styles.text, { color: theme.text }]}
       >
-        New Collection
+        {t('collections.create')}
       </Text>
     </TouchableOpacity>
   );

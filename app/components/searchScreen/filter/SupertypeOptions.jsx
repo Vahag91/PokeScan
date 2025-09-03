@@ -1,16 +1,18 @@
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../../context/ThemeContext';
 
-const supertypes = [
-  { label: 'Pokémon', icon: 'pokeball' },
-  { label: 'Trainer', icon: 'account-tie' },
-  { label: 'Energy', icon: 'flash' },
-];
-
 export default function SupertypeOptions({ selected, setSelected }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
+
+  const supertypes = [
+    { label: t('search.supertype.pokemon'), icon: 'pokeball' },
+    { label: t('search.supertype.trainer'), icon: 'account-tie' },
+    { label: t('search.supertype.energy'), icon: 'flash' },
+  ];
 
   const toggle = value => {
     setSelected(prev =>

@@ -1,11 +1,18 @@
 import React, { useContext } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../../context/ThemeContext';
 import { globalStyles } from '../../../../globalStyles';
-const LEGALITY_OPTIONS = ['Standard', 'Expanded', 'Unlimited'];
 
 export default function CardLegalityOptions({ selected, setSelected }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
+
+  const LEGALITY_OPTIONS = [
+    { key: 'Standard', label: t('search.legality.standard') },
+    { key: 'Expanded', label: t('search.legality.expanded') },
+    { key: 'Unlimited', label: t('search.legality.unlimited') }
+  ];
 
   const toggle = value => {
     setSelected(prev =>
@@ -18,11 +25,11 @@ export default function CardLegalityOptions({ selected, setSelected }) {
   return (
     <View style={styles.wrap}>
       {LEGALITY_OPTIONS.map(option => {
-        const isSelected = selected.includes(option);
+        const isSelected = selected.includes(option.key);
         return (
           <TouchableOpacity
-            key={option}
-            onPress={() => toggle(option)}
+            key={option.key}
+            onPress={() => toggle(option.key)}
             style={[
               styles.chip,
               { backgroundColor: isSelected ? '#10B981' : theme.inputBackground },
@@ -39,7 +46,7 @@ export default function CardLegalityOptions({ selected, setSelected }) {
                 },
               ]}
             >
-              {option}
+              {option.label}
             </Text>
           </TouchableOpacity>
         );

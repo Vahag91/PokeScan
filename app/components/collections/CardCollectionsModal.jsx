@@ -9,6 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import {
   getDBConnection,
   getAllCollections,
@@ -26,6 +27,7 @@ export default function CardCollectionsModal({
   onRateUsTrigger,
   language = 'en',
 }) {
+  const { t } = useTranslation();
   const [collections, setCollections] = useState([]);
   const [collectionCounts, setCollectionCounts] = useState({});
   const [loading, setLoading] = useState(false);
@@ -136,11 +138,11 @@ export default function CardCollectionsModal({
           ]}
         >
           <Text style={[styles.title, { color: theme.text }]}>
-            Add to Collections
+            {t('collections.addToCollections')}
           </Text>
           {loading ? (
             <Text style={[styles.loadingText, { color: theme.mutedText }]}>
-              Loading...
+              {t('common.loading')}
             </Text>
           ) : (
             <FlatList
@@ -155,7 +157,7 @@ export default function CardCollectionsModal({
             onPress={onClose}
             disabled={loading}
           >
-            <Text style={styles.doneText}>Done</Text>
+            <Text style={styles.doneText}>{t('common.done')}</Text>
           </TouchableOpacity>
         </View>
       </View>

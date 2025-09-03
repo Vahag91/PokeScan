@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
+import { useTranslation } from 'react-i18next';
 import EditCollectionMenu from './EditCollectionMenu';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
@@ -18,6 +19,7 @@ export default function CollectionCard({
   onEditPress,
   onDelete,
 }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(1)).current;
@@ -52,7 +54,7 @@ export default function CollectionCard({
     const days = Math.floor(
       (Date.now() - new Date(dateString).getTime()) / (1000 * 60 * 60 * 24),
     );
-    return days === 0 ? 'Today' : `${days} day${days > 1 ? 's' : ''} ago`;
+    return days === 0 ? t('collections.card.today') : `${days} ${days > 1 ? t('collections.card.days') : t('collections.card.day')} ${t('collections.card.ago')}`;
   };
 
   return (
@@ -141,7 +143,7 @@ export default function CollectionCard({
             <Text
               style={[globalStyles.caption, styles.timestamp, { color: theme.mutedText }]}
             >
-              Last updated: {getDaysAgo(item.updatedAt || item.createdAt)}
+                             {t('collections.card.lastUpdated')}: {getDaysAgo(item.updatedAt || item.createdAt)}
             </Text>
 
             <View style={styles.metaRow}>
@@ -150,7 +152,7 @@ export default function CollectionCard({
                 <Text
                   style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
                 >
-                  {item.cardCount} {item.cardCount === 1 ? 'card' : 'cards'}
+                                     {item.cardCount} {item.cardCount === 1 ? t('collections.card.card') : t('collections.card.cards')}
                 </Text>
               </View>
 
@@ -159,7 +161,7 @@ export default function CollectionCard({
                 <Text
                   style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
                 >
-                  {item.totalValue ? `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.totalValue)}` : 'No value'}
+                                     {item.totalValue ? `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.totalValue)}` : t('collections.card.noValue')}
                 </Text>
               </View>
             </View>

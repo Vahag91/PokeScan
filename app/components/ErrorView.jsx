@@ -1,14 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
-export default function ErrorView({ message = "Something went wrong.", onRetry }) {
+export default function ErrorView({ message, onRetry }) {
+  const { t } = useTranslation();
+  
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Oops!</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.title}>{t('errors.oops')}</Text>
+      <Text style={styles.message}>{message || t('errors.somethingWentWrong')}</Text>
       {onRetry && (
         <TouchableOpacity style={styles.button} onPress={onRetry}>
-          <Text style={styles.buttonText}>Try Again</Text>
+          <Text style={styles.buttonText}>{t('errors.tryAgain')}</Text>
         </TouchableOpacity>
       )}
     </View>

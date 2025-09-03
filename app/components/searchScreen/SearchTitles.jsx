@@ -1,19 +1,21 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 
 export default function SearchTitles() {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.cardCollectionBackground, borderColor: theme.border }]}>
-      <Text style={[styles.title, { color: theme.text }]}>🔍 You can search by:</Text>
+      <Text style={[styles.title, { color: theme.text }]}>{t('search.searchBy')}</Text>
       <View style={styles.tagsContainer}>
         {[
-          { key: 'name', label: 'Name', icon: '✏️' },
-          { key: 'artist', label: 'Artist', icon: '🎨' },
-          { key: 'rarity', label: 'Rarity', icon: '💎' },
-          { key: 'number', label: 'Number', icon: '🔢' },
+          { key: 'name', label: t('search.searchTags.name'), icon: '✏️' },
+          { key: 'artist', label: t('search.searchTags.artist'), icon: '🎨' },
+          { key: 'rarity', label: t('search.searchTags.rarity'), icon: '💎' },
+          { key: 'number', label: t('search.searchTags.number'), icon: '🔢' },
         ].map(({ key, label, icon }) => (
           <View key={key} style={[styles.tag, { backgroundColor: theme.inputBackground, borderColor: theme.border }]}>
             <Text style={styles.tagIcon}>{icon}</Text>

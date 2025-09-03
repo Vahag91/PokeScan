@@ -13,20 +13,22 @@ import { sortOptions } from '../../constants';
 import { HeaderActionButton, BottomSheetHeader } from './filter';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
-
-const sortLabels = {
-  price: 'Price',
-  name: 'Name',
-  date: 'Date',
-};
+import { useTranslation } from 'react-i18next';
 
 export default function SortingComponent({ sortKey, setSortKey }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const { theme } = useContext(ThemeContext);
 
+  const sortLabels = {
+    price: t('search.sortByPrice'),
+    name: t('search.sortByName'),
+    date: t('search.sortByDate'),
+  };
+
   const baseKey = sortKey?.split('-').slice(0, 2).join('-') ?? null;
   const directionFromKey = sortKey?.split('-')[1] ?? 'desc';
-  const label = baseKey ? sortLabels[baseKey.split('-')[0]] || 'Sort' : 'Sort';
+  const label = baseKey ? sortLabels[baseKey.split('-')[0]] || t('search.sort') : t('search.sort');
 
   const handleSelect = key => {
     const currentDirection = directionFromKey ?? 'desc';
@@ -96,7 +98,7 @@ export default function SortingComponent({ sortKey, setSortKey }) {
             style={[styles.sheet, { backgroundColor: theme.background }]}
           >
             <BottomSheetHeader
-              title="Sort By"
+              title={t('search.sortBy')}
               onClose={() => setVisible(false)}
               iconSize={22}
             />
@@ -104,6 +106,19 @@ export default function SortingComponent({ sortKey, setSortKey }) {
             <View style={styles.optionsContainer}>
               {sortOptions.map(option => {
                 const isSelected = baseKey === option.key;
+                const [base, direction] = option.key.split('-');
+                const isAsc = direction === 'asc';
+                
+                // Generate translated label based on the option key
+                let translatedLabel = '';
+                if (base === 'name') {
+                  translatedLabel = isAsc ? t('search.sortByNameAsc') : t('search.sortByNameDesc');
+                } else if (base === 'price') {
+                  translatedLabel = isAsc ? t('search.sortByPriceAsc') : t('search.sortByPriceDesc');
+                } else if (base === 'date') {
+                  translatedLabel = isAsc ? t('search.sortByDateAsc') : t('search.sortByDateDesc');
+                }
+                
                 return (
                   <TouchableOpacity
                     key={option.key}
@@ -129,7 +144,7 @@ export default function SortingComponent({ sortKey, setSortKey }) {
                         { color: theme.text },
                       ]}
                     >
-                      {option.label}
+                      {translatedLabel}
                     </Text>
                     {isSelected && (
                       <Icon

@@ -1,0 +1,325 @@
+{
+  "common": {
+    "search": "Search",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+
+
+
+  "paywall": {
+    "title": "Upgrade to Premium",
+    "subtitle": "Unlock unlimited scans and premium features",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "bestValue": "Best Value",
+    "freeTrial": "Free Trial",
+    "noPaymentDue": "No payment due now",
+    "restore": "Restore Purchases",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "week": "Week",
+    "year": "Year",
+    "freeTrialEnabled": "Free trial enabled",
+    "tryForFree": "Try For Free",
+    "continue": "Continue",
+    "unlockFeatures": "Unlock all features and scan with full power.",
+    "features": {
+      "unlimitedScans": "Unlimited Card Scans",
+      "advancedFilters": "Advanced Search Filters",
+      "unlimitedCollections": "Unlimited Collections",
+      "liveMarketPrices": "Live Market Prices"
+    },
+    "footer": {
+      "termsOfUse": "Terms of Use",
+      "privacyPolicy": "Privacy Policy",
+      "restore": "Restore"
+    }
+  },
+  "onboarding": {
+    "continue": "Continue",
+    "getStarted": "Get Started",
+    "slide1": {
+      "title": "Scan your cards",
+      "subtitle": "Get detailed information!"
+    },
+    "slide2": {
+      "title": "Search any cards",
+      "subtitle": "Use our advanced filters!"
+    },
+    "slide3": {
+      "title": "Create your card collection",
+      "subtitle": "Organize and track your cards!"
+    },
+    "slide4": {
+      "title": "Get Card Information",
+      "subtitle": "Access details about price, stats and rarities info"
+    }
+  },
+  "errors": {
+    "oops": "Oops!",
+    "tryAgain": "Try Again",
+    "somethingWentWrong": "Something went wrong.",
+    "pleaseTryAgainLater": "Please try again later.",
+    "unableToConnect": "Unable to connect. Please try again.",
+    "noResultsFor": "No results for \"{{query}}\".",
+    "noResultsFound": "No results found"
+  },
+  "scanner": {
+    "title": "Scanner",
+    "scanning": "Scanning...",
+    "noResult": "No card found",
+    "multipleResults": "Multiple cards found",
+    "addToCollection": "Add to Collection",
+    "freeScansLeft": "{{count}} free scans left",
+    "upgradeToPremium": "Upgrade to Premium for unlimited scans",
+    "loadingCamera": "Loading camera…",
+    "cameraAccessNeeded": "Camera Access Needed",
+    "cameraAccessNeededMessage": "Please allow camera access in Settings to scan Pokémon cards.",
+    "openSettings": "Open Settings",
+    "noCardsFound": "No cards found",
+    "clear": "Clear",
+    "detected": "Detected:",
+    "positionCard": "Position card, tap SCAN",
+    "howToGetBestScan": "How to get the best scan",
+    "scanInstructions": "• Keep the photo clear — avoid glare and motion blur.",
+    "scanInstructions2": "• Include these details: Name, HP, card number, Illustrator.",
+    "scanHint": "Tap to scan",
+    "clearFloating": "Clear",
+    "scan": "SCAN"
+  },
+  "cards": {
+    "rarity": "Rarity",
+    "type": "Type",
+    "hp": "HP",
+    "attack": "Attack",
+    "artist": "Artist",
+    "number": "Number",
+    "set": "Set",
+    "series": "Series",
+    "marketOverview": "Market Overview",
+    "abilities": "Abilities",
+    "attacks": "Attacks",
+    "details": "Details",
+    "evolutionChain": "Evolution Chain",
+    "externalLinks": "External Links",
+    "evolvesFrom": "Evolves From",
+    "evolvesTo": "Evolves To",
+    "types": "Types",
+    "subtype": "Subtype",
+    "illustrator": "Illustrator",
+    "releaseYear": "Release Year",
+    "card": "card",
+    "cards": "cards",
+    "noValue": "No value",
+    "unknown": "Unknown",
+    "market": {
+      "midPrice": "Mid Price",
+      "lowPrice": "Low Price",
+      "highPrice": "High Price",
+      "marketPrice": "Market Price",
+      "directLow": "Direct Low",
+      "avgSell": "Avg Sell",
+      "trend": "Trend",
+      "priceTrend": "Price Trend",
+      "avg1": "1D Avg",
+      "avg7": "7D Avg",
+      "avg30": "30D Avg",
+      "germanLow": "German Low",
+      "suggested": "Suggested",
+      "lastUpdated": "Last updated"
+    }
+  },
+  "search": {
+    "placeholder": "Search cards...",
+    "noResults": "No results found",
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "sort": "Sort",
+    "sortByPrice": "Price",
+    "sortByName": "Name",
+    "sortByDate": "Date",
+    "sortByNameAsc": "Product Name: A to Z",
+    "sortByNameDesc": "Product Name: Z to A",
+    "sortByPriceAsc": "Price: Low to High",
+    "sortByPriceDesc": "Price: High to Low",
+    "sortByDateAsc": "Release Date: Oldest",
+    "sortByDateDesc": "Release Date: Newest",
+    "results": "{{count}} results",
+    "searchBy": "🔍 You can search by:",
+    "searchTags": {
+      "name": "Name",
+      "type": "Type",
+      "rarity": "Rarity",
+      "set": "Set",
+      "artist": "Artist",
+      "number": "Number"
+    },
+    "searchBySetName": "Search by set name...",
+    "searchPlaceholder": "Search",
+    "showingResultsFor": "Showing results for:",
+    "deselectAll": "Deselect All {{label}}",
+    "selectAll": "Select All {{label}}",
+    "filtersRarity": "Rarity",
+    "filtersEnergyType": "Energy Type",
+    "filtersType": "Type",
+    "filtersAttackCost": "Attack Cost Energy Type",
+    "filtersAttack": "Attack",
+    "filtersHPRange": "HP Range",
+    "filtersRegulationMark": "Regulation Mark",
+    "filtersCardLegality": "Card Legality",
+    "advancedFiltersLocked": "Advanced Filters Locked",
+    "advancedFiltersSubtitle": "Unlock premium to use type, rarity, attack cost, and HP filters.",
+    "unlockPremium": "Unlock Premium",
+    "legality": {
+      "standard": "Standard",
+      "expanded": "Expanded",
+      "unlimited": "Unlimited"
+    },
+    "supertype": {
+      "pokemon": "Pokémon",
+      "trainer": "Trainer",
+      "energy": "Energy"
+    }
+  },
+  "navigation": {
+    "collections": "Collections",
+    "scanner": "Scanner",
+    "search": "Search",
+    "sets": "Sets",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "settings": "Settings",
+    "tryPremium": "Try Premium",
+    "restorePurchase": "Restore Purchase",
+    "youArePremium": "You are Premium!",
+    "rateUs": "Rate us",
+    "legal": "Legal",
+    "version": "1.1",
+    "termsOfUse": "Terms of use",
+    "privacy": "Privacy",
+    "support": "Support"
+  },
+      "collections": {
+      "title": "Collections",
+      "myCollections": "My Collections",
+      "create": "Create Collection",
+      "edit": "Edit Collection",
+      "delete": "Delete Collection",
+      "addCard": "Add Card",
+      "addToCollections": "Add to Collections",
+      "empty": "No collections yet",
+      "emptySubtitle": "Create your first collection to get started",
+      "name": "Collection Name",
+      "cards": "cards",
+      "totalValue": "Total Value",
+      "done": "Done",
+      "editCollection": "Edit",
+      "deleteCollection": "Delete",
+      "enterCollectionName": "Enter collection name",
+      "enterNewName": "Enter new name",
+      "nameRequired": "Collection name is required.",
+      "failedToLoadStats": "Failed to load your set stats.",
+      "other": "Other",
+      "emptyState": {
+        "title": "Nothing here yet...",
+        "subtitle": "Tap the + button to create your first collection."
+      },
+      "detail": {
+        "card": "card",
+        "cards": "cards",
+        "noValue": "No value",
+        "clearFilters": "Clear filters",
+        "noCardsYet": "No cards yet",
+        "startBuilding": "Start building your collection by adding cards.",
+        "findCards": "Find Cards"
+      },
+      "card": {
+        "today": "Today",
+        "day": "day",
+        "days": "days",
+        "ago": "ago",
+        "lastUpdated": "Last updated:",
+        "noValue": "No value"
+      }
+    },
+  "sets": {
+    "title": "Sets",
+    "series": "Series",
+    "cards": "Cards",
+    "releaseDate": "Release Date",
+    "release": "Release",
+    "searchCardSets": "Search Card Sets",
+    "failedToLoadStats": "Failed to load your set stats."
+  },
+  "oneTimeOffer": {
+    "exclusiveOffer": "Exclusive One-Time Offer",
+    "specialOfferBadge": "You will never see this again",
+    "fiftyPercentOff": "50% OFF",
+    "offerSubtitle": "This premium upgrade is available only once at this special price. Don't miss this opportunity to unlock all features!",
+    "restorePurchase": "Restore Purchase",
+    "termsOfUse": "Terms of Use",
+    "privacyPolicy": "Privacy Policy",
+    "features": {
+      "unlimitedScans": "Unlimited Card Scans",
+      "advancedFilters": "Advanced Search Filters",
+      "unlimitedCollections": "Unlimited Collections",
+      "realTimePricing": "Real-Time Market Pricing"
+    },
+    "alerts": {
+      "purchaseFailed": "Purchase Failed",
+      "purchaseFailedMessage": "Something went wrong. Please try again.",
+      "restored": "Restored",
+      "restoredMessage": "Your subscription has been successfully restored.",
+      "noSubscription": "No Subscription",
+      "noSubscriptionMessage": "No active subscription found to restore.",
+      "restoreFailed": "Restore Failed",
+      "restoreFailedMessage": "Something went wrong during restore.",
+      "noInternet": "No Internet Connection",
+      "noInternetMessage": "Please check your network and try again."
+    }
+  },
+  "rateUs": {
+    "title": "Rate Our App",
+    "subtitle": "Enjoying Pokémon Card Scanner?\nYour feedback helps us improve!",
+    "rateNow": "Rate Now",
+    "opening": "Opening...",
+    "maybeLater": "Maybe Later",
+    "dontAskAgain": "Don't Ask Again"
+  },
+  "alerts": {
+    "restored": "Restored",
+    "restoredMessage": "Your subscription has been restored.",
+    "notFound": "Not Found",
+    "notFoundMessage": "No active purchases to restore.",
+    "restoreError": "Error",
+    "restoreErrorMessage": "Failed to restore purchases."
+  },
+  "lockedOverlay": {
+    "collectionLimitReached": "Collection Limit Reached",
+    "upgradeSubtitle": "Upgrade to premium to create unlimited collections and organize your cards freely.",
+    "upgradeNow": "Upgrade Now"
+  },
+  "languageToggle": {
+    "englishCards": "🇺🇸 English cards",
+    "japaneseCards": "🇯🇵 Japanese cards"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "loading": "Loading...",
+    "done": "Done",
+    "clear": "Clear",
+    "apply": "Apply"
+  }
+}

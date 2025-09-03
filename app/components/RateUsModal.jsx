@@ -8,12 +8,14 @@ import {
   Dimensions,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import RateUsService from '../services/RateUsService';
 import { ThemeContext } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 const RateUsModal = ({ visible, onClose }) => {
+  const { t } = useTranslation();
   const [submitted, setSubmitted] = useState(false);
   const { theme } = useContext(ThemeContext);
 
@@ -57,10 +59,10 @@ const RateUsModal = ({ visible, onClose }) => {
         <View style={[styles.modalContainer, { backgroundColor: theme.cardCollectionBackground }]}>
           <View style={styles.header}>
             <Ionicons name="star" size={35} color="#FFD700" />
-            <Text style={[styles.title, { color: theme.text }]}>Rate Our App</Text>
-            <Text style={[styles.subtitle, { color: theme.mutedText }]}>
-              Enjoying Pokémon Card Scanner?{'\n'}Your feedback helps us improve!
-            </Text>
+                          <Text style={[styles.title, { color: theme.text }]}>{t('rateUs.title')}</Text>
+                          <Text style={[styles.subtitle, { color: theme.mutedText }]}>
+                {t('rateUs.subtitle')}
+              </Text>
           </View>
 
           <View style={styles.buttonContainer}>
@@ -70,7 +72,7 @@ const RateUsModal = ({ visible, onClose }) => {
               disabled={submitted}
             >
               <Text style={styles.primaryButtonText}>
-                {submitted ? 'Opening...' : 'Rate Now'}
+                {submitted ? t('rateUs.opening') : t('rateUs.rateNow')}
               </Text>
             </TouchableOpacity>
 
@@ -78,14 +80,14 @@ const RateUsModal = ({ visible, onClose }) => {
               style={[styles.button, styles.secondaryButton, { backgroundColor: theme.buttonBackground, borderColor: theme.buttonBorder }]}
               onPress={handleMaybeLater}
             >
-              <Text style={[styles.secondaryButtonText, { color: theme.text }]}>Maybe Later</Text>
+                              <Text style={[styles.secondaryButtonText, { color: theme.text }]}>{t('rateUs.maybeLater')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.dontAskButton}
               onPress={handleDontAskAgain}
             >
-              <Text style={[styles.dontAskText, { color: theme.mutedText }]}>Don't Ask Again</Text>
+                              <Text style={[styles.dontAskText, { color: theme.mutedText }]}>{t('rateUs.dontAskAgain')}</Text>
             </TouchableOpacity>
           </View>
         </View>

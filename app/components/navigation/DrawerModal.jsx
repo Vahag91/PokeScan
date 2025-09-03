@@ -15,45 +15,43 @@ import { ThemeContext } from '../../context/ThemeContext';
 import { SubscriptionContext } from '../../context/SubscriptionContext';
 import { globalStyles } from '../../../globalStyles';
 import PaywallModal from '../../screens/PaywallScreen';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 export default function DrawerModal({ visible, onClose }) {
+  // General translations (e.g., alerts.*)
+  const { t } = useTranslation();
+  // Navigation-specific translations using keyPrefix
+  const { t: tNav } = useTranslation(undefined, { keyPrefix: 'navigation' });
+
   const { theme, themeName, toggleTheme } = useContext(ThemeContext);
   const { isPremium, restorePurchases } = useContext(SubscriptionContext);
   const isLight = themeName !== 'dark';
   const [showPaywall, setShowPaywall] = useState(false);
 
-  const legalItems = [
-    ['document-text-outline', 'Terms of use', 'https://www.tortnisoft.com/terms'],
-    ['document-lock-outline', 'Privacy', 'https://www.tortnisoft.com/privacy'],
-    ['mail-outline', 'Support', 'https://www.tortnisoft.com/contact'],
-  ];
-
   const handleRateUs = async () => {
     try {
       // iOS: Try deep link first, then web fallback
       try {
-
         await Linking.openURL('itms-apps://itunes.apple.com/app/id6749329103?action=write-review');
-      } catch (deepLinkError) {
-        
+      } catch {
         await Linking.openURL('https://apps.apple.com/app/id6749329103?action=write-review');
       }
-    } catch (error) {
-      // Handle error silently
+    } catch {
+      // ignore
     }
   };
 
-  
   const handleRestore = async () => {
     try {
       const info = await restorePurchases();
       if (info?.entitlements?.active?.Premium) {
-        Alert.alert('Restored', 'Your subscription has been restored.');
+        Alert.alert(t('alerts.restored'), t('alerts.restoredMessage'));
       } else {
-        Alert.alert('Not Found', 'No active purchases to restore.');
+        Alert.alert(t('alerts.notFound'), t('alerts.notFoundMessage'));
       }
     } catch {
-      Alert.alert('Error', 'Failed to restore purchases.');
+      Alert.alert(t('alerts.restoreError'), t('alerts.restoreErrorMessage'));
     }
   };
 
@@ -70,62 +68,86 @@ export default function DrawerModal({ visible, onClose }) {
           { backgroundColor: theme.background, borderRightColor: theme.border },
         ]}
       >
-        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>Theme</Text>
+        {/* Theme */}
+        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>
+          {tNav('theme')}
+        </Text>
         <View style={styles.themeToggleRow}>
-          <View style={styles.drawerItem}>
+          <View className="row" style={styles.drawerItem}>
             <Ionicons
               name={isLight ? 'sunny-outline' : 'moon-outline'}
               size={20}
               color={theme.text}
               style={styles.drawerIcon}
             />
-            <Text style={[styles.drawerLabel, globalStyles.text, { color: theme.text }]}>Dark Mode</Text>
+            <Text style={[styles.drawerLabel, globalStyles.text, { color: theme.text }]}>
+              {tNav('darkMode')}
+            </Text>
           </View>
           <Switch onValueChange={toggleTheme} value={!isLight} />
         </View>
 
-        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>Settings</Text>
+        {/* Settings */}
+        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>
+          {tNav('settings')}
+        </Text>
 
- {!isPremium ? (
-  <>
-    <TouchableOpacity onPress={() => setShowPaywall(true)} style={styles.drawerItem}>
-      <Ionicons name="diamond-outline" size={20} color={theme.text} style={styles.drawerIcon} />
-      <Text style={[styles.drawerLabel, { color: theme.text }]}>Try Premium</Text>
-    </TouchableOpacity>
+        {!isPremium ? (
+          <>
+            <TouchableOpacity onPress={() => setShowPaywall(true)} style={styles.drawerItem}>
+              <Ionicons name="diamond-outline" size={20} color={theme.text} style={styles.drawerIcon} />
+              <Text style={[styles.drawerLabel, { color: theme.text }]}>
+                {tNav('tryPremium')}
+              </Text>
+            </TouchableOpacity>
 
-    <TouchableOpacity onPress={handleRestore} style={styles.drawerItem}>
-      <Ionicons name="refresh-circle-outline" size={20} color={theme.text} style={styles.drawerIcon} />
-      <Text style={[styles.drawerLabel, { color: theme.text }]}>Restore Purchase</Text>
-    </TouchableOpacity>
-  </>
-) : (
-  <View style={styles.drawerItem}>
-    <Ionicons name="shield-checkmark-outline" size={20} color={theme.text} style={styles.drawerIcon} />
-    <Text style={[styles.drawerLabel, { color: theme.text }]}>You are Premium!</Text>
-  </View>
-)}
-
+            <TouchableOpacity onPress={handleRestore} style={styles.drawerItem}>
+              <Ionicons name="refresh-circle-outline" size={20} color={theme.text} style={styles.drawerIcon} />
+              <Text style={[styles.drawerLabel, { color: theme.text }]}>
+                {tNav('restorePurchase')}
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.drawerItem}>
+            <Ionicons name="shield-checkmark-outline" size={20} color={theme.text} style={styles.drawerIcon} />
+            <Text style={[styles.drawerLabel, { color: theme.text }]}>{tNav('youArePremium')}</Text>
+          </View>
+        )}
 
         <TouchableOpacity onPress={handleRateUs} style={styles.drawerItem}>
           <Ionicons name="star-outline" size={20} color={theme.text} style={styles.drawerIcon} />
-          <Text style={[styles.drawerLabel, { color: theme.text }]}>Rate us</Text>
+          <Text style={[styles.drawerLabel, { color: theme.text }]}>{tNav('rateUs')}</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>Legal</Text>
-        {legalItems.map(([icon, label, link]) => (
-          <TouchableOpacity key={label} onPress={() => Linking.openURL(link)} style={styles.drawerItem}>
+        {/* Legal */}
+        <Text style={[styles.section, globalStyles.text, { color: theme.text }]}>{tNav('legal')}</Text>
+        {[
+          ['document-text-outline', tNav('termsOfUse'), 'https://www.tortnisoft.com/terms'],
+          ['document-lock-outline', tNav('privacy'), 'https://www.tortnisoft.com/privacy'],
+          ['mail-outline', tNav('support'), 'https://www.tortnisoft.com/contact'],
+        ].map(([icon, label, link]) => (
+          <TouchableOpacity key={icon} onPress={() => Linking.openURL(link)} style={styles.drawerItem}>
             <Ionicons name={icon} size={20} color={theme.text} style={styles.drawerIcon} />
             <Text style={[styles.drawerLabel, { color: theme.text }]}>{label}</Text>
           </TouchableOpacity>
         ))}
 
-        <Text style={[styles.version, globalStyles.text, { color: theme.mutedText }]}>1.1</Text>
+        <Text style={[styles.version, globalStyles.text, { color: theme.mutedText }]}>
+          {tNav('version')}
+        </Text>
+
+        {/* Temporary Debug Section - Remove after testing */}
+        {__DEV__ && (
+          <View style={{ marginTop: 20, padding: 10, backgroundColor: '#f0f0f0' }}>
+            <Text style={{ fontSize: 12, color: '#666' }}>
+              🌍 Debug: {i18n.language} | Theme: {tNav('theme')} | Legal: {tNav('legal')}
+            </Text>
+          </View>
+        )}
       </View>
 
-      <PaywallModal
-        visible={showPaywall}
-        onClose={() => setShowPaywall(false)}
-      />
+      <PaywallModal visible={showPaywall} onClose={() => setShowPaywall(false)} />
     </Modal>
   );
 }

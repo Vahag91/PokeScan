@@ -11,6 +11,7 @@ import {
   LayoutAnimation,
   UIManager,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   FilterBtns,
   FilterSectionToggle,
@@ -42,6 +43,7 @@ const typeOptions = Object.keys(typeIcons);
 const attackOptions = typeOptions.filter(t => t !== 'Dragon');
 
 export default function FilterComponent({ filters, setFilters }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const { isPremium } = useContext(SubscriptionContext);
 
@@ -130,7 +132,7 @@ export default function FilterComponent({ filters, setFilters }) {
             { color: theme.text },
           ]}
         >
-          {allSelected ? `Deselect All ${label}` : `Select All ${label}`}
+          {allSelected ? t('search.deselectAll', { label }) : t('search.selectAll', { label })}
         </Text>
       </TouchableOpacity>
     );
@@ -154,7 +156,7 @@ export default function FilterComponent({ filters, setFilters }) {
         )}
         <HeaderActionButton
           icon="filter-list"
-          label="Filters"
+          label={t('search.filters')}
           onPress={() => setVisible(true)}
         />
       </View>
@@ -170,21 +172,21 @@ export default function FilterComponent({ filters, setFilters }) {
             style={[styles.sheet, { backgroundColor: theme.background }]}
           >
             <BottomSheetHeader
-              title="Filters"
+              title={t('search.filters')}
               onClose={() => setVisible(false)}
               iconSize={24}
             />
 
             <ScrollView style={styles.optionsContainer}>
               <FilterSectionToggle
-                label="Rarity"
+                label={t('search.filtersRarity')}
                 expanded={expanded.rarity}
                 onPress={() => toggleExpand('rarity')}
               />
               {expanded.rarity && (
                 <View style={styles.sectionBlock}>
                   {renderSelectAllRow(
-                    'Rarity',
+                    t('search.filtersRarity'),
                     rarityOptions,
                     selectedRarities,
                     setSelectedRarities,
@@ -227,14 +229,14 @@ export default function FilterComponent({ filters, setFilters }) {
                 </View>
               )}
               <FilterSectionToggle
-                label="Energy Type"
+                label={t('search.filtersEnergyType')}
                 expanded={expanded.type}
                 onPress={() => toggleExpand('type')}
               />
               {expanded.type && (
                 <View style={styles.sectionBlock}>
                   {renderSelectAllRow(
-                    'Type',
+                    t('search.filtersType'),
                     typeOptions,
                     selectedTypes,
                     setSelectedTypes,
@@ -248,14 +250,14 @@ export default function FilterComponent({ filters, setFilters }) {
                 </View>
               )}
               <FilterSectionToggle
-                label="Attack Cost Energy Type"
+                label={t('search.filtersAttackCost')}
                 expanded={expanded.attack}
                 onPress={() => toggleExpand('attack')}
               />
               {expanded.attack && (
                 <View style={styles.sectionBlock}>
                   {renderSelectAllRow(
-                    'Attack',
+                    t('search.filtersAttack'),
                     attackOptions,
                     selectedAttack,
                     setSelectedAttack,
@@ -269,7 +271,7 @@ export default function FilterComponent({ filters, setFilters }) {
                 </View>
               )}
               <FilterSectionToggle
-                label="HP Range"
+                label={t('search.filtersHPRange')}
                 expanded={expanded.hp}
                 onPress={() => toggleExpand('hp')}
               />
@@ -279,7 +281,7 @@ export default function FilterComponent({ filters, setFilters }) {
                 </View>
               )}
               <FilterSectionToggle
-                label="Regulation Mark"
+                label={t('search.filtersRegulationMark')}
                 expanded={expanded.regulation}
                 onPress={() => toggleExpand('regulation')}
               />
@@ -292,7 +294,7 @@ export default function FilterComponent({ filters, setFilters }) {
                 </View>
               )}
               <FilterSectionToggle
-                label="Card Legality"
+                label={t('search.filtersCardLegality')}
                 expanded={expanded.legality}
                 onPress={() => toggleExpand('legality')}
               />
@@ -310,9 +312,9 @@ export default function FilterComponent({ filters, setFilters }) {
 
             {!isPremium && (
               <LockedBlurOverlay
-                title="Advanced Filters Locked"
-                subtitle="Unlock premium to use type, rarity, attack cost, and HP filters."
-                buttonText="Unlock Premium"
+                title={t('search.advancedFiltersLocked')}
+                subtitle={t('search.advancedFiltersSubtitle')}
+                buttonText={t('search.unlockPremium')}
                 onPress={() => {
                   setVisible(false);
                   setTimeout(() => setShowPaywall(true), 200);

@@ -9,11 +9,13 @@ import {
   Keyboard,
   StyleSheet,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { getDBConnection, createCollection } from '../../lib/db';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 
 export default function CreateCollectionModal({ visible, onClose, onCreated }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const [newName, setNewName] = useState('');
   const [error, setError] = useState(false);
@@ -50,12 +52,12 @@ const handleCreate = async () => {
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.container}>
-              <Text style={[globalStyles.subheading, styles.title]}>
-                New Collection
-              </Text>
+                              <Text style={[globalStyles.subheading, styles.title]}>
+                  {t('collections.create')}
+                </Text>
 
               <TextInput
-                placeholder="Enter collection name"
+                                  placeholder={t('collections.enterCollectionName')}
                 placeholderTextColor={theme.placeholder}
                 value={newName}
                 onChangeText={(text) => {
@@ -66,19 +68,19 @@ const handleCreate = async () => {
               />
               {error && (
                 <Text style={[globalStyles.smallText, styles.errorText]}>
-                  Collection name is required.
+                                      {t('collections.nameRequired')}
                 </Text>
               )}
 
               <View style={styles.buttons}>
                 <TouchableOpacity onPress={onClose} style={styles.btnSecondary}>
                   <Text style={[globalStyles.body, styles.btnSecondaryText]}>
-                    Cancel
+                                          {t('common.cancel')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleCreate} style={styles.btnPrimary}>
                   <Text style={[globalStyles.body, styles.btnPrimaryText]}>
-                    Create
+                                          {t('collections.create')}
                   </Text>
                 </TouchableOpacity>
               </View>

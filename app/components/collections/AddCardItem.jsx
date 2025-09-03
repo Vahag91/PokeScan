@@ -7,6 +7,7 @@ import {
   Dimensions,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 
@@ -14,6 +15,7 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
 export default function AddCardItemVariant2({ onPress }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
   return (
@@ -31,7 +33,7 @@ export default function AddCardItemVariant2({ onPress }) {
         <Ionicons name="add" size={22} color="white" />
       </View>
       <Text style={[globalStyles.smallText, styles.text, { color: theme.text }]}>
-        Add a New Card
+        {t('collections.addCard')}
       </Text>
     </TouchableOpacity>
   );
