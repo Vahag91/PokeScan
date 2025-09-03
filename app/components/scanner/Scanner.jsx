@@ -17,16 +17,26 @@ import ScanButton from './ScanButton';
 import CardPreview from './CardPreview';
 import CardCarouselPreview from './CardCarouselPreview';
 import CameraView from './CameraView';
+import ScannerHeader from './ScannerHeader';
+import ScanStatusPill from './ScanStatusPill';
+
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { fetchScannerCardFromSupabaseJPStrict,fetchScannerCardFromSupabase,matchCardENStrict } from '../../../supabase/utils';
+import { fetchScannerCardFromSupabaseJPStrict, matchCardENStrict } from '../../../supabase/utils';
 import { supabase } from '../../../supabase/supabase';
 import RNFS from 'react-native-fs';
-import { hasExceededLimit, incrementScanCount } from '../../utils';
+import { hasExceededLimit, incrementScanCount, getRemainingFreeAttempts } from '../../utils';
 import PaywallModal from '../../screens/PaywallScreen';
 import { SubscriptionContext } from '../../context/SubscriptionContext';
+import RateUsService from '../../services/RateUsService';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+const UI_STAGES = {
+  SCANNING: 'scanning',
+  SEARCHING: 'searching',
+  IDLE: 'idle',
+};
 
 export default function ScannerScreen({ navigation }) {
   const [permissionStatus, setPermissionStatus] = useState('not-determined');
@@ -39,21 +49,34 @@ export default function ScannerScreen({ navigation }) {
   const [showPaywall, setShowPaywall] = useState(false);
   const [scanLanguage, setScanLanguage] = useState('jp'); // 'en' or 'jp'
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState(3);
 
-  // Clear scan results when language changes
+  const [scanStage, setScanStage] = useState(UI_STAGES.IDLE);
+  const [capturedImage, setCapturedImage] = useState(null);
+
   useEffect(() => {
     clearScanResult();
   }, [scanLanguage]);
 
+  useEffect(() => {
+    const loadRemainingAttempts = async () => {
+      try {
+        const attempts = await getRemainingFreeAttempts();
+        setRemainingAttempts(attempts);
+      } catch (error) {
+        console.warn('Failed to load remaining attempts:', error);
+      }
+    };
+    loadRemainingAttempts();
+  }, []);
+
   const { isPremium } = useContext(SubscriptionContext);
   const device = useCameraDevice('back');
-
   const cameraRef = useRef(null);
 
   useEffect(() => {
     (async () => {
       const status = await Camera.getCameraPermissionStatus();
-
       if (status === 'authorized') {
         setPermissionStatus('authorized');
       } else {
@@ -77,34 +100,33 @@ export default function ScannerScreen({ navigation }) {
     if (!overlayLayout) return;
     if (loading) return;
 
+    if (!isPremium) {
+      try {
+        const exceeded = await hasExceededLimit();
+        if (exceeded) {
+          setShowPaywall(true);
+          return;
+        }
+      } catch (error) {
+        console.warn('Failed to check scan limit:', error);
+      }
+    }
 
-
-
-    // if (!isPremium) {
-    //   const exceeded = await hasExceededLimit();
-    //   if (exceeded) {
-    //     setShowPaywall(true);
-    //     return;
-    //   } else {
-    //     await incrementScanCount();
-    //   }
-    // }
-    
     try {
       setLoading(true);
+      setScanStage(UI_STAGES.SCANNING);
+
       setCardName(null);
       setCardData(null);
       setCardResults([]);
       setNoResult(false);
 
-      // Step 1: Take photo
+      // 1) Capture
       const photo = await cameraRef.current.takePhoto();
 
-      // Step 2: Process image path
-      const pathStartTime = Date.now();
-      const uri = photo.path.startsWith('file://')
-        ? photo.path
-        : `file://${photo.path}`;
+      // 2) Prepare crop
+      const uri = photo.path.startsWith('file://') ? photo.path : `file://${photo.path}`;
+      setCapturedImage(uri); // show as freeze/blur overlay
 
       const scaleX = (photo.width / SCREEN_WIDTH) * 0.8;
       const scaleY = photo.height / SCREEN_HEIGHT;
@@ -119,53 +141,36 @@ export default function ScannerScreen({ navigation }) {
       const targetWidth = 700;
       const aspectRatio = box.height / box.width;
       const targetHeight = Math.round(targetWidth * aspectRatio);
-      const pathTime = Date.now() - pathStartTime;
 
-      // Step 3: Crop image
-      const cropStartTime = Date.now();
+      // 3) Crop
       const croppedPath = await PhotoManipulator.crop(
         uri,
         box,
         { width: targetWidth, height: targetHeight },
         'image/jpeg',
       );
-      const cropTime = Date.now() - cropStartTime;
 
-      // Step 4: Read file and prepare payload
-      const fileStartTime = Date.now();
+      // 4) Build payload
       const fileExt = croppedPath.split('.').pop();
       const fileName = `scan-${Date.now()}.${fileExt}`;
       const fileData = await RNFS.readFile(croppedPath, 'base64');
+      const bodyPayload = { fileName, base64Image: fileData };
 
-      const bodyPayload = {
-        fileName,
-        base64Image: fileData,
-      };
-      const fileTime = Date.now() - fileStartTime;
-
-      // Step 5: Call Supabase function
-      const supabaseStartTime = Date.now();
+      // 5) Call function + match
       const { data: dataFromEdge, error } = await supabase.functions.invoke(
         scanLanguage === 'en' ? 'classify-card' : 'clever-api',
-        {
-          body: bodyPayload,
-        },
+        { body: bodyPayload },
       );
-      const supabaseTime = Date.now() - supabaseStartTime;
-
       if (error) {
         console.error('[SCAN] classify-card error:', error);
         throw error;
       }
 
-      console.log('dataFromEdge', dataFromEdge);
       setCardName(dataFromEdge.name);
+      setScanStage(UI_STAGES.SEARCHING);
 
-      // Step 6: Database matching
       let matches = null;
-
       if (scanLanguage === 'jp') {
-        // Use Japanese matching function
         matches = await fetchScannerCardFromSupabaseJPStrict(
           dataFromEdge.name,
           dataFromEdge.number,
@@ -173,37 +178,73 @@ export default function ScannerScreen({ navigation }) {
           dataFromEdge.illustrator,
         );
       } else {
-        // Use English matching function
         matches = await matchCardENStrict({
           name: dataFromEdge.name,
           number: dataFromEdge.number,
           hp: dataFromEdge.hp,
           illustrator: dataFromEdge.illustrator,
-        })
+        });
       }
 
-      console.log('matches', matches);
-     
-      // Step 7: Set results
       if (matches?.length === 1) {
         setCardData(matches[0]);
         setCardResults([]);
         setNoResult(false);
+        setCapturedImage(null); // Clear freeze overlay after successful scan
+        
+        if (!isPremium) {
+          try {
+            await incrementScanCount();
+            const attempts = await getRemainingFreeAttempts();
+            setRemainingAttempts(attempts);
+          } catch (error) {
+            console.warn('Failed to increment scan count:', error);
+          }
+        }
+        
+        // Show native rating dialog after successful scan (production behavior)
+        setTimeout(async () => {
+          const shouldShow = await RateUsService.shouldShowRatePrompt();
+          if (shouldShow) {
+            await RateUsService.showRatePrompt();
+          }
+        }, 2000); // 2 second delay after successful scan
       } else if (matches?.length > 1) {
         setCardData(null);
         setCardResults(matches);
         setNoResult(false);
+        setCapturedImage(null); // Clear freeze overlay after successful scan
+        
+        if (!isPremium) {
+          try {
+            await incrementScanCount();
+            const attempts = await getRemainingFreeAttempts();
+            setRemainingAttempts(attempts);
+          } catch (error) {
+            console.warn('Failed to increment scan count:', error);
+          }
+        }
+        
+        // Show native rating dialog after successful scan with multiple results (production behavior)
+        setTimeout(async () => {
+          const shouldShow = await RateUsService.shouldShowRatePrompt();
+          if (shouldShow) {
+            await RateUsService.showRatePrompt();
+          }
+        }, 2000); // 2 second delay after successful scan
       } else {
         setCardData(null);
         setCardResults([]);
         setNoResult(true);
+        setCapturedImage(null); // Clear freeze overlay after scan attempt
       }
-
     } catch (e) {
       setCardName('Error');
       setNoResult(true);
+      setCapturedImage(null); // Clear freeze overlay on error
     } finally {
       setLoading(false);
+      setScanStage(UI_STAGES.IDLE);
     }
   };
 
@@ -212,6 +253,7 @@ export default function ScannerScreen({ navigation }) {
     setCardData(null);
     setCardResults([]);
     setNoResult(false);
+    setCapturedImage(null);
   };
 
   if (permissionStatus === 'not-determined' || device == null) {
@@ -226,18 +268,12 @@ export default function ScannerScreen({ navigation }) {
   if (permissionStatus === 'denied') {
     return (
       <SafeAreaView style={styles.center}>
-        <Ionicons
-          name="camera-outline"
-          size={64}
-          color="#10B981"
-          style={{ marginBottom: 16 }}
-        />
+        <Ionicons name="camera-outline" size={64} color="#10B981" style={{ marginBottom: 16 }} />
         <Text style={styles.permissionTitle}>Camera Access Needed</Text>
         <Text style={styles.permissionSubtitle}>
           Please enable camera access in your device settings to scan Pokémon
           cards.
         </Text>
-
         <View style={styles.permissionButtons}>
           <TouchableOpacity
             style={styles.openSettingsBtn}
@@ -256,70 +292,29 @@ export default function ScannerScreen({ navigation }) {
         cameraRef={cameraRef}
         device={device}
         onOverlayLayout={setOverlayLayout}
+        stage={scanStage}
+        // 👉 NEW: freeze/blur overlay
+        freezeUri={capturedImage}
+        shouldFreeze={scanStage !== UI_STAGES.IDLE && !!capturedImage}
       />
 
-      <View style={styles.closeButtonContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate('Collections')}>
-          <Ionicons name="close" size={32} color={'#10B981'} />
-        </TouchableOpacity>
-      </View>
+      <ScannerHeader
+        navigation={navigation}
+        scanLanguage={scanLanguage}
+        setScanLanguage={setScanLanguage}
+        showLanguageDropdown={showLanguageDropdown}
+        setShowLanguageDropdown={setShowLanguageDropdown}
+      />
 
-      {/* Language Toggle Dropdown */}
-      <View style={styles.languageToggleContainer}>
-        <TouchableOpacity
-          style={styles.languageToggleButton}
-          onPress={() => setShowLanguageDropdown(!showLanguageDropdown)}
-        >
-          <Text style={styles.languageToggleText}>
-            {scanLanguage === 'en' ? '🇺🇸  Scan in English' : '🇯🇵 Scan in Japanese'}
+      <ScanStatusPill stage={scanStage} capturedImage={capturedImage} />
+
+      {!isPremium && (
+        <View style={styles.freeAttemptsContainer}>
+          <Text style={styles.freeAttemptsText}>
+            {remainingAttempts} free scans left
           </Text>
-          <Ionicons 
-            name={showLanguageDropdown ? "chevron-up" : "chevron-down"} 
-            size={16} 
-            color="#fff" 
-          />
-        </TouchableOpacity>
-        
-        {showLanguageDropdown && (
-          <View style={styles.dropdownMenu}>
-            <TouchableOpacity
-              style={[
-                styles.dropdownItem,
-                scanLanguage === 'en' && styles.dropdownItemActive
-              ]}
-              onPress={() => {
-                setScanLanguage('en');
-                setShowLanguageDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.dropdownItemText,
-                scanLanguage === 'en' && styles.dropdownItemTextActive
-              ]}>
-                🇺🇸 Scan in English
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.dropdownItem,
-                scanLanguage === 'jp' && styles.dropdownItemActive
-              ]}
-              onPress={() => {
-                setScanLanguage('jp');
-                setShowLanguageDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.dropdownItemText,
-                scanLanguage === 'jp' && styles.dropdownItemTextActive
-              ]}>
-                🇯🇵 Scan in Japanese
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+        </View>
+      )}
 
       <View style={styles.overlay}>
         <ScrollView
@@ -332,9 +327,7 @@ export default function ScannerScreen({ navigation }) {
             <CardCarouselPreview cards={cardResults} language={scanLanguage} />
           ) : noResult ? (
             <View style={styles.noResultWrapper}>
-              <Text style={styles.noResultTitle}>
-                No cards found
-              </Text>
+              <Text style={styles.noResultTitle}>No cards found</Text>
               <Text style={styles.noResultDescription}>
                 We couldn't find a match for this scan. Try again with better lighting or clearer framing.
               </Text>
@@ -344,7 +337,15 @@ export default function ScannerScreen({ navigation }) {
 
         <View style={styles.scanSection}>
           <ScanButton loading={loading} onPress={onScan} />
-          {!loading && <Text style={styles.tapToScanText}>Tap to Scan</Text>}
+          {!loading && (
+            <Text style={styles.tapToScanText}>
+              {scanStage === UI_STAGES.IDLE
+                ? 'Tap to Scan'
+                : scanStage === UI_STAGES.SCANNING
+                ? 'Scanning…'
+                : 'Searching…'}
+            </Text>
+          )}
         </View>
 
         {(cardData || cardResults.length > 0) && (
@@ -377,7 +378,6 @@ const styles = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 8, color: '#888' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { color: 'red', fontSize: 16, marginBottom: 12 },
   overlay: {
     position: 'absolute',
     bottom: 44,
@@ -385,30 +385,25 @@ const styles = StyleSheet.create({
     right: 16,
     alignItems: 'center',
   },
-  closeButtonContainer: {
+  scrollArea: { paddingBottom: 2, alignItems: 'center' },
+  scanSection: { marginTop: 8, alignItems: 'center', gap: 6 },
+  tapToScanText: { color: '#E5E7EB', fontSize: 14, opacity: 0.9, marginTop: 4, fontFamily: 'Lato-Bold' },
+
+  freeAttemptsContainer: {
     position: 'absolute',
-    top: 50,
-    left: 20,
-    zIndex: 150,
-    padding: 8,
-    borderRadius: 24,
+    top: 140,
+    alignSelf: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
-  scrollArea: {
-    paddingBottom: 2,
-    alignItems: 'center',
-  },
-  scanSection: {
-    marginTop: 8,
-    alignItems: 'center',
-    gap: 6,
-  },
-  tapToScanText: {
+  freeAttemptsText: {
     color: '#E5E7EB',
-    fontSize: 14,
-    opacity: 0.9,
-    marginTop: 4,
-    fontFamily: 'Lato-Bold',
+    fontSize: 11,
+    fontFamily: 'Lato-Regular',
+    opacity: 0.8,
+    letterSpacing: 0.5,
   },
+
   clearFloatingButton: {
     position: 'absolute',
     left: 30,
@@ -426,151 +421,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  clearFloatingText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-  clearIcon: {
-    marginTop: 1,
-  },
-  noResultWrapper: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  noResultTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    fontFamily: 'Lato-Bold',
-    color: '#F1F5F9',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  noResultDescription: {
-    fontSize: 14,
-    fontFamily: 'Lato-Bold',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  retryButton: {
-    backgroundColor: '#0788b0ff',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 24,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-    fontFamily: 'Lato-Bold',
-  },
-  permissionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#F1F5F9',
-    marginBottom: 8,
-    textAlign: 'center',
-    fontFamily: 'Lato-Bold',
-  },
-  permissionSubtitle: {
-    fontSize: 14,
-    color: '#94A3B8',
-    textAlign: 'center',
-    paddingHorizontal: 32,
-    lineHeight: 20,
-    marginBottom: 20,
-    fontFamily: 'Lato-Regular',
-  },
-  permissionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  openSettingsBtn: {
-    backgroundColor: '#10B981',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-  },
-  openSettingsText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-    fontFamily: 'Lato-Bold',
-  },
-  tryAgainText: {
-    color: '#10B981',
-    fontWeight: '600',
-    fontSize: 14,
-    fontFamily: 'Lato-Bold',
-  },
-  languageToggleContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 100,
-  },
-  languageToggleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    gap: 10,
-    minWidth: 160,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  languageToggleText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: 'Lato-Bold',
-  },
-  dropdownMenu: {
-    position: 'absolute',
-    top: 50,
-    backgroundColor: 'rgba(0,0,0,0.95)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    overflow: 'hidden',
-    minWidth: 160,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  dropdownItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  dropdownItemActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-  },
-  dropdownItemText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '500',
-    fontFamily: 'Lato-Regular',
-    textAlign: 'center',
-  },
-  dropdownItemTextActive: {
-    color: '#10B981',
-    fontWeight: '600',
-  },
+  clearFloatingText: { color: '#fff', fontSize: 13, fontWeight: '600', marginLeft: 6 },
+  clearIcon: { marginTop: 1 },
+
+  noResultWrapper: { alignItems: 'center', paddingHorizontal: 24 },
+  noResultTitle: { fontSize: 18, fontWeight: '700', fontFamily: 'Lato-Bold', color: '#F1F5F9', marginBottom: 4, textAlign: 'center' },
+  noResultDescription: { fontSize: 14, fontFamily: 'Lato-Bold', color: '#9CA3AF', textAlign: 'center', marginBottom: 8, lineHeight: 20 },
+
+  permissionTitle: { fontSize: 20, fontWeight: '700', color: '#F1F5F9', marginBottom: 8, textAlign: 'center', fontFamily: 'Lato-Bold' },
+  permissionSubtitle: { fontSize: 14, color: '#94A3B8', textAlign: 'center', paddingHorizontal: 32, lineHeight: 20, marginBottom: 20, fontFamily: 'Lato-Regular' },
+  permissionButtons: { flexDirection: 'row', gap: 12 },
+  openSettingsBtn: { backgroundColor: '#10B981', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24 },
+  openSettingsText: { color: '#fff', fontWeight: '600', fontSize: 14, fontFamily: 'Lato-Bold' },
 });

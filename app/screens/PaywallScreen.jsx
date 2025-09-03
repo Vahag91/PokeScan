@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Switch,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemeContext } from '../context/ThemeContext';
@@ -21,12 +22,20 @@ const { width, height } = Dimensions.get('window');
 
 export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
   const [selectedPlan, setSelectedPlan] = useState('yearly');
+  const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
   const [loading, setLoading] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
   const [loadingPackages, setLoadingPackages] = useState(true);
 
+
   const { themeName, theme } = useContext(ThemeContext);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const spinnerAnimRef = useRef(new Animated.Value(0));
+  
+  // Create a simple rotation animation
+
+  // Loading state for close button
+  const [closeButtonActive, setCloseButtonActive] = useState(false);
 
   const {
     purchasePackage,
@@ -34,6 +43,64 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
     fetchOfferings,
     availablePackages,
   } = useContext(SubscriptionContext);
+
+  // Update selected plan when free trial toggle changes
+  useEffect(() => {
+    if (freeTrialEnabled) {
+      setSelectedPlan('weekly');
+    } else {
+      setSelectedPlan('yearly');
+    }
+  }, [freeTrialEnabled]);
+
+  // Control close button activation with delay
+  useEffect(() => {
+    let animationRef = null;
+    let timerRef = null;
+
+    if (visible) {
+      // Create completely fresh Animated.Value instance
+      const freshSpinnerAnim = new Animated.Value(0);
+      spinnerAnimRef.current = freshSpinnerAnim;
+      
+      // Create completely new animation instance
+      animationRef = Animated.loop(
+        Animated.timing(freshSpinnerAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      );
+      
+      // Start the fresh animation
+      animationRef.start();
+
+      timerRef = setTimeout(() => {
+        setCloseButtonActive(true);
+        // Stop and destroy the animation
+        if (animationRef) {
+          animationRef.stop();
+          animationRef = null;
+        }
+      }, 2500);
+    } else {
+      setCloseButtonActive(false);
+    }
+    
+    return () => {
+      // Cleanup function - ensure everything is destroyed
+      if (timerRef) {
+        clearTimeout(timerRef);
+        timerRef = null;
+      }
+      if (animationRef) {
+        animationRef.stop();
+        animationRef = null;
+      }
+    };
+  }, [visible]);
+
+
 
   useEffect(() => {
     if (!visible) return;
@@ -129,43 +196,44 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
       : require('../assets/onboarding/lightpaywall.png');
 
   const plans = {
-    yearly: (() => {
-      const yearly = availablePackages.yearly?.product;
-      const weekly = availablePackages.weekly?.product;
-      if (!yearly || !weekly) return null;
-
-      const yearlyPrice = parseFloat(yearly.price);
+    weekly: (() => {
+      const weekly = availablePackages?.weekly?.product;
+      if (!weekly) return null;
+      
+      const currency = weekly?.currencyCode || '$';
       const weeklyPrice = parseFloat(weekly.price);
-      const currency = yearly.currencyCode;
-      const weeklyRate = (yearlyPrice / 52).toFixed(2);
-      const discount =
-        weeklyPrice && yearlyPrice
-          ? Math.round(
-              ((weeklyPrice * 52 - yearlyPrice) / (weeklyPrice * 52)) * 100,
-            )
-          : 0;
-
+      
+      // Safety check for valid price
+      if (isNaN(weeklyPrice) || weeklyPrice <= 0) return null;
+      
       return {
-        title: 'Yearly Access',
-        price: `billed annualy at ${currency} ${yearlyPrice.toFixed(
-          2,
-        )} per year`,
-        sub: `${currency} ${weeklyRate} per week`,
-        badge: discount > 0 ? `SAVE ${discount}%` : null,
+        title: 'Week',
+        price: `3 Days free then ${currency}${weeklyPrice.toFixed(2)}/week`,
+        badge: null,
       };
     })(),
 
-    weekly: (() => {
-      const weekly = availablePackages.weekly?.product;
-      const currency = weekly?.currencyCode;
-      const weeklyPrice = parseFloat(weekly?.price || 0);
-      const introFree =
-        weekly?.introPrice?.price === 0 ? '3 days free trial' : null;
+    yearly: (() => {
+      const yearly = availablePackages?.yearly?.product;
+      const weekly = availablePackages?.weekly?.product;
+      if (!yearly || !weekly) return null;
+      
+      const currency = yearly?.currencyCode || '$';
+      const yearlyPrice = parseFloat(yearly.price);
+      const weeklyPrice = parseFloat(weekly.price);
+      
+      // Safety checks for valid prices
+      if (isNaN(yearlyPrice) || yearlyPrice <= 0) return null;
+      if (isNaN(weeklyPrice) || weeklyPrice <= 0) return null;
+      
+      const originalPrice = weeklyPrice * 52;
+      const discount = Math.round(((originalPrice - yearlyPrice) / originalPrice) * 100);
+
       return {
-        title: 'Weekly Access',
-        price: `then ${currency} ${weeklyPrice.toFixed(2)} per week`,
-        sub: introFree,
-        badge: null,
+        title: 'Year',
+        originalPrice: `${currency}${originalPrice.toFixed(2)}`,
+        currentPrice: `${currency}${yearlyPrice.toFixed(2)}/year`,
+        badge: `SAVE ${discount}%`,
       };
     })(),
   };
@@ -201,9 +269,7 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-        <Ionicons name="close" size={22} color={theme.text} />
-      </TouchableOpacity>
+
 
       <ImageBackground source={backgroundImage} style={styles.background}>
         <View
@@ -214,6 +280,35 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
             },
           ]}
         >
+          {/* Close button with simple spinner overlay */}
+          <View style={styles.closeBtn}>
+            {closeButtonActive ? (
+              <TouchableOpacity 
+                onPress={onClose} 
+                style={styles.closeButtonActive}
+              >
+                <Ionicons name="close" size={22} color={theme.text} />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.spinnerOverlay}>
+                <Animated.View 
+                  key={`spinner-${visible ? 'active' : 'inactive'}`}
+                  style={[
+                    styles.simpleSpinner,
+                    {
+                      transform: [{
+                        rotate: spinnerAnimRef.current.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0deg', '360deg']
+                        })
+                      }]
+                    }
+                  ]} 
+                />
+              </View>
+            )}
+          </View>
+
           <ScrollView
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}
@@ -259,11 +354,20 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
             <View style={styles.plans}>
               {Object.entries(plans).map(([key, plan]) => {
                 if (!plan) return null;
+                
+                // Additional safety check for plan data
+                if (!plan.title) return null;
+                if (key === 'yearly' ? (!plan.originalPrice || !plan.currentPrice) : !plan.price) return null;
+                
                 const isSelected = selectedPlan === key;
                 return (
                   <TouchableOpacity
                     key={key}
-                    onPress={() => setSelectedPlan(key)}
+                    onPress={() => {
+                      setSelectedPlan(key);
+                      // Update toggle to match the selected plan
+                      setFreeTrialEnabled(key === 'weekly');
+                    }}
                     style={[
                       styles.planCard,
                       {
@@ -276,23 +380,30 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
                     activeOpacity={0.9}
                   >
                     <View style={styles.planHeader}>
-                      <Ionicons
-                        name={
-                          isSelected ? 'checkmark-circle' : 'ellipse-outline'
-                        }
-                        size={22}
-                        color={isSelected ? '#10B981' : theme.text}
-                      />
-                      <Text style={[styles.planTitle, { color: theme.text }]}>
-                        {plan.title}
-                      </Text>
+                      <View style={[
+                        styles.radioButton,
+                        { borderColor: isSelected ? '#10B981' : theme.text }
+                      ]}>
+                        {isSelected && <View style={styles.radioButtonInner} />}
+                      </View>
+                      <View style={styles.planContent}>
+                        <Text style={[styles.planTitle, { color: theme.text }]}>
+                          {plan.title}
+                        </Text>
+                        {key === 'yearly' ? (
+                          <View style={styles.yearPriceContainer}>
+                            <Text style={[styles.yearOriginalPrice, { color: theme.text }]}>
+                              {plan.originalPrice}
+                            </Text>
+                            <Text style={[styles.yearCurrentPrice, { color: theme.text }]}>
+                              {plan.currentPrice}
+                            </Text>
+                          </View>
+                        ) : (
+                          <Text style={[styles.planPrice, { color: theme.text }]}>{plan.price}</Text>
+                        )}
+                      </View>
                     </View>
-                    {plan.sub && (
-                      <Text style={[styles.planSub,{ color: theme.textSecondary }]}>
-                        {plan.sub}
-                      </Text>
-                    )}
-                    <Text style={[styles.planPrice, { color: theme.text }]}>{plan.price}</Text>
                     {plan.badge && (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>{plan.badge}</Text>
@@ -301,6 +412,18 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+
+            {/* Free Trial Toggle */}
+            <View style={styles.freeTrialToggle}>
+              <Text style={[styles.freeTrialText, { color: theme.text }]}>Free trial enabled</Text>
+              <Switch
+                value={freeTrialEnabled}
+                onValueChange={setFreeTrialEnabled}
+                trackColor={{ false: '#e2e8f0', true: '#10B981' }}
+                thumbColor="#fff"
+                ios_backgroundColor="#e2e8f0"
+              />
             </View>
 
             <Animated.View
@@ -320,12 +443,25 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
                 ) : (
                   <Text style={styles.continueText}>
                     {selectedPlan === 'weekly'
-                      ? 'Start Free Trial'
+                      ? 'Try For Free'
                       : 'Continue'}
                   </Text>
                 )}
               </TouchableOpacity>
             </Animated.View>
+
+            {/* Show different text based on selected plan */}
+            {freeTrialEnabled ? (
+              <View style={styles.noPaymentSection}>
+                <Ionicons name="checkmark" size={16} color={theme.text} />
+                <Text style={[styles.noPaymentText, { color: theme.text }]}>No payment due now</Text>
+              </View>
+            ) : (
+              <View style={styles.bestValueSection}>
+                <Ionicons name="star" size={16} color="#FCD34D" />
+                <Text style={[styles.bestValueText, { color: theme.text }]}>Best value</Text>
+              </View>
+            )}
 
             <View style={styles.footerLinks}>
               <TouchableOpacity
@@ -379,11 +515,42 @@ const styles = StyleSheet.create({
   closeBtn: {
     position: 'absolute',
     top: 50,
-    right: 20,
+    left: 20,
     zIndex: 10,
-    // backgroundColor: '#00000033',
-    padding: 8,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonActive: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    transition: 'all 0.3s ease',
+  },
+  spinnerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  simpleSpinner: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.3)',
+    borderTopColor: '#fff',
+    borderRightColor: '#fff',
   },
   container: {
     paddingTop: 100,
@@ -407,17 +574,17 @@ const styles = StyleSheet.create({
   plans: { width: '100%' },
   planCard: {
     borderWidth: 1.5,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 46,
+    padding: 12,
     marginBottom: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 5,
     elevation: 4,
   },
-  planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  planTitle: { fontSize: 15, fontWeight: '700', marginLeft: 10 },
-  planPrice: { fontSize: 15, fontWeight: '600',marginTop:4,fontFamily: 'Lato-Bold' },
+  planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 0 },
+  planTitle: { fontSize: 18, fontWeight: '700', marginBottom: 4, fontFamily: 'Lato-Bold' },
+  planPrice: { fontSize: 16, fontWeight: '600', marginTop: 0, fontFamily: 'Lato-Bold' },
   planSub: { fontSize: 14 },
   badge: {
     position: 'absolute',
@@ -440,7 +607,7 @@ const styles = StyleSheet.create({
   },
   continueText: { color: '#fff', fontSize: 18, fontWeight: '700' },
   footerLinks: {
-    marginTop: 40,
+    marginTop: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
@@ -452,5 +619,86 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+  },
+  freeTrialToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    width: '100%',
+  },
+  freeTrialText: {
+    fontSize: 14,
+    fontFamily: 'Lato-Regular',
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 4,
+    marginLeft: 8,
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#10B981',
+  },
+  planContent: {
+    flex: 1,
+    marginLeft: 10,
+    justifyContent: 'center',
+  },
+  noPaymentSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    width: '100%',
+  },
+  noPaymentText: {
+    fontSize: 14,
+    fontFamily: 'Lato-Regular',
+    marginLeft: 5,
+  },
+  bestValueSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    width: '100%',
+  },
+  bestValueText: {
+    fontSize: 14,
+    fontFamily: 'Lato-Regular',
+    marginLeft: 5,
+  },
+  yearPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 0,
+    justifyContent: 'flex-start',
+  },
+  yearOriginalPrice: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Lato-Bold',
+    textDecorationLine: 'line-through',
+    marginRight: 8,
+    opacity: 0.7,
+  },
+  yearCurrentPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Lato-Bold',
   },
 });

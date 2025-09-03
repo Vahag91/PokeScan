@@ -1,7 +1,7 @@
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const SCAN_LIMIT = 2;
+const SCAN_LIMIT = 3;
 const STORAGE_KEY = 'daily_scan_data';
 
 
@@ -27,7 +27,19 @@ const getTodayKey = () => {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   return data.count;
 };
- const hasExceededLimit = async () => {
+
+const getRemainingFreeAttempts = async () => {
+  const data = await getScanData();
+  const today = getTodayKey();
+  
+  if (data.date !== today) {
+    return SCAN_LIMIT;
+  }
+  
+  return Math.max(0, SCAN_LIMIT - data.count);
+};
+
+const hasExceededLimit = async () => {
   const data = await getScanData();
   const today = getTodayKey();
 
@@ -275,5 +287,6 @@ export {
   getFullPath,
   formatFoilLabel,
   incrementScanCount,
-  hasExceededLimit
+  hasExceededLimit,
+  getRemainingFreeAttempts
 };

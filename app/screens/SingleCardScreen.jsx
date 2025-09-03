@@ -19,7 +19,6 @@ import {
 } from '../components/singleCardUi';
 import { normalizeCardFromAPI, normalizeCardFromDb } from '../utils';
 import CardCollectionsModal from '../components/collections/CardCollectionsModal';
-import RateUsModal from '../components/RateUsModal';
 import {
   getDBConnection,
   getCollectionsForCard,
@@ -33,7 +32,6 @@ import {
   mergeCardWithPrice,
 } from '../../supabase/utils';
 import { globalStyles } from '../../globalStyles';
-import RateUsService from '../services/RateUsService';
 
 const abilityIcon = require('../assets/icons/cardIcons/ability.png');
 
@@ -49,7 +47,6 @@ export default function SingleCardScreen() {
   const [isInCollection, setIsInCollection] = useState(false);
   const [fromData, setFromData] = useState([]);
   const [toData, setToData] = useState([]);
-  const [showRateUsModal, setShowRateUsModal] = useState(false);
 console.log(cardData,"cardData");
 
   const headerRightButton = useCallback(
@@ -203,15 +200,6 @@ console.log(cardData,"cardData");
         card={cardData}
         onChange={() => {}}
         language={language}
-        onRateUsTrigger={() => {
-      
-          setShowRateUsModal(true);
-        }}
-      />
-
-            <RateUsModal
-        visible={showRateUsModal}
-        onClose={() => setShowRateUsModal(false)}
       />
     </>
   );

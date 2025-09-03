@@ -2105,6 +2105,599 @@ export const defaultSearchCards = [
   },
 ];
 
+export const defaultSearchCardsJP = [
+  {
+    "id": "tcgc:jp:SM12a:192/173",
+    "name": "Sightseer",
+    "hp": null,
+    "rarity": "Super Rare",
+    "types": [],
+    "subtypes": [
+        "Supporter"
+    ],
+    "abilities": [],
+    "attacks": [],
+    images: {
+      small: require('./assets/cards/defaultSearchCards/sightseer.webp'),
+    },
+    "artist": "Naoki Saito",
+    "number": "192/173",
+    "set": {
+        "name": "Tag All Stars",
+        "series": "Sun & Moon Era",
+        images: {
+          symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+          logo: require('./assets/cards/other/sightseerset.webp'),
+        },
+        "releaseDate": "2019/10/03",
+        "setId": "SM12a"
+    },
+    "tcgplayer": {
+        "url": "https://www.tcgplayer.com/product/572846/pokemon-japan-sm12a-tag-team-gx-tag-all-stars-sightseer-192-173?Printing=Holofoil",
+        "prices": {
+            "normalolo": {
+                "low": 899,
+                "mid": 900,
+                "high": 905,
+                "market": 550
+            }
+        }
+    },
+    "cardmarket": {
+        "url": null,
+        "prices": {}
+    }
+  },
+  {
+    "id": "tcgc:jp:S6a:091/069",
+    "name": "Glaceon VMAX",
+    "hp": 310,
+    "rarity": "Hyper Rare",
+    "types": [
+        "Water"
+    ],
+    "subtypes": [
+        "Pokémon VMAX",
+        "Dynamax Pokémon"
+    ],
+    "abilities": [],
+    "attacks": [],
+    images: {
+      small: require('./assets/cards/defaultSearchCards/glaceon.webp'),
+    },
+    "artist": "kirisAki",
+    "number": "091/069",
+    "set": {
+        "name": "Eevee Heroes",
+        "series": "Sword & Shield Era",
+        images: {
+          symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+          logo: require('./assets/cards/other/glaceonset.webp'),
+        },
+        "releaseDate": "2021/05/27",
+        "setId": "S6a"
+    },
+    "tcgplayer": {
+        "url": "https://www.tcgplayer.com/product/570553/pokemon-japan-s6a-eevee-heroes-glaceon-vmax-091-069?Printing=Holofoil",
+        "prices": {
+            "normalolo": {
+                "low": null,
+                "mid": null,
+                "high": null,
+                "market": 375
+            }
+        }
+    },
+    "cardmarket": {
+        "url": null,
+        "prices": {}
+    }
+  },
+  {
+    "id": "tcgc:jp:SV11W:174/086",
+    "name": "Reshiram ex",
+    "hp": 230,
+    "rarity": "Black White Rare",
+    "types": [
+        "Fire"
+    ],
+    "subtypes": [
+        "Pokémon ex (SV)",
+        "Full Art Pokémon"
+    ],
+    "abilities": [],
+    "attacks": [
+        {
+            "cost": [
+                "Colorless",
+                "Colorless"
+            ],
+            "name": "Slash",
+            "text": null,
+            "damage": "50",
+            "convertedEnergyCost": 2
+        },
+        {
+            "cost": [
+                "Fire",
+                "Fire",
+                "Colorless"
+            ],
+            "name": "Blaze Burst",
+            "text": "This attack does 50 more damage for each Prize card your opponent has taken. Discard an Energy from this Pokémon.",
+            "damage": "130+",
+            "convertedEnergyCost": 3
+        }
+    ],
+    images: {
+      small: require('./assets/cards/defaultSearchCards/reshiram.webp'),
+    },
+    "artist": "5ban Graphics",
+    "number": "174/086",
+    "set": {
+        "name": "White Flare",
+        "series": "Scarlet & Violet Era",
+        images: {
+          symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+          logo: require('./assets/cards/other/reshiremset.webp'),
+        },
+        "releaseDate": "2025/06/05",
+        "setId": "SV11W"
+    },
+    "tcgplayer": {
+        "url": "https://www.tcgplayer.com/product/636727/pokemon-japan-sv11w-white-flare-reshiram-ex-174-086?Printing=Holofoil",
+        "prices": {
+            "normalolo": {
+                "low": 274,
+                "mid": 280,
+                "high": 420,
+                "market": 275
+            }
+        }
+    },
+    "cardmarket": {
+        "url": null,
+        "prices": {}
+    }
+  },
+{
+  "id": "tcgc:jp:SM11:098/094",
+  "name": "Mewtwo & Mew-GX",
+  "hp": 270,
+  "rarity": "Super Rare",
+  "types": [
+      "Psychic"
+  ],
+  "subtypes": [
+      "Pokémon-GX",
+      "TAG TEAM Pokémon"
+  ],
+  "abilities": [
+      {
+          "name": "Perfection",
+          "text": "This Pokémon can use the attacks of any Pokémon-GX or Pokémon-EX on your Bench or in your discard pile. (You still need the necessary Energy to use each attack.)",
+          "type": "Ability"
+      }
+  ],
+  "attacks": [
+      {
+          "cost": [
+              "Psychic",
+              "Psychic",
+              "Colorless"
+          ],
+          "name": "Miraculous Duo-GX",
+          "text": "If this Pokémon has at least 1 extra Energy attached to it (in addition to this attack's cost), heal all damage from all of your Pokémon. (You can't use more than 1 GX attack in a game.)",
+          "damage": "200",
+          "convertedEnergyCost": 3
+      }
+  ],
+  images: {
+    small: require('./assets/cards/defaultSearchCards/mewtwojp.webp'),
+  },
+  "artist": "sui",
+  "number": "098/094",
+  "set": {
+      "name": "Miracle Twin",
+      "series": "Sun & Moon Era",
+      images: {
+        symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+        logo: require('./assets/cards/other/mewtwoset.webp'),
+      },
+      "releaseDate": "2019/05/30",
+      "setId": "SM11"
+  },
+  "tcgplayer": {
+      "url": "https://www.tcgplayer.com/product/574601/pokemon-japan-sm11-miracle-twin-mewtwo-and-mew-gx-098-094?Printing=Holofoil",
+      "prices": {
+          "normalolo": {
+              "low": 210,
+              "mid": 210,
+              "high": 210,
+              "market": 225
+          }
+      }
+  },
+  "cardmarket": {
+      "url": null,
+      "prices": {}
+  }
+},
+{
+  "id": "tcgc:jp:SGG:020/019",
+  "name": "Gengar VMAX",
+  "hp": 320,
+  "rarity": null,
+  "types": [
+      "Darkness"
+  ],
+  "subtypes": [
+      "Pokémon VMAX",
+      "Gigantamax Pokémon"
+  ],
+  "abilities": [],
+  "attacks": [
+      {
+          "cost": [
+              "Darkness",
+              "Darkness"
+          ],
+          "name": "Panic Fear",
+          "text": "This attack does 60 damage for each of your opponent's Pokémon V and Pokémon-GX in play.",
+          "damage": "60×",
+          "convertedEnergyCost": 2
+      },
+      {
+          "cost": [
+              "Darkness",
+              "Darkness",
+              "Darkness"
+          ],
+          "name": "G-Max Swallow Whole",
+          "text": "During your next turn, this Pokémon can't attack.",
+          "damage": "250",
+          "convertedEnergyCost": 3
+      }
+  ],
+  images: {
+    small: require('./assets/cards/defaultSearchCards/gengarjp.webp'),
+  },
+  "artist": "sowsow",
+  "number": "020/019",
+  "set": {
+      "name": "Gengar VMAX High-Class Deck",
+      "series": "Sword & Shield Era",
+      images: {
+        symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+        logo: require('./assets/cards/other/gengarset.webp'),
+      },
+      "releaseDate": "2021/05/27",
+      "setId": "SGG"
+  },
+  "tcgplayer": {
+      "url": "https://www.tcgplayer.com/product/593931/pokemon-japan-ss-gengar-vmax-high-class-deck-gengar-vmax-020-019?Printing=Holofoil",
+      "prices": {
+          "normalolo": {
+              "low": null,
+              "mid": null,
+              "high": null,
+              "market": 500
+          }
+      }
+  },
+  "cardmarket": {
+      "url": null,
+      "prices": {}
+  }
+},
+{
+  "id": "tcgc:jp:S11:111/100",
+  "name": "Giratina V",
+  "hp": 220,
+  "rarity": "Super Rare",
+  "types": [
+      "Dragon"
+  ],
+  "subtypes": [
+      "Pokémon V"
+  ],
+  "abilities": [],
+  "attacks": [
+      {
+          "cost": [
+              "Colorless"
+          ],
+          "name": "Abyss Seek",
+          "text": "Look at the top 4 cards of your deck and put 2 of them into your hand. Put the other cards in the Lost Zone.",
+          "damage": "",
+          "convertedEnergyCost": 1
+      },
+      {
+          "cost": [
+              "Grass",
+              "Psychic",
+              "Colorless"
+          ],
+          "name": "Shred",
+          "text": "This attack's damage isn't affected by any effects on your opponent's Active Pokémon.",
+          "damage": "160",
+          "convertedEnergyCost": 3
+      }
+  ],
+  images: {
+    small: require('./assets/cards/defaultSearchCards/giratina.webp'),
+  },
+  "artist": "Shinji Kanda",
+  "number": "111/100",
+  "set": {
+      "name": "Lost Abyss",
+      "series": "Sword & Shield Era",
+      images: {
+        symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+        logo: require('./assets/cards/other/giratinaset.webp'),
+      },
+      "releaseDate": "2022/07/14",
+      "setId": "S11"
+  },
+  "tcgplayer": {
+      "url": "https://www.tcgplayer.com/product/570042/pokemon-japan-s11-lost-abyss-giratina-v-111-100?Printing=Holofoil",
+      "prices": {
+          "normalolo": {
+              "low": 499,
+              "mid": 499,
+              "high": 499,
+              "market": 612
+          }
+      }
+  },
+  "cardmarket": {
+      "url": null,
+      "prices": {}
+  }
+},
+{
+  "id": "tcgc:jp:SP:227/S-P",
+  "name": "Pikachu",
+  "hp": 60,
+  "rarity": "Promo",
+  "types": [
+      "Lightning"
+  ],
+  "subtypes": [],
+  "abilities": [],
+  "attacks": [
+      {
+          "cost": [
+              "Colorless"
+          ],
+          "name": "Trading Places",
+          "text": "Switch this Pokémon with 1 of your Benched Pokémon.",
+          "damage": "",
+          "convertedEnergyCost": 1
+      }
+  ],
+  images: {
+    small: require('./assets/cards/defaultSearchCards/pikajpgirl.webp'),
+  },
+  "artist": "Mitsuhiro Arita",
+  "number": "227/S-P",
+  "set": {
+      "name": "Sword & Shield Promos",
+      "series": "Sword & Shield Era",
+      images: {
+        symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+        logo: require('./assets/cards/other/pikagirlset.webp'),
+      },
+      "releaseDate": "2019/10/31",
+      "setId": "SP"
+  },
+  "tcgplayer": {
+      "url": "https://www.tcgplayer.com/product/257103/pokemon-swsh-sword-and-shield-promo-cards-pikachu-227-s-p?Printing=Normal",
+      "prices": {
+          "promo": {
+              "low": null,
+              "mid": null,
+              "high": null,
+              "market": 950
+          }
+      }
+  },
+  "cardmarket": {
+      "url": null,
+      "prices": {}
+  }
+},
+{
+  "id": "tcgc:jp:M1S:092/063",
+  "name": "Mega Gardevoir ex",
+  "hp": 360,
+  "rarity": "Mega Ultra Rare",
+  "types": [
+      "Psychic"
+  ],
+  "subtypes": [
+      "Pokémon ex (ME)",
+      "Mega Pokémon"
+  ],
+  "abilities": [],
+  "attacks": [
+      {
+          "cost": [
+              "Psychic"
+          ],
+          "name": "Overflowing Wishes",
+          "text": "For each of your Benched Pokémon, search your deck for a Basic Psychic Energy card and attach it to that Pokémon. Then, shuffle your deck.",
+          "damage": "",
+          "convertedEnergyCost": 1
+      },
+      {
+          "cost": [
+              "Psychic"
+          ],
+          "name": "Mega Symphonia",
+          "text": "This attack does 50 damage for each Psychic Energy attached to all of your Pokémon.",
+          "damage": "50×",
+          "convertedEnergyCost": 1
+      }
+  ],
+  images: {
+    small: require('./assets/cards/defaultSearchCards/Gardevoir.webp'),
+  },
+  "artist": "5ban Graphics",
+  "number": "092/063",
+  "set": {
+      "name": "Mega Symphonia",
+      "series": "Mega Evolution Era",
+      images: {
+        symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+        logo: require('./assets/cards/other/gardevoirset.webp'),
+      },
+      "releaseDate": "2025/07/31",
+      "setId": "M1S"
+  },
+  "tcgplayer": {
+      "url": "https://www.tcgplayer.com/product/647207/pokemon-japan-m1s-mega-symphonia-mega-gardevoir-ex-092-063?Printing=Holofoil",
+      "prices": {
+          "normalolo": {
+              "low": 478,
+              "mid": 514,
+              "high": 1000,
+              "market": 479
+          }
+      }
+  },
+  "cardmarket": {
+      "url": null,
+      "prices": {}
+  }
+},
+{
+  "id": "tcgc:jp:S8a-P:001/025",
+  "name": "Charizard",
+  "hp": 120,
+  "rarity": null,
+  "types": [
+      "Fire"
+  ],
+  "subtypes": [],
+  "abilities": [
+      {
+          "name": "Energy Burn",
+          "text": "As often as you like during your turn (before your attack), you may turn all Energy attached to Charizard into Fire Energy for the rest of the turn. This power can't be used if Charizard is Asleep, Confused, or Paralyzed.",
+          "type": "Pokémon Power"
+      }
+  ],
+  "attacks": [
+      {
+          "cost": [
+              "Fire",
+              "Fire",
+              "Fire",
+              "Fire"
+          ],
+          "name": "Fire Spin",
+          "text": "Discard 2 Energy cards attached to Charizard in order to use this attack.",
+          "damage": "100",
+          "convertedEnergyCost": 4
+      }
+  ],
+  images: {
+    small: require('./assets/cards/defaultSearchCards/charizardjp.webp'),
+  },
+  "artist": "Mitsuhiro Arita",
+  "number": "001/025",
+  "set": {
+      "name": "Promo Card Pack 25th Anniversary Edition",
+      "series": "Sword & Shield Era",
+      images: {
+        symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+        logo: require('./assets/cards/other/charizardset.webp'),
+      },
+      "releaseDate": "2021/10/21",
+      "setId": "S8a-P"
+  },
+  "tcgplayer": {
+      "url": "https://www.tcgplayer.com/product/594633/pokemon-japan-s8a-p-promo-card-pack-25th-anniversary-edition-charizard?Printing=Holofoil",
+      "prices": {
+          "normalolo": {
+              "low": 250,
+              "mid": 250,
+              "high": 260,
+              "market": 210
+          }
+      }
+  },
+  "cardmarket": {
+      "url": null,
+      "prices": {}
+  }
+},
+{
+  "id": "tcgc:jp:S8b:222/184",
+  "name": "Pikachu V",
+  "hp": 190,
+  "rarity": "Character Super Rare",
+  "types": [
+      "Lightning"
+  ],
+  "subtypes": [
+      "Pokémon V"
+  ],
+  "abilities": [],
+  "attacks": [
+      {
+          "cost": [
+              "Lightning"
+          ],
+          "name": "Charge",
+          "text": "Search your deck for up to 2 Lightning Energy cards and attach them to this Pokémon. Then, shuffle your deck.",
+          "damage": "",
+          "convertedEnergyCost": 1
+      },
+      {
+          "cost": [
+              "Lightning",
+              "Lightning",
+              "Colorless"
+          ],
+          "name": "Thunderbolt",
+          "text": "Discard all Energy from this Pokémon.",
+          "damage": "200",
+          "convertedEnergyCost": 3
+      }
+  ],
+  images: {
+    small: require('./assets/cards/defaultSearchCards/pikachuvjp.webp'),
+  },
+  "artist": "Ryota Murayama",
+  "number": "222/184",
+  "set": {
+      "name": "VMAX Climax",
+      "series": "Sword & Shield Era",
+      images: {
+        symbol: 'https://images.pokemontcg.io/pop5/symbol.png',
+        logo: require('./assets/cards/other/pikachuvset.webp'),
+      },
+      "releaseDate": "2021/12/02",
+      "setId": "S8b"
+  },
+  "tcgplayer": {
+      "url": "https://www.tcgplayer.com/product/571474/pokemon-japan-s8b-vmax-climax-pikachu-v-222-184?Printing=Holofoil",
+      "prices": {
+          "normalolo": {
+              "low": 38.99,
+              "mid": 46.13,
+              "high": 49.99,
+              "market": 38.83
+          }
+      }
+  },
+  "cardmarket": {
+      "url": null,
+      "prices": {}
+  }
+},
+]
 export const slides = [
   {
     key: '1',

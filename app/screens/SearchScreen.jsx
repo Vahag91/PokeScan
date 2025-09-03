@@ -25,18 +25,20 @@ import {
   FilterComponent,
 } from '../components/searchScreen';
 import { getCardPrice } from '../utils';
-import { defaultSearchCards } from '../constants';
+import { defaultSearchCards, defaultSearchCardsJP } from '../constants';
 import { searchCardsUnified } from '../../supabase/utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
 import { mergeCardWithPrice } from '../../supabase/utils';
 import { SubscriptionContext } from '../context/SubscriptionContext';
+import LanguageToggle from '../components/LanguageToggle';
 
 export default function SearchScreen() {
   const { width: screenWidth } = Dimensions.get('window');
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
   const [hydratedDefaults, setHydratedDefaults] = useState(defaultSearchCards);
+  const [hydratedDefaultsJP, setHydratedDefaultsJP] = useState(defaultSearchCardsJP);
   const [results, setResults] = useState([]);
   const [filters, setFilters] = useState({
     rarity: [],
@@ -135,6 +137,11 @@ export default function SearchScreen() {
         defaultSearchCards.map(card => mergeCardWithPrice(card))
       );
       setHydratedDefaults(updated);
+      
+      const updatedJP = await Promise.all(
+        defaultSearchCardsJP.map(card => mergeCardWithPrice(card))
+      );
+      setHydratedDefaultsJP(updatedJP);
     })();
   }, []);
 
@@ -152,50 +159,18 @@ export default function SearchScreen() {
 
   const retryFetch = () => fetchResults(term, language);
 
-  const dataToSort = term.trim() ? results : language === 'en' ? hydratedDefaults : [];
+  const dataToSort = term.trim() 
+    ? results 
+    : language === 'en' 
+      ? hydratedDefaults 
+      : language === 'jp' 
+        ? hydratedDefaultsJP 
+        : [];
 
-  function LanguageToggle({ value, onChange }) {
-    // Responsive font size based on screen width
-    const getFontSize = () => {
-      if (screenWidth >= 450) return 16;
-      if (screenWidth >= 400) return 15;
-      if (screenWidth >= 350) return 14;
-      return 13;
-    };
-
-    return (
-      <View style={styles.languageToggleWrapper}>
-        {['en', 'jp'].map(opt => (
-          <TouchableOpacity
-            key={opt}
-            onPress={() => onChange(opt)}
-            style={[
-              styles.languageToggleBtn,
-              {
-                backgroundColor: value === opt ? '#10B981' : theme.cardBackground,
-                borderColor: value === opt ? '#10B981' : theme.border,
-                shadowColor: value === opt ? '#10B981' : theme.shadowColor,
-              }
-            ]}
-            activeOpacity={0.8}
-          >
-            <Text 
-              numberOfLines={1}
-              style={[
-                styles.languageToggleText,
-                {
-                  color: value === opt ? '#FFFFFF' : theme.text,
-                  fontWeight: value === opt ? '700' : '600',
-                  fontSize: getFontSize(),
-                }
-              ]}>
-              {opt === 'en' ? '🇺🇸 English Card' : '🇯🇵 Japanese Card'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  }
+  const languageOptions = [
+    { key: 'en', label: '🇺🇸 English Cards' },
+    { key: 'jp', label: '🇯🇵 Japanese Cards' }
+  ];
 
   const sortedResults = useMemo(() => {
     if (!dataToSort.length || !sortKey) return dataToSort;
@@ -280,7 +255,12 @@ export default function SearchScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Language Toggle - Above Search Bar */}
       <View style={styles.languageToggleContainer}>
-        <LanguageToggle value={language} onChange={setLanguage} />
+        <LanguageToggle 
+          value={language} 
+          onChange={setLanguage} 
+          options={languageOptions}
+          chipPaddingHorizontal={12}
+        />
       </View>
       
       <View
@@ -371,36 +351,9 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   languageToggleContainer: {
     marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 12,
+    marginTop: 20,
+    marginBottom: 16,
     alignItems: 'center',
-  },
-  languageToggleWrapper: {
-    flexDirection: 'row',
-    gap: 8,
-    width: '100%',
-  },
-  languageToggleBtn: {
-    borderRadius: 28,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-    minHeight: 42,
-    flex: 1,
-    marginHorizontal: 2,
-  },
-  languageToggleText: {
-    letterSpacing: 0.1,
-    textAlign: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'nowrap',
-    numberOfLines: 1,
-    fontFamily: "Lato-Bold",
   },
   searchBar: {
     flexDirection: 'row',

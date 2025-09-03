@@ -60,11 +60,11 @@ export default function CardCollectionsModal({
       }));
       if (onChange) onChange();
       
-      // Trigger rate us prompt after adding card to collection
+      // Show native rating dialog after adding card to collection (production behavior)
       setTimeout(async () => {
         const shouldShow = await RateUsService.shouldShowRatePrompt();
-        if (shouldShow && onRateUsTrigger) {
-          onRateUsTrigger();
+        if (shouldShow) {
+          await RateUsService.showRatePrompt();
         }
       }, 1000);
     } catch (_) {

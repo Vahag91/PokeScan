@@ -38,10 +38,10 @@ export function CollectionHeader({ collections }) {
   
   const cards = [
     {
-      icon: 'albums-outline',
-      label: 'Collections',
-      value: formatNumber(summary.totalCollections),
-      gradient: ['#4F46E5', '#6366F1'],
+      icon: 'cash-outline',
+      label: 'Total Value',
+      value: formatValue(summary.totalValue),
+      gradient: ['#DB2777', '#EC4899'],
     },
     {
       icon: 'layers-outline',
@@ -50,10 +50,10 @@ export function CollectionHeader({ collections }) {
       gradient: ['#2563EB', '#3B82F6'],
     },
     {
-      icon: 'cash-outline',
-      label: 'Total Value',
-      value: formatValue(summary.totalValue),
-      gradient: ['#DB2777', '#EC4899'],
+      icon: 'albums-outline',
+      label: 'Collections',
+      value: formatNumber(summary.totalCollections),
+      gradient: ['#4F46E5', '#6366F1'],
     },
   ];
 

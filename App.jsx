@@ -22,6 +22,7 @@ import { SubscriptionProvider } from './app/context/SubscriptionContext';
 import { updateDefaultCardPrices } from './supabase/utils';
 import PaywallModal from './app/screens/PaywallScreen';
 import OneTimeOfferPaywall from './app/components/OneTimeOfferPaywallModal';
+import RateUsService from './app/services/RateUsService';
 
 const Stack = createNativeStackNavigator();
 
@@ -70,6 +71,25 @@ export default function App() {
     runUpdates();
   }, []);
 
+  // Check if user is premium from the start (e.g., restored purchases)
+  useEffect(() => {
+    if (!firstLaunch) {
+      const checkPremiumFromStart = async () => {
+        const isPremiumUser = await AsyncStorage.getItem('@isPremium');
+        if (isPremiumUser === 'true') {
+          // User is premium, show rating modal after a delay
+          setTimeout(async () => {
+            const shouldShow = await RateUsService.shouldShowRatePrompt();
+            if (shouldShow) {
+              await RateUsService.showRatePrompt();
+            }
+          }, 2000);
+        }
+      };
+      checkPremiumFromStart();
+    }
+  }, [firstLaunch]);
+
   const handleOnboardingDone = async () => {
     setFirstLaunch(false);
     const isPremiumUser = await AsyncStorage.getItem('@isPremium');    
@@ -81,6 +101,24 @@ export default function App() {
       setShowStandardPaywall(true);
     } else if (!seenOTO) {
       setShowOneTimeOffer(true);
+    }
+  };
+
+  // Check if onboarding flow is complete and show rating modal
+  const checkOnboardingCompleteAndShowRating = async () => {
+    const isPremiumUser = await AsyncStorage.getItem('@isPremium');
+    const seenPaywall = await AsyncStorage.getItem('@seenPaywall');
+    const seenOTO = await AsyncStorage.getItem('@seenOTO');
+    
+    // Onboarding is complete if user is premium OR has seen both paywalls
+    if (isPremiumUser === 'true' || (seenPaywall === 'true' && seenOTO === 'true')) {
+      // Small delay to ensure smooth transition
+      setTimeout(async () => {
+        const shouldShow = await RateUsService.shouldShowRatePrompt();
+        if (shouldShow) {
+          await RateUsService.showRatePrompt();
+        }
+      }, 1000);
     }
   };
 
@@ -200,6 +238,9 @@ export default function App() {
                           );
                           if (otoSeen !== 'true') {
                             setShowOneTimeOffer(true);
+                          } else {
+                            // Both paywalls seen, check if onboarding is complete
+                            await checkOnboardingCompleteAndShowRating();
                           }
                         }}
                         onPurchaseSuccess={async () => {
@@ -208,6 +249,8 @@ export default function App() {
                           await AsyncStorage.setItem('@seenOTO', 'true');
                           setShowStandardPaywall(false);
                           // Don't show OneTimeOffer if purchase was successful
+                          // Check if onboarding is complete
+                          await checkOnboardingCompleteAndShowRating();
                         }}
                       />
 
@@ -216,6 +259,8 @@ export default function App() {
                         onClose={async () => {
                           setShowOneTimeOffer(false);
                           await AsyncStorage.setItem('@seenOTO', 'true');
+                          // Check if onboarding is complete
+                          await checkOnboardingCompleteAndShowRating();
                         }}
                       />
                     </View>

@@ -25,6 +25,7 @@ import { globalStyles } from '../../globalStyles';
 import { getOwnedCardCountsBySet } from '../lib/db';
 import ErrorView from '../components/ErrorView';
 import useSafeAsync from '../hooks/useSafeAsync';
+import LanguageToggle from '../components/LanguageToggle';
 
 export default function SetScreen() {
   const navigation = useNavigation();
@@ -82,48 +83,10 @@ export default function SetScreen() {
     }
   };
 
-  // Language Toggle Component
-  const LanguageToggle = ({ value, onChange }) => {
-    const getFontSize = () => {
-      if (screenWidth >= 450) return 16;
-      if (screenWidth >= 400) return 15;
-      if (screenWidth >= 350) return 14;
-      return 13;
-    };
-
-    return (
-      <View style={styles(theme).languageToggleWrapper}>
-        {['en', 'jp'].map(opt => (
-          <TouchableOpacity
-            key={opt}
-            onPress={() => onChange(opt)}
-            style={[
-              styles(theme).languageToggleBtn,
-              {
-                backgroundColor: value === opt ? '#10B981' : theme.cardBackground,
-                borderColor: value === opt ? '#10B981' : theme.border,
-                shadowColor: value === opt ? '#10B981' : theme.shadowColor,
-              }
-            ]}
-            activeOpacity={0.8}
-          >
-            <Text
-              numberOfLines={1}
-              style={[
-                styles(theme).languageToggleText,
-                {
-                  color: value === opt ? '#FFFFFF' : theme.text,
-                  fontWeight: value === opt ? '700' : '600',
-                  fontSize: getFontSize(),
-                }
-              ]}>
-              {opt === 'en' ? '🇺🇸 English Sets' : '🇯🇵 Japanese Sets'}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
+  const languageOptions = [
+    { key: 'en', label: '🇺🇸 English Sets' },
+    { key: 'jp', label: '🇯🇵 Japanese Sets' }
+  ];
 
   // Helper function to group sets by series
   const groupSetsBySeries = (sets) => {
@@ -303,7 +266,12 @@ export default function SetScreen() {
 
       {/* Language Toggle - Above Search Bar */}
       <View style={styles(theme).languageToggleContainer}>
-        <LanguageToggle value={language} onChange={handleLanguageChange} />
+        <LanguageToggle 
+          value={language} 
+          onChange={handleLanguageChange} 
+          options={languageOptions}
+          chipPaddingHorizontal={16}
+        />
       </View>
 
       <View style={styles(theme).searchBox}>
@@ -387,33 +355,10 @@ const styles = (theme) =>
       color: theme.text,
     },
     languageToggleContainer: {
-      paddingHorizontal: 16,
-      paddingBottom: 12,
+      paddingTop: 8,
+      paddingBottom: 16,
     },
-    languageToggleWrapper: {
-      flexDirection: 'row',
-      gap: 8,
-      alignItems: 'center',
-    },
-    languageToggleBtn: {
-      flex: 1,
-      minHeight: 44,
-      borderRadius: 12,
-      borderWidth: 1.5,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    languageToggleText: {
-      fontFamily: 'Lato-Bold',
-      letterSpacing: 0.3,
-      textAlign: 'center',
-    },
+
     searchBox: {
       flexDirection: 'row',
       backgroundColor: theme.inputBackground,
