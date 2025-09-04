@@ -152,7 +152,7 @@ export default function CollectionCard({
                 <Text
                   style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
                 >
-                                     {item.cardCount} {item.cardCount === 1 ? t('collections.card.card') : t('collections.card.cards')}
+                                     {item.cardCount} {item.cardCount === 1 ? t('collections.detail.card') : t('collections.detail.cards')}
                 </Text>
               </View>
 

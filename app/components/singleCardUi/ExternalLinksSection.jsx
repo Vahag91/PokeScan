@@ -7,6 +7,7 @@ import {
   View,
   Image,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import AnimatedSection from './AnimatedSection';
 import { globalStyles } from '../../../globalStyles';
 
@@ -22,6 +23,7 @@ const platformData = {
 };
 
 export default function ExternalLinksSection({ cardData, theme }) {
+  const { t } = useTranslation();
   // Check if there are any valid market links with prices
   const hasTCGPlayer = cardData?.tcgplayer?.url && cardData?.tcgplayer?.prices;
   const hasCardmarket = cardData?.cardmarket?.url && cardData?.cardmarket?.prices;
@@ -33,7 +35,7 @@ export default function ExternalLinksSection({ cardData, theme }) {
   return (
     <AnimatedSection style={styles.sectionContainer}>
       <Text style={[globalStyles.subheader, styles.sectionTitle]}>
-        Purchase Options
+        {t('scanner.purchaseOptions')}
       </Text>
 
       <View style={styles.buttonsContainer}>

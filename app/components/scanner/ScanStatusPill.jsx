@@ -1,26 +1,47 @@
 // components/ScanStatusPill_VariantB.js
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, Platform, Image } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function ScanStatusPill({ stage = 'idle', capturedImage = null }) {
-  if (stage === 'idle') return null;
+  const { t } = useTranslation();
 
-  const label = stage === 'scanning' ? 'Scanning…' : 'Hunting the match!';
-  const hint  = stage === 'scanning' ? 'Reading card details' : 'Let’s find your card';
-  const accent = stage === 'scanning' ? '#10B981' : '#F59E0B';
+  const isScanning = stage === 'scanning';
+  const isActive = stage !== 'idle';
+
+  // Use translation keys only; let i18next handle language/fallbacks
+  const label = stage === 'scanning' ? t('scanner.scanning') : t('scanner.huntingMatch');
+  const hint  = stage === 'scanning' ? t('scanner.readingCardDetails') : t('scanner.letsFindYourCard');
+
+  const accent = isScanning ? '#10B981' : '#F59E0B';
 
   // Dots
   const [dots, setDots] = useState('');
   useEffect(() => {
-    const t = setInterval(() => setDots((d) => (d.length === 3 ? '' : d + '.')), 300);
-    return () => clearInterval(t);
-  }, []);
+    if (!isActive) {
+      setDots('');
+      return;
+    }
+    const tmr = setInterval(() => setDots((d) => (d.length === 3 ? '' : d + '.')), 300);
+    return () => clearInterval(tmr);
+  }, [isActive]);
 
   // Enter + pulse
   const enter = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    Animated.timing(enter, { toValue: 1, duration: 220, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
+    if (!isActive) {
+      enter.setValue(0);
+      pulse.setValue(1);
+      return;
+    }
+    Animated.timing(enter, {
+      toValue: 1,
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, { toValue: 1.02, duration: 800, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }),
@@ -29,11 +50,16 @@ export default function ScanStatusPill({ stage = 'idle', capturedImage = null })
     );
     loop.start();
     return () => loop.stop();
-  }, [enter, pulse]);
+  }, [isActive, enter, pulse]);
 
   // Tiny indeterminate bar (width bounce)
   const widthAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
+    if (!isActive) {
+      widthAnim.stopAnimation();
+      widthAnim.setValue(0);
+      return;
+    }
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(widthAnim, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }),
@@ -42,11 +68,13 @@ export default function ScanStatusPill({ stage = 'idle', capturedImage = null })
     );
     loop.start();
     return () => loop.stop();
-  }, [widthAnim]);
+  }, [isActive, widthAnim]);
 
   const w = widthAnim.interpolate({ inputRange: [0, 1], outputRange: ['18%', '70%'] });
   const translateXEnter = enter.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
   const opacityEnter = enter.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+
+  if (!isActive) return null;
 
   return (
     <Animated.View
@@ -57,12 +85,11 @@ export default function ScanStatusPill({ stage = 'idle', capturedImage = null })
       pointerEvents="none"
     >
       <View style={[styles.pill, { borderColor: `${accent}55` }]}>
-        {/* Left dot: image or emoji */}
         {capturedImage ? (
           <Image source={{ uri: capturedImage }} style={[styles.dot, { borderColor: `${accent}77` }]} />
         ) : (
           <View style={[styles.dot, { alignItems: 'center', justifyContent: 'center', borderColor: `${accent}77` }]}>
-            <Text style={styles.emoji}>{stage === 'scanning' ? '📸' : '🔍'}</Text>
+            <Text style={styles.emoji}>{isScanning ? '📸' : '🔍'}</Text>
           </View>
         )}
 
@@ -106,7 +133,6 @@ const styles = StyleSheet.create({
       android: { elevation: 5 },
     }),
   },
-
   dot: {
     width: 28,
     height: 28,
@@ -116,11 +142,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   emoji: { fontSize: 16 },
-
   texts: { flex: 1 },
   title: { color: '#F8FAFC', fontSize: 13.5, fontWeight: '800', letterSpacing: 0.2 },
   hint: { color: '#B6C2CF', fontSize: 11, marginTop: 2 },
-
   lineTrack: {
     height: 4,
     backgroundColor: 'rgba(255,255,255,0.12)',

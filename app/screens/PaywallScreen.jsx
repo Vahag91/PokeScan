@@ -116,11 +116,11 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
       } catch (e) {
         setHasInternet(false);
         Alert.alert(
-          'No Internet Connection',
-          'Please check your connection and try again.',
+          t('paywall.alerts.noInternetConnection'),
+          t('paywall.alerts.noInternetConnectionMessage'),
           [
-            { text: 'Cancel', style: 'cancel', onPress: onClose },
-            { text: 'Try Again', onPress: () => checkConnection() },
+            { text: t('paywall.alerts.cancel'), style: 'cancel', onPress: onClose },
+            { text: t('paywall.alerts.tryAgain'), onPress: () => checkConnection() },
           ],
         );
       }
@@ -157,12 +157,12 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
     } catch (e) {
       if (e.message && e.message.includes('Purchase was cancelled')) {
         Alert.alert(
-          'Purchase Canceled',
-          'The purchase process was interrupted. You can try again anytime.',
+          t('paywall.alerts.purchaseCanceled'),
+          t('paywall.alerts.purchaseCanceledMessage'),
         );
         return;
       }
-      Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
+      Alert.alert(t('paywall.alerts.purchaseFailed'), t('paywall.alerts.purchaseFailedMessage'));
     } finally {
       setLoading(false);
     }
@@ -173,8 +173,8 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
       const info = await restorePurchases();
       if (info?.entitlements?.active?.Premium) {
         Alert.alert(
-          'Restored',
-          'Your subscription has been successfully restored.',
+          t('paywall.alerts.restored'),
+          t('paywall.alerts.restoredMessage'),
         );
         // Call success callback if provided
         if (onPurchaseSuccess) {
@@ -183,12 +183,12 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
         onClose();
       } else {
         Alert.alert(
-          'No Subscription',
-          'No active subscription found to restore.',
+          t('paywall.alerts.noSubscription'),
+          t('paywall.alerts.noSubscriptionMessage'),
         );
       }
     } catch (e) {
-      Alert.alert('Restore Failed', 'Something went wrong during restore.');
+      Alert.alert(t('paywall.alerts.restoreFailed'), t('paywall.alerts.restoreFailedMessage'));
     }
   };
 
@@ -210,7 +210,7 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
       
       return {
         title: t('paywall.week'),
-        price: `3 Days free then ${currency}${weeklyPrice.toFixed(2)}/week`,
+        price: `${t('paywall.pricing.freeTrialText')} ${currency}${weeklyPrice.toFixed(2)}${t('paywall.pricing.perWeek')}`,
         badge: null,
       };
     })(),
@@ -234,8 +234,8 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
       return {
         title: t('paywall.year'),
         originalPrice: `${currency}${originalPrice.toFixed(2)}`,
-        currentPrice: `${currency}${yearlyPrice.toFixed(2)}/year`,
-        badge: `SAVE ${discount}%`,
+        currentPrice: `${currency}${yearlyPrice.toFixed(2)}${t('paywall.pricing.perYear')}`,
+        badge: `${t('paywall.pricing.save')} ${discount}%`,
       };
     })(),
   };
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
   },
   planHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 0 },
   planTitle: { fontSize: 18, fontWeight: '700', marginBottom: 4, fontFamily: 'Lato-Bold' },
-  planPrice: { fontSize: 16, fontWeight: '600', marginTop: 0, fontFamily: 'Lato-Bold' },
+  planPrice: { fontSize: 15, fontWeight: '600', marginTop: 0, fontFamily: 'Lato-Bold' },
   planSub: { fontSize: 14 },
   badge: {
     position: 'absolute',

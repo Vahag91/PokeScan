@@ -1,11 +1,13 @@
 import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function SetHeader({ cards }) {
   const { theme } = useContext(ThemeContext);
+  const { t } = useTranslation();
 
   const set = cards?.[0]?.set;
   const setName = set?.name || 'Cards in Set';
@@ -29,12 +31,12 @@ export default function SetHeader({ cards }) {
       <View style={styles.metaRow}>
         <View style={styles.metaBox}>
           <Ionicons name="calendar-outline" size={16} color={theme.secondaryText} />
-          <Text style={[styles.metaLabel, { color: theme.secondaryText }]}>Release</Text>
+          <Text style={[styles.metaLabel, { color: theme.secondaryText }]}>{t('sets.release')}</Text>
           <Text style={[styles.metaValue, { color: theme.text }]}>{releaseDate}</Text>
         </View>
         <View style={styles.metaBox}>
           <Ionicons name="albums-outline" size={16} color={theme.secondaryText} />
-          <Text style={[styles.metaLabel, { color: theme.secondaryText }]}>Cards</Text>
+          <Text style={[styles.metaLabel, { color: theme.secondaryText }]}>{t('sets.cards')}</Text>
           <Text style={[styles.metaValue, { color: theme.text }]}>{totalCards}</Text>
         </View>
       </View>

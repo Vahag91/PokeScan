@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.75;
@@ -20,6 +21,7 @@ const FULL_CARD_WIDTH = CARD_WIDTH + CARD_SPACING;
 
 export default function CardCarouselPreview({ cards, language = 'en' }) {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [, setShowArrows] = useState(true);
@@ -67,11 +69,11 @@ export default function CardCarouselPreview({ cards, language = 'en' }) {
             {item.name}
           </Text>
           <View style={styles.detailRow}>
-            <Text style={styles.label}>HP:</Text>
+            <Text style={styles.label}>{t('cards.hp')}:</Text>
             <Text style={styles.value}>{item.hp}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.label}>Type:</Text>
+            <Text style={styles.label}>{t('cards.type')}:</Text>
             <View style={styles.badgesWrapper}>
               {item.types?.map(type => (
                 <View key={type} style={styles.typeBadge}>
@@ -81,9 +83,9 @@ export default function CardCarouselPreview({ cards, language = 'en' }) {
             </View>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.label}>Rarity:</Text>
+            <Text style={styles.label}>{t('cards.rarity')}:</Text>
             <View style={styles.rarityBadge}>
-              <Text style={styles.badgeText}>{item.rarity || 'Unknown'}</Text>
+              <Text style={styles.badgeText}>{item.rarity || t('cards.unknown')}</Text>
             </View>
           </View>
         </View>

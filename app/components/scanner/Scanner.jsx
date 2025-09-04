@@ -313,7 +313,7 @@ export default function ScannerScreen({ navigation }) {
       {!isPremium && (
         <View style={styles.freeAttemptsContainer}>
           <Text style={styles.freeAttemptsText}>
-                            {t('scanner.freeScansLeft', { count: remainingAttempts })}
+          {remainingAttempts} {t('scanner.freeScansLeft')}
           </Text>
         </View>
       )}
@@ -329,9 +329,9 @@ export default function ScannerScreen({ navigation }) {
             <CardCarouselPreview cards={cardResults} language={scanLanguage} />
           ) : noResult ? (
             <View style={styles.noResultWrapper}>
-              <Text style={styles.noResultTitle}>No cards found</Text>
+              <Text style={styles.noResultTitle}>{t('scanner.noCardsFound')}</Text>
               <Text style={styles.noResultDescription}>
-                We couldn't find a match for this scan. Try again with better lighting or clearer framing.
+                {t('scanner.noMatchFound')}
               </Text>
             </View>
           ) : null}
@@ -342,10 +342,10 @@ export default function ScannerScreen({ navigation }) {
           {!loading && (
             <Text style={styles.tapToScanText}>
               {scanStage === UI_STAGES.IDLE
-                ? 'Tap to Scan'
+                ? t('scanner.scanHint')
                 : scanStage === UI_STAGES.SCANNING
-                ? 'Scanning…'
-                : 'Searching…'}
+                ? t('scanner.scanning')
+                : t('scanner.searching')}
             </Text>
           )}
         </View>
@@ -362,7 +362,7 @@ export default function ScannerScreen({ navigation }) {
               color="#fff"
               style={styles.clearIcon}
             />
-            <Text style={styles.clearFloatingText}>Clear</Text>
+            <Text style={styles.clearFloatingText}>{t('scanner.clear')}</Text>
           </TouchableOpacity>
         )}
       </View>

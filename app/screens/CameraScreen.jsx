@@ -9,8 +9,10 @@ import {
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { globalStyles } from '../../../globalStyles';
+import { useTranslation } from 'react-i18next';
 
 export default function CameraScreen({ navigation }) {
+  const { t } = useTranslation();
   const camera = useRef(null);
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -59,7 +61,7 @@ export default function CameraScreen({ navigation }) {
       <View style={styles.permissionContainer}>
         <ActivityIndicator size="large" color="#D21312" />
         <Text style={[globalStyles.body, styles.permissionText]}>
-          Requesting camera permission...
+          {t('scanner.requestingPermission')}
         </Text>
       </View>
     );
@@ -70,7 +72,7 @@ export default function CameraScreen({ navigation }) {
       <View style={styles.permissionContainer}>
         <Ionicons name="camera-off" size={40} color="#D21312" />
         <Text style={[globalStyles.body, styles.permissionText]}>
-          Camera device not found
+          {t('scanner.cameraDeviceNotFound')}
         </Text>
       </View>
     );
@@ -96,7 +98,7 @@ export default function CameraScreen({ navigation }) {
           <View style={styles.cornerBR} />
         </View>
         <Text style={[globalStyles.body, styles.instructionText]}>
-          Align the Pokémon card within the frame
+          {t('scanner.alignCardInFrame')}
         </Text>
       </View>
 

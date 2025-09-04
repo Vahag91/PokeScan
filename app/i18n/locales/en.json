@@ -1,22 +1,22 @@
 {
-  "common": {
-    "search": "Search",
-    "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "close": "Close",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "retry": "Retry",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous"
-  },
-
-
-
+"common": {
+  "search": "Search",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "close": "Close",
+  "loading": "Loading...",
+  "error": "Error",
+  "success": "Success",
+  "retry": "Retry",
+  "back": "Back",
+  "next": "Next",
+  "previous": "Previous",
+  "done": "Done",
+  "clear": "Clear",
+  "apply": "Apply"
+},
   "paywall": {
     "title": "Upgrade to Premium",
     "subtitle": "Unlock unlimited scans and premium features",
@@ -44,6 +44,28 @@
       "termsOfUse": "Terms of Use",
       "privacyPolicy": "Privacy Policy",
       "restore": "Restore"
+    },
+    "alerts": {
+      "noInternetConnection": "No Internet Connection",
+      "noInternetConnectionMessage": "Please check your connection and try again.",
+      "tryAgain": "Try Again",
+      "cancel": "Cancel",
+      "purchaseCanceled": "Purchase Canceled",
+      "purchaseCanceledMessage": "The purchase process was interrupted. You can try again anytime.",
+      "purchaseFailed": "Purchase Failed",
+      "purchaseFailedMessage": "Something went wrong. Please try again.",
+      "restored": "Restored",
+      "restoredMessage": "Your subscription has been successfully restored.",
+      "noSubscription": "No Subscription",
+      "noSubscriptionMessage": "No active subscription found to restore.",
+      "restoreFailed": "Restore Failed",
+      "restoreFailedMessage": "Something went wrong during restore."
+    },
+    "pricing": {
+      "freeTrialText": "3 Days free then",
+      "perWeek": "/week",
+      "perYear": "/year",
+      "save": "SAVE"
     }
   },
   "onboarding": {
@@ -77,11 +99,10 @@
   },
   "scanner": {
     "title": "Scanner",
-    "scanning": "Scanning...",
     "noResult": "No card found",
     "multipleResults": "Multiple cards found",
     "addToCollection": "Add to Collection",
-    "freeScansLeft": "{{count}} free scans left",
+    "freeScansLeft": "free scans left",
     "upgradeToPremium": "Upgrade to Premium for unlimited scans",
     "loadingCamera": "Loading camera…",
     "cameraAccessNeeded": "Camera Access Needed",
@@ -96,7 +117,32 @@
     "scanInstructions2": "• Include these details: Name, HP, card number, Illustrator.",
     "scanHint": "Tap to scan",
     "clearFloating": "Clear",
-    "scan": "SCAN"
+    "scan": "SCAN",
+    "searching": "Searching…",
+    "noMatchFound": "We couldn't find a match for this scan. Try again with better lighting or clearer framing.",
+    "header": {
+      "howToGetBestScan": "How to get the best scan",
+      "scanInstructions": {
+        "clear": "• Keep the photo clear — avoid glare and motion blur.",
+        "fitCard": "• Fit a single card fully in the frame, edges visible.",
+        "details": "• Make sure these details are readable:",
+        "name": "Name",
+        "hp": "HP",
+        "cardNumber": "card number",
+        "illustrator": "Illustrator",
+        "tip": "Tip: Lay the card flat under soft light. Tilt slightly to remove harsh reflections."
+      }
+    },
+    "requestingPermission": "Requesting camera permission...",
+    "cameraDeviceNotFound": "Camera device not found",
+    "alignCardInFrame": "Align the Pokémon card within the frame",
+    "scanning": "Scanning…",
+    "huntingMatch": "Hunting the match!",
+    "readingCardDetails": "Reading card details",
+    "letsFindYourCard": "Let's find your card",
+    "purchaseOptions": "Purchase Options",
+    "viewOnTCGPlayer": "View on TCGPlayer",
+    "viewOnCardmarket": "View on Cardmarket"
   },
   "cards": {
     "rarity": "Rarity",
@@ -208,7 +254,14 @@
     "version": "1.1",
     "termsOfUse": "Terms of use",
     "privacy": "Privacy",
-    "support": "Support"
+    "support": "Support",
+    "screenTitles": {
+      "setCards": "Set Cards",
+      "cardDetails": "Card Details",
+      "collectionDetails": "Collection Details",
+      "searchCards": "Search Cards"
+    },
+    "backButton": "Back"
   },
       "collections": {
       "title": "Collections",
@@ -253,15 +306,20 @@
         "noValue": "No value"
       }
     },
-  "sets": {
-    "title": "Sets",
-    "series": "Series",
-    "cards": "Cards",
-    "releaseDate": "Release Date",
-    "release": "Release",
-    "searchCardSets": "Search Card Sets",
-    "failedToLoadStats": "Failed to load your set stats."
-  },
+      "sets": {
+      "title": "Sets",
+      "series": "Series",
+      "cards": "Cards",
+      "releaseDate": "Release Date",
+      "release": "Release",
+      "searchCardSets": "Search Card Sets",
+      "failedToLoadStats": "Failed to load your set stats.",
+      "sortLowToHigh": "Low to High",
+      "sortHighToLow": "High to Low",
+      "errorLoadingCards": "Error loading cards.",
+      "noCardsInSet": "No cards found in this set.",
+      "owned": "owned"
+    },
   "oneTimeOffer": {
     "exclusiveOffer": "Exclusive One-Time Offer",
     "specialOfferBadge": "You will never see this again",
@@ -286,7 +344,9 @@
       "restoreFailed": "Restore Failed",
       "restoreFailedMessage": "Something went wrong during restore.",
       "noInternet": "No Internet Connection",
-      "noInternetMessage": "Please check your network and try again."
+      "noInternetMessage": "Please check your network and try again.",
+      "noInternetConnection": "No Internet Connection",
+      "noInternetConnectionMessage": "Please check your connection and try again."
     }
   },
   "rateUs": {
@@ -312,14 +372,8 @@
   },
   "languageToggle": {
     "englishCards": "🇺🇸 English cards",
-    "japaneseCards": "🇯🇵 Japanese cards"
-  },
-  "common": {
-    "cancel": "Cancel",
-    "retry": "Retry",
-    "loading": "Loading...",
-    "done": "Done",
-    "clear": "Clear",
-    "apply": "Apply"
+    "japaneseCards": "🇯🇵 Japanese cards",
+    "scanEnglish": "🇺🇸 Scan EN",
+    "scanJapanese": "🇯🇵 Scan JP"
   }
 }

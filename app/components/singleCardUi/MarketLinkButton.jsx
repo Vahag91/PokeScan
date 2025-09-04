@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Linking,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function MarketLinkButton({
@@ -16,7 +17,8 @@ export default function MarketLinkButton({
   activeTab,
   theme,
 }) {
-  const label = activeTab === 'cardmarket' ? 'Cardmarket' : 'TCGPlayer';
+  const { t } = useTranslation();
+  const label = activeTab === 'cardmarket' ? t('scanner.viewOnCardmarket') : t('scanner.viewOnTCGPlayer');
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
@@ -34,7 +36,7 @@ export default function MarketLinkButton({
           style={styles.iconLeft}
         />
         <Text style={[styles.marketButtonText, { color: theme.mutedText }]}>
-          View on {label}
+          {label}
         </Text>
       </TouchableOpacity>
     </Animated.View>

@@ -49,7 +49,6 @@ export default function SingleCardScreen() {
   const [isInCollection, setIsInCollection] = useState(false);
   const [fromData, setFromData] = useState([]);
   const [toData, setToData] = useState([]);
-console.log(cardData,"cardData");
 
   const headerRightButton = useCallback(
     () => (

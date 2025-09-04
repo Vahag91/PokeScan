@@ -16,6 +16,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import SkeletonCard from '../components/skeletons/SkeleteonCard';
 import SetHeaderSkeleton from '../components/skeletons/SetHeaderSkeleton';
 import { RenderSearchSingleCard } from '../components/searchScreen';
@@ -33,6 +34,7 @@ const CARD_WIDTH = (Dimensions.get('window').width - CARD_SPACING * 3) / 2;
 
 export default function SetDetailScreen() {
   const { theme } = useContext(ThemeContext);
+  const { t } = useTranslation();
   const route = useRoute();
   const { setId, language = 'en' } = route.params;
 
@@ -113,7 +115,7 @@ export default function SetDetailScreen() {
               { color: theme.secondaryText },
             ]}
           >
-            {sortAsc ? 'Low to High' : 'High to Low'}
+            {sortAsc ? t('sets.sortLowToHigh') : t('sets.sortHighToLow')}
           </Text>
         </View>
       </TouchableOpacity>
@@ -148,10 +150,10 @@ export default function SetDetailScreen() {
   }
 
   if (error) {
-    return <ErrorView message="Error loading cards." onRetry={retry} />;
+    return <ErrorView message={t('sets.errorLoadingCards')} onRetry={retry} />;
   }
   if (!loading && !error && cards.length === 0) {
-    return <ErrorView message="No cards found in this set." />;
+    return <ErrorView message={t('sets.noCardsInSet')} onRetry={retry} />;
   }
 
   return (

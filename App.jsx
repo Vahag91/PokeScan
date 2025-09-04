@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import i18n from './app/i18n'; // initialize once via side-effect module
 import {
   NavigationContainer,
@@ -24,7 +25,7 @@ import { updateDefaultCardPrices } from './supabase/utils';
 import PaywallModal from './app/screens/PaywallScreen';
 import OneTimeOfferPaywall from './app/components/OneTimeOfferPaywallModal';
 import RateUsService from './app/services/RateUsService';
-
+import { useTranslation } from 'react-i18next';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -33,6 +34,8 @@ export default function App() {
   const [showStandardPaywall, setShowStandardPaywall] = useState(false);
   const [showOneTimeOffer, setShowOneTimeOffer] = useState(false);
   const [i18nReady, setI18nReady] = useState(i18n.isInitialized);
+
+
 
 
   useEffect(() => {
@@ -187,57 +190,20 @@ export default function App() {
                 <NavigationContainer theme={navTheme}>
                   <MenuProvider>
                     <View style={styles.flex}>
-                      <Stack.Navigator
-                        screenOptions={({ route }) => ({
-                          headerStyle: { backgroundColor: theme.background },
-                          headerTintColor: theme.text,
-                          headerTitleStyle: { color: theme.text },
-                          headerTitleAlign: 'center',
-                          headerBackTitleVisible: false,
-                          headerShadowVisible: false,
-                          contentStyle: { backgroundColor: theme.background },
-                        })}
-                      >
-                        <Stack.Screen
-                          name="MainTabs"
-                          options={{ headerShown: false }}
-                        >
-                          {() => <MainTabs setIsDrawerOpen={setIsDrawerOpen} />}
-                        </Stack.Screen>
-                        <Stack.Screen
-                          name="SetDetail"
-                          component={SetDetailScreen}
-                          options={({ navigation, route }) => ({
-                            title: 'Set Cards',
-                            headerTitleStyle: { fontSize: 20, fontWeight: '600' },
-                            headerBackTitle: 'Back',
-                          })}
-                        />
-                        <Stack.Screen
-                          name="SingleCardScreen"
-                          component={SingleCardScreen}
-                          options={{
-                            title: 'Card Details',
-                            headerBackTitle: 'Back',
-                          }}
-                        />
-                        <Stack.Screen
-                          name="CollectionDetail"
-                          component={CollectionDetailScreen}
-                          options={{
-                            title: 'Collection Details',
-                            headerBackTitle: 'Back',
-                          }}
-                        />
-                        <Stack.Screen
-                          name="SearchStandalone"
-                          component={SearchScreen}
-                          options={{
-                            title: 'Search Cards',
-                            headerBackTitle: 'Back',
-                          }}
-                        />
-                      </Stack.Navigator>
+                      <ThemeContext.Consumer>
+                        {({ theme }) => (
+                          <NavigationStack 
+                            isDrawerOpen={isDrawerOpen}
+                            setIsDrawerOpen={setIsDrawerOpen}
+                            showStandardPaywall={showStandardPaywall}
+                            setShowStandardPaywall={setShowStandardPaywall}
+                            showOneTimeOffer={showOneTimeOffer}
+                            setShowOneTimeOffer={setShowOneTimeOffer}
+                            checkOnboardingCompleteAndShowRating={checkOnboardingCompleteAndShowRating}
+                            theme={theme}
+                          />
+                        )}
+                      </ThemeContext.Consumer>
 
                       {isDrawerOpen && (
                         <DrawerModal
@@ -291,6 +257,87 @@ export default function App() {
         </ThemeProvider>
       </SubscriptionProvider>
     </ErrorBoundary>
+  );
+}
+
+// Navigation Stack Component that can use translations
+function NavigationStack({ isDrawerOpen, setIsDrawerOpen, showStandardPaywall, setShowStandardPaywall, showOneTimeOffer, setShowOneTimeOffer, checkOnboardingCompleteAndShowRating, theme }) {
+  const { t, i18n } = useTranslation();
+  
+  // Custom back button component with translation
+  const CustomBackButton = ({ navigation }) => {
+    const backText = t('navigation.backButton');
+    
+    return (
+      <TouchableOpacity 
+        onPress={() => navigation.goBack()} 
+        style={{ 
+          marginLeft: 0, 
+          flexDirection: 'row', 
+          alignItems: 'center',
+          paddingVertical: 8,
+          // paddingHorizontal: 0,
+        }}
+      >
+        <Ionicons name="chevron-back" size={20} color={theme.text} />
+        <Text style={{ color: theme.text, fontSize: 17, marginLeft: 2, fontWeight: '400' }}>
+          {backText}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+  
+  return (
+    <Stack.Navigator
+      key={i18n.language}
+      screenOptions={({ route, navigation }) => ({
+        headerStyle: { backgroundColor: theme.background },
+        headerTintColor: theme.text,
+        headerTitleStyle: { color: theme.text },
+        headerTitleAlign: 'center',
+        headerBackTitleVisible: false,
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: theme.background },
+        headerLeft: ({ canGoBack }) => 
+          canGoBack ? <CustomBackButton navigation={navigation} /> : null,
+      })}
+    >
+      <Stack.Screen
+        name="MainTabs"
+        options={{ headerShown: false }}
+      >
+        {() => <MainTabs setIsDrawerOpen={setIsDrawerOpen} />}
+      </Stack.Screen>
+      <Stack.Screen
+        name="SetDetail"
+        component={SetDetailScreen}
+        options={({ navigation, route }) => ({
+          title: t('navigation.screenTitles.setCards'),
+          headerTitleStyle: { fontSize: 20, fontWeight: '600' },
+        })}
+      />
+      <Stack.Screen
+        name="SingleCardScreen"
+        component={SingleCardScreen}
+        options={{
+          title: t('navigation.screenTitles.cardDetails'),
+        }}
+      />
+      <Stack.Screen
+        name="CollectionDetail"
+        component={CollectionDetailScreen}
+        options={{
+          title: t('navigation.screenTitles.collectionDetails'),
+        }}
+      />
+      <Stack.Screen
+        name="SearchStandalone"
+        component={SearchScreen}
+        options={{
+          title: t('navigation.screenTitles.searchCards'),
+        }}
+      />
+    </Stack.Navigator>
   );
 }
 

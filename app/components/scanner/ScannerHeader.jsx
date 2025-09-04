@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 const SEG_PADDING = 6; // segmented track padding
 
@@ -24,6 +25,7 @@ export default function ScannerHeader({
 }) {
   const [segWidth, setSegWidth] = useState(228); // room for longer labels
   const [showInfo, setShowInfo] = useState(false);
+  const { t } = useTranslation();
 
   const gliderAnim = useRef(new Animated.Value(scanLanguage === 'jp' ? 1 : 0)).current;
   useEffect(() => {
@@ -87,7 +89,7 @@ export default function ScannerHeader({
                 ]}
                 numberOfLines={1}
               >
-                🇺🇸 English cards
+                {t('languageToggle.scanEnglish')}
               </Text>
             </TouchableOpacity>
 
@@ -104,7 +106,7 @@ export default function ScannerHeader({
                 ]}
                 numberOfLines={1}
               >
-                🇯🇵 Japanese cards
+                {t('languageToggle.scanJapanese')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -132,22 +134,22 @@ export default function ScannerHeader({
       {showInfo && (
         <View style={[styles.infoWrap, { top: (topInset || 0) + 64 }]}>
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>How to get the best scan</Text>
+            <Text style={styles.infoTitle}>{t('scanner.header.howToGetBestScan')}</Text>
             <Text style={styles.infoText}>
-              • Keep the photo <Text style={styles.infoStrong}>clear</Text> — avoid glare and motion blur.
+              {t('scanner.header.scanInstructions.clear')}
             </Text>
             <Text style={styles.infoText}>
-              • Fit a single card fully in the frame, edges visible.
+              {t('scanner.header.scanInstructions.fitCard')}
             </Text>
             <Text style={styles.infoText}>
-              • Make sure these details are readable:
-              <Text style={styles.infoStrong}> Name</Text>, 
-              <Text style={styles.infoStrong}> HP</Text>, 
-              <Text style={styles.infoStrong}> card number</Text>, 
-              <Text style={styles.infoStrong}> Illustrator</Text>.
+              {t('scanner.header.scanInstructions.details')}
+              <Text style={styles.infoStrong}> {t('scanner.header.scanInstructions.name')}</Text>, 
+              <Text style={styles.infoStrong}> {t('scanner.header.scanInstructions.hp')}</Text>, 
+              <Text style={styles.infoStrong}> {t('scanner.header.scanInstructions.cardNumber')}</Text>, 
+              <Text style={styles.infoStrong}> {t('scanner.header.scanInstructions.illustrator')}</Text>.
             </Text>
             <Text style={styles.infoHint}>
-              Tip: Lay the card flat under soft light. Tilt slightly to remove harsh reflections.
+              {t('scanner.header.scanInstructions.tip')}
             </Text>
           </View>
         </View>

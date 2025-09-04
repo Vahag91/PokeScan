@@ -2,6 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Text, Animated, Image, Platform } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
+import { useTranslation } from 'react-i18next';
 
 export default function CameraView({
   cameraRef,
@@ -11,6 +12,7 @@ export default function CameraView({
   freezeUri = null,           // 👈 file:// uri of captured image
   shouldFreeze = false,       // 👈 when true, show blurred overlay
 }) {
+  const { t } = useTranslation();
   // Fade overlay in/out when shouldFreeze toggles
   const freezeOpacity = useRef(new Animated.Value(0)).current;
 
@@ -63,7 +65,7 @@ export default function CameraView({
             {stage === 'idle' && (
               <View style={styles.instructionBanner}>
                 <Text style={styles.instructionText}>
-                  Position card, tap <Text style={styles.instructionHighlight}>SCAN</Text>
+                  {t('scanner.positionCard')}
                 </Text>
               </View>
             )}

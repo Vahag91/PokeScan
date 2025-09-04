@@ -8,12 +8,14 @@ import {
   Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_WIDTH = SCREEN_WIDTH * 0.8;
 
 export default function CardPreview({ cardName, cardData, language = 'en' }) {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   if (!cardName && !cardData) return null;
 
@@ -27,7 +29,7 @@ export default function CardPreview({ cardName, cardData, language = 'en' }) {
     <TouchableOpacity style={styles.container} onPress={handlePress}>
       {cardName && !cardData && (
         <View style={styles.detectionBadge}>
-          <Text style={styles.detectionText}>Detected:</Text>
+          <Text style={styles.detectionText}>{t('scanner.detected')}</Text>
           <Text style={styles.detectionHighlight}>{cardName}</Text>
         </View>
       )}
@@ -48,12 +50,12 @@ export default function CardPreview({ cardName, cardData, language = 'en' }) {
             </Text>
 
             <View style={styles.detailRow}>
-              <Text style={styles.label}>HP:</Text>
+              <Text style={styles.label}>{t('cards.hp')}:</Text>
               <Text style={styles.value}>{cardData.hp}</Text>
             </View>
 
             <View style={styles.detailRow}>
-              <Text style={styles.label}>Type:</Text>
+              <Text style={styles.label}>{t('cards.type')}:</Text>
               <View style={styles.badgesWrapper}>
                 {cardData.types?.map(type => (
                   <View key={type} style={styles.typeBadge}>
@@ -64,10 +66,10 @@ export default function CardPreview({ cardName, cardData, language = 'en' }) {
             </View>
 
             <View style={styles.detailRow}>
-              <Text style={styles.label}>Rarity:</Text>
+              <Text style={styles.label}>{t('cards.rarity')}:</Text>
               <View style={styles.rarityBadge}>
                 <Text style={styles.badgeText}>
-                  {cardData.rarity || 'Unknown'}
+                  {cardData.rarity || t('cards.unknown')}
                 </Text>
               </View>
             </View>

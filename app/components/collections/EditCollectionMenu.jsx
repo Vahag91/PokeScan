@@ -7,9 +7,12 @@ import {
   MenuTrigger,
 } from 'react-native-popup-menu';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
+
 export default function EditCollectionMenu({ onDelete, onEditPress, item }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
   return (
@@ -21,13 +24,13 @@ export default function EditCollectionMenu({ onDelete, onEditPress, item }) {
         <MenuOption onSelect={() => onEditPress(item)}>
           <View style={styles.optionRow}>
             <Ionicons name="create-outline" size={16} color="#10B981" />
-            <Text style={[globalStyles.body, { color: theme.text }]}>Edit</Text>
+            <Text style={[globalStyles.body, { color: theme.text }]}>{t('collections.editCollection')}</Text>
           </View>
         </MenuOption>
         <MenuOption onSelect={() => onDelete(item)}>
           <View style={styles.optionRow}>
             <Ionicons name="trash-outline" size={16} color="#DC2626" />
-            <Text style={[globalStyles.body, { color: '#DC2626' }]}>Delete</Text>
+            <Text style={[globalStyles.body, { color: '#DC2626' }]}>{t('collections.deleteCollection')}</Text>
           </View>
         </MenuOption>
       </MenuOptions>
@@ -46,7 +49,8 @@ const getOptionsStyles = (theme) => ({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 3 },
     elevation: 6,
-    width: 120,
+    minWidth: 120,
+    maxWidth: 200,
   },
 });
 
@@ -57,5 +61,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     gap: 10,
+    flex: 1,
+    minWidth: 100,
   },
 });

@@ -1,5 +1,6 @@
 import React, { useContext, useMemo } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useTranslation } from 'react-i18next';
 import CollectionsScreen from '../../screens/CollectionsScreen';
 import SearchScreen from '../../screens/SearchScreen';
 import ScannerScreen from '../../components/scanner/Scanner';
@@ -12,6 +13,7 @@ import { ThemeContext } from '../../context/ThemeContext';
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs({ setIsDrawerOpen }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
 
   const screenOptions = useMemo(() => ({
@@ -43,14 +45,14 @@ export default function MainTabs({ setIsDrawerOpen }) {
         tabBarIcon: ({ color, size }) => getTabIcon(route.name, color, size),
       })}
     >
-      <Tab.Screen name="Collections" component={CollectionsScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen name="Collections" component={CollectionsScreen} options={{ title: t('navigation.collections') }} />
+      <Tab.Screen name="Search" component={SearchScreen} options={{ title: t('navigation.search') }} />
       <Tab.Screen
         name="Scan"
         component={ScannerScreen}
         options={{ headerShown: false, tabBarStyle: { display: 'none' } }}
       />
-      <Tab.Screen name="Sets" component={SetScreen} />
+      <Tab.Screen name="Sets" component={SetScreen} options={{ title: t('navigation.sets') }} />
     </Tab.Navigator>
   );
 }

@@ -10,62 +10,34 @@ import fr from './locales/fr.json';
 import es from './locales/es.json';
 import pt from './locales/pt.json';
 import it from './locales/it.json';
+import ja from './locales/ja.json';   // ⬅️ new
+import nl from './locales/nl.json';   // ⬅️ new
 
-const SUPPORTED = ['en','de','fr','es','pt','it'];
+const SUPPORTED = ['en','de','fr','es','pt','it','ja','nl']; // ⬅️ added ja,nl
 
-// Works with any react-native-localize version
 const getDeviceLanguage = () => {
-  // Prefer newer API if available
   if (typeof RNLocalize.findBestAvailableLanguage === 'function') {
     const best = RNLocalize.findBestAvailableLanguage(SUPPORTED);
     if (best?.languageTag) {
-      const language = best.languageTag.split('-')[0];
-      console.log('🌍 i18n Debug (new API):', {
-        detected: best.languageTag,
-        selected: language,
-        supported: SUPPORTED,
-        bestMatch: best
-      });
-      return language;
+      return best.languageTag.split('-')[0]; // 'ja-JP' -> 'ja', 'nl-NL' -> 'nl'
     }
   }
-
-  // Fallback: check device locales manually
-  const locales = (typeof RNLocalize.getLocales === 'function')
-    ? RNLocalize.getLocales()
-    : [];
-  
+  const locales = typeof RNLocalize.getLocales === 'function' ? RNLocalize.getLocales() : [];
   for (const l of locales) {
-    const code = String(l?.languageCode || '').toLowerCase(); // e.g. "pt"
-    if (SUPPORTED.includes(code)) {
-      console.log('🌍 i18n Debug (fallback):', {
-        detected: l.languageCode,
-        selected: code,
-        supported: SUPPORTED
-      });
-      return code;
-    }
+    const code = String(l?.languageCode || '').toLowerCase();
+    if (SUPPORTED.includes(code)) return code;
   }
-  
-  console.log('🌍 i18n Debug (default):', {
-    detected: 'none',
-    selected: 'en',
-    supported: SUPPORTED
-  });
   return 'en';
 };
 
 i18n
-  .use(ICU)
+  .use(ICU) // works as-is; see note below if you want locale data per lang
   .use(initReactI18next)
   .init({
     resources: {
-      en: { translation: en },
-      de: { translation: de },
-      fr: { translation: fr },
-      es: { translation: es },
-      pt: { translation: pt },
-      it: { translation: it },
+      en:{translation:en}, de:{translation:de}, fr:{translation:fr},
+      es:{translation:es}, pt:{translation:pt}, it:{translation:it},
+      ja:{translation:ja}, nl:{translation:nl}, // ⬅️ added
     },
     lng: getDeviceLanguage(),
     fallbackLng: 'en',
@@ -75,11 +47,5 @@ i18n
     interpolation: { escapeValue: false },
     returnNull: false,
   });
-
-// Log after initialization
-setTimeout(() => {
-  console.log('✅ i18n initialized with language:', i18n.language);
-  console.log('📚 Available languages:', Object.keys(i18n.store.data));
-}, 100);
 
 export default i18n;

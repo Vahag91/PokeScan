@@ -57,7 +57,6 @@ export async function matchCardENStrict({ name, number, hp, illustrator }) {
 
   try {
     const payload = { p_name, p_number, p_hp, p_artist };
-    console.log('payload', payload);
     
     const { data, error } = await supabase.rpc('match_card_en', payload);
 

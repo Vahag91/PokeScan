@@ -71,7 +71,7 @@ export function CollectionHeader({ collections }) {
   return (
     <View style={styles.container}>
       <Text style={[globalStyles.heading, styles.headerText, { color: theme.text }]}>
-        {t('myCollections')}
+        {t('collections.myCollections')}
       </Text>
       <ScrollView
         horizontal

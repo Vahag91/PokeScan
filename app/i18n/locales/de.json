@@ -1,39 +1,39 @@
 {
-  "common": {
-    "search": "Suchen",
-    "cancel": "Abbrechen",
-    "save": "Speichern",
-    "delete": "Löschen",
-    "edit": "Bearbeiten",
-    "close": "Schließen",
-    "loading": "Lädt...",
-    "error": "Fehler",
-    "success": "Erfolg",
-    "retry": "Wiederholen",
-    "back": "Zurück",
-    "next": "Weiter",
-    "previous": "Zurück"
-  },
-
-
-
+"common": {
+  "search": "Suchen",
+  "cancel": "Abbrechen",
+  "save": "Speichern",
+  "delete": "Löschen",
+  "edit": "Bearbeiten",
+  "close": "Schließen",
+  "loading": "Lädt…",
+  "error": "Fehler",
+  "success": "Erfolg",
+  "retry": "Erneut versuchen",
+  "back": "Zurück",
+  "next": "Weiter",
+  "previous": "Zurück",
+  "done": "Fertig",
+  "clear": "Leeren",
+  "apply": "Übernehmen"
+},
   "paywall": {
     "title": "Upgrade auf Premium",
-    "subtitle": "Schalte unbegrenzte Scans und Premium-Features frei",
+    "subtitle": "Schalte unbegrenzte Scans und Premium-Funktionen frei",
     "monthly": "Monatlich",
     "yearly": "Jährlich",
-    "bestValue": "Bester Wert",
-    "freeTrial": "Kostenlose Testversion",
-    "noPaymentDue": "Keine Zahlung fällig",
+    "bestValue": "Bestes Angebot",
+    "freeTrial": "Kostenlose Testphase",
+    "noPaymentDue": "Aktuell keine Zahlung fällig",
     "restore": "Käufe wiederherstellen",
     "terms": "Nutzungsbedingungen",
     "privacy": "Datenschutzrichtlinie",
     "week": "Woche",
     "year": "Jahr",
-    "freeTrialEnabled": "Kostenlose Testversion aktiviert",
+    "freeTrialEnabled": "Kostenlose Testphase aktiviert",
     "tryForFree": "Kostenlos testen",
     "continue": "Weiter",
-    "unlockFeatures": "Schalte alle Features frei und scanne mit voller Kraft.",
+    "unlockFeatures": "Schalte alle Funktionen frei und scanne mit voller Power.",
     "features": {
       "unlimitedScans": "Unbegrenzte Kartenscans",
       "advancedFilters": "Erweiterte Suchfilter",
@@ -44,6 +44,28 @@
       "termsOfUse": "Nutzungsbedingungen",
       "privacyPolicy": "Datenschutzrichtlinie",
       "restore": "Wiederherstellen"
+    },
+    "alerts": {
+      "noInternetConnection": "Keine Internetverbindung",
+      "noInternetConnectionMessage": "Bitte überprüfe deine Verbindung und versuche es erneut.",
+      "tryAgain": "Erneut versuchen",
+      "cancel": "Abbrechen",
+      "purchaseCanceled": "Kauf abgebrochen",
+      "purchaseCanceledMessage": "Der Kaufvorgang wurde unterbrochen. Du kannst es jederzeit erneut versuchen.",
+      "purchaseFailed": "Kauf fehlgeschlagen",
+      "purchaseFailedMessage": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "restored": "Wiederhergestellt",
+      "restoredMessage": "Dein Abonnement wurde erfolgreich wiederhergestellt.",
+      "noSubscription": "Kein Abonnement",
+      "noSubscriptionMessage": "Kein aktives Abonnement zum Wiederherstellen gefunden.",
+      "restoreFailed": "Wiederherstellung fehlgeschlagen",
+      "restoreFailedMessage": "Bei der Wiederherstellung ist ein Fehler aufgetreten."
+    },
+    "pricing": {
+      "freeTrialText": "3 Tage gratis, danach",
+      "perWeek": "/Woche",
+      "perYear": "/Jahr",
+      "save": "SPAREN"
     }
   },
   "onboarding": {
@@ -54,7 +76,7 @@
       "subtitle": "Erhalte detaillierte Informationen!"
     },
     "slide2": {
-      "title": "Suche nach Karten",
+      "title": "Suche jede Karte",
       "subtitle": "Nutze unsere erweiterten Filter!"
     },
     "slide3": {
@@ -63,12 +85,12 @@
     },
     "slide4": {
       "title": "Karteninformationen erhalten",
-      "subtitle": "Zugriff auf Details zu Preis, Statistiken und Seltenheiten"
+      "subtitle": "Zugriff auf Preis-, Statistik- und Seltenheitsdetails"
     }
   },
   "errors": {
     "oops": "Ups!",
-    "tryAgain": "Wiederholen",
+    "tryAgain": "Erneut versuchen",
     "somethingWentWrong": "Etwas ist schiefgelaufen.",
     "pleaseTryAgainLater": "Bitte versuche es später noch einmal.",
     "unableToConnect": "Verbindung nicht möglich. Bitte versuche es erneut.",
@@ -77,39 +99,63 @@
   },
   "scanner": {
     "title": "Scanner",
-    "scanning": "Scanne...",
     "noResult": "Keine Karte gefunden",
     "multipleResults": "Mehrere Karten gefunden",
     "addToCollection": "Zur Sammlung hinzufügen",
-    "freeScansLeft": "{{count}} kostenlose Scans übrig",
+    "freeScansLeft": "kostenlose Scans übrig",
     "upgradeToPremium": "Upgrade auf Premium für unbegrenzte Scans",
-    "loadingCamera": "Kamera lädt…",
-    "cameraAccessNeeded": "Kamerazugriff erforderlich",
-    "cameraAccessNeededMessage": "Bitte erlaube Kamerazugriff in den Einstellungen, um Pokémon-Karten zu scannen.",
+    "loadingCamera": "Kamera wird geladen…",
+    "cameraAccessNeeded": "Kamerazugriff benötigt",
+    "cameraAccessNeededMessage": "Bitte erlaube in den Einstellungen den Kamerazugriff, um Pokémon-Karten zu scannen.",
     "openSettings": "Einstellungen öffnen",
     "noCardsFound": "Keine Karten gefunden",
     "clear": "Löschen",
     "detected": "Erkannt:",
-    "positionCard": "Karte positionieren, SCAN tippen",
+    "positionCard": "Karte ausrichten und auf SCAN tippen",
     "howToGetBestScan": "So erhältst du den besten Scan",
-    "scanInstructions": "• Halte das Foto klar — vermeide Blendung und Bewegungsunschärfe.",
-    "scanInstructions2": "• Füge diese Details hinzu: Name, KP, Kartennummer, Illustrator.",
-    "scanHint": "Tippen zum Scannen",
+    "scanInstructions": "• Halte das Foto scharf — vermeide Blendung und Bewegungsunschärfe.",
+    "scanInstructions2": "• Nimm diese Details auf: Name, KP, Kartennummer, Illustrator.",
+    "scanHint": "Zum Scannen tippen",
     "clearFloating": "Löschen",
-    "scan": "SCAN"
+    "scan": "SCAN",
+    "searching": "Suche…",
+    "noMatchFound": "Wir konnten keine Übereinstimmung finden. Versuche es mit besserer Beleuchtung oder klarerer Ausrichtung erneut.",
+    "header": {
+      "howToGetBestScan": "So erhältst du den besten Scan",
+      "scanInstructions": {
+        "clear": "• Halte das Foto scharf — vermeide Blendung und Bewegungsunschärfe.",
+        "fitCard": "• Eine einzelne Karte vollständig im Rahmen platzieren, Kanten sichtbar.",
+        "details": "• Diese Details sollten lesbar sein:",
+        "name": "Name",
+        "hp": "KP",
+        "cardNumber": "Kartennummer",
+        "illustrator": "Illustrator",
+        "tip": "Tipp: Lege die Karte flach unter weiches Licht. Leicht kippen, um starke Reflexionen zu vermeiden."
+      }
+    },
+    "requestingPermission": "Kameraberechtigung wird angefordert…",
+    "cameraDeviceNotFound": "Kameragerät nicht gefunden",
+    "alignCardInFrame": "Richte die Pokémon-Karte innerhalb des Rahmens aus",
+    "scanning": "Scannen…",
+    "huntingMatch": "Treffer wird gesucht!",
+    "readingCardDetails": "Kartendetails werden gelesen",
+    "letsFindYourCard": "Lass uns deine Karte finden",
+    "purchaseOptions": "Kaufoptionen",
+    "viewOnTCGPlayer": "Auf TCGPlayer ansehen",
+    "viewOnCardmarket": "Auf Cardmarket ansehen"
   },
   "cards": {
     "rarity": "Seltenheit",
     "type": "Typ",
     "hp": "KP",
-    "attack": "Angriff",
+    "attack": "Attacke",
     "artist": "Künstler",
     "number": "Nummer",
     "set": "Set",
     "series": "Serie",
     "marketOverview": "Marktübersicht",
     "abilities": "Fähigkeiten",
-    "attacks": "Angriffe",
+    "attacks": "Attacken",
     "details": "Details",
     "evolutionChain": "Evolutionskette",
     "externalLinks": "Externe Links",
@@ -128,20 +174,20 @@
       "lowPrice": "Niedrigster Preis",
       "highPrice": "Höchster Preis",
       "marketPrice": "Marktpreis",
-      "directLow": "Direkt Niedrig",
-      "avgSell": "Ø Verkauf",
+      "directLow": "Direkt-Tiefstpreis",
+      "avgSell": "Ø Verkaufspreis",
       "trend": "Trend",
       "priceTrend": "Preistrend",
-      "avg1": "1T Ø",
-      "avg7": "7T Ø",
-      "avg30": "30T Ø",
-      "germanLow": "Deutsch Niedrig",
-      "suggested": "Vorgeschlagen",
+      "avg1": "Ø 1T",
+      "avg7": "Ø 7T",
+      "avg30": "Ø 30T",
+      "germanLow": "DE-Tiefstpreis",
+      "suggested": "Empfohlen",
       "lastUpdated": "Zuletzt aktualisiert"
     }
   },
   "search": {
-    "placeholder": "Karten suchen...",
+    "placeholder": "Karten suchen…",
     "noResults": "Keine Ergebnisse gefunden",
     "filters": "Filter",
     "sortBy": "Sortieren nach",
@@ -151,10 +197,10 @@
     "sortByDate": "Datum",
     "sortByNameAsc": "Produktname: A bis Z",
     "sortByNameDesc": "Produktname: Z bis A",
-    "sortByPriceAsc": "Preis: Niedrig bis Hoch",
-    "sortByPriceDesc": "Preis: Hoch bis Niedrig",
-    "sortByDateAsc": "Veröffentlichungsdatum: Älteste",
-    "sortByDateDesc": "Veröffentlichungsdatum: Neueste",
+    "sortByPriceAsc": "Preis: niedrig → hoch",
+    "sortByPriceDesc": "Preis: hoch → niedrig",
+    "sortByDateAsc": "Veröffentlichungsdatum: alt → neu",
+    "sortByDateDesc": "Veröffentlichungsdatum: neu → alt",
     "results": "{{count}} Ergebnisse",
     "searchBy": "🔍 Du kannst suchen nach:",
     "searchTags": {
@@ -165,7 +211,7 @@
       "artist": "Künstler",
       "number": "Nummer"
     },
-    "searchBySetName": "Nach Set-Name suchen...",
+    "searchBySetName": "Nach Setnamen suchen…",
     "searchPlaceholder": "Suchen",
     "showingResultsFor": "Zeige Ergebnisse für:",
     "deselectAll": "Alle {{label}} abwählen",
@@ -173,13 +219,13 @@
     "filtersRarity": "Seltenheit",
     "filtersEnergyType": "Energietyp",
     "filtersType": "Typ",
-    "filtersAttackCost": "Angriffs-Energietyp",
-    "filtersAttack": "Angriff",
+    "filtersAttackCost": "Energiekosten für Angriff",
+    "filtersAttack": "Attacke",
     "filtersHPRange": "KP-Bereich",
-    "filtersRegulationMark": "Regelungsmarke",
-    "filtersCardLegality": "Karten-Legalität",
+    "filtersRegulationMark": "Regulationszeichen",
+    "filtersCardLegality": "Turnierzulassung",
     "advancedFiltersLocked": "Erweiterte Filter gesperrt",
-    "advancedFiltersSubtitle": "Schalte Premium frei, um Typ-, Seltenheits-, Angriffs- und KP-Filter zu verwenden.",
+    "advancedFiltersSubtitle": "Schalte Premium frei, um Typ-, Seltenheits-, Energie- und KP-Filter zu verwenden.",
     "unlockPremium": "Premium freischalten",
     "legality": {
       "standard": "Standard",
@@ -197,8 +243,8 @@
     "scanner": "Scanner",
     "search": "Suche",
     "sets": "Sets",
-    "theme": "Design",
-    "darkMode": "Dunkler Modus",
+    "theme": "Thema",
+    "darkMode": "Dunkelmodus",
     "settings": "Einstellungen",
     "tryPremium": "Premium testen",
     "restorePurchase": "Kauf wiederherstellen",
@@ -208,7 +254,14 @@
     "version": "1.1",
     "termsOfUse": "Nutzungsbedingungen",
     "privacy": "Datenschutz",
-    "support": "Support"
+    "support": "Support",
+    "screenTitles": {
+      "setCards": "Set-Karten",
+      "cardDetails": "Kartendetails",
+      "collectionDetails": "Sammlungsdetails",
+      "searchCards": "Karten suchen"
+    },
+    "backButton": "Zurück"
   },
   "collections": {
     "title": "Sammlungen",
@@ -219,7 +272,7 @@
     "addCard": "Karte hinzufügen",
     "addToCollections": "Zu Sammlungen hinzufügen",
     "empty": "Noch keine Sammlungen",
-    "emptySubtitle": "Erstelle deine erste Sammlung",
+    "emptySubtitle": "Erstelle deine erste Sammlung, um loszulegen",
     "name": "Sammlungsname",
     "cards": "Karten",
     "totalValue": "Gesamtwert",
@@ -232,8 +285,8 @@
     "failedToLoadStats": "Fehler beim Laden deiner Set-Statistiken.",
     "other": "Andere",
     "emptyState": {
-      "title": "Noch nichts hier...",
-      "subtitle": "Tippe auf den + Button, um deine erste Sammlung zu erstellen."
+      "title": "Hier ist noch nichts…",
+      "subtitle": "Tippe auf den +-Button, um deine erste Sammlung zu erstellen."
     },
     "detail": {
       "card": "Karte",
@@ -241,7 +294,7 @@
       "noValue": "Kein Wert",
       "clearFilters": "Filter löschen",
       "noCardsYet": "Noch keine Karten",
-      "startBuilding": "Beginne mit dem Aufbau deiner Sammlung, indem du Karten hinzufügst.",
+      "startBuilding": "Füge Karten hinzu und baue deine Sammlung auf.",
       "findCards": "Karten finden"
     },
     "card": {
@@ -260,13 +313,18 @@
     "releaseDate": "Veröffentlichungsdatum",
     "release": "Veröffentlichung",
     "searchCardSets": "Kartensets durchsuchen",
-    "failedToLoadStats": "Fehler beim Laden deiner Set-Statistiken."
+    "failedToLoadStats": "Fehler beim Laden deiner Set-Statistiken.",
+    "sortLowToHigh": "Niedrig bis hoch",
+    "sortHighToLow": "Hoch bis niedrig",
+    "errorLoadingCards": "Fehler beim Laden der Karten.",
+    "noCardsInSet": "Keine Karten in diesem Set gefunden.",
+    "owned": "im Besitz"
   },
   "oneTimeOffer": {
     "exclusiveOffer": "Exklusives Einmalangebot",
     "specialOfferBadge": "Das siehst du nie wieder",
     "fiftyPercentOff": "50% RABATT",
-    "offerSubtitle": "Dieses Premium-Upgrade ist nur einmal zu diesem Sonderpreis verfügbar. Verpasse nicht die Gelegenheit, alle Features freizuschalten!",
+    "offerSubtitle": "Dieses Premium-Upgrade ist nur einmal zu diesem Sonderpreis verfügbar. Verpasse nicht die Chance, alle Funktionen freizuschalten!",
     "restorePurchase": "Kauf wiederherstellen",
     "termsOfUse": "Nutzungsbedingungen",
     "privacyPolicy": "Datenschutzrichtlinie",
@@ -284,42 +342,38 @@
       "noSubscription": "Kein Abonnement",
       "noSubscriptionMessage": "Kein aktives Abonnement zum Wiederherstellen gefunden.",
       "restoreFailed": "Wiederherstellung fehlgeschlagen",
-      "restoreFailedMessage": "Bei der Wiederherstellung ist etwas schiefgelaufen.",
+      "restoreFailedMessage": "Bei der Wiederherstellung ist ein Fehler aufgetreten.",
       "noInternet": "Keine Internetverbindung",
-      "noInternetMessage": "Bitte überprüfe dein Netzwerk und versuche es erneut."
+      "noInternetMessage": "Bitte überprüfe dein Netzwerk und versuche es erneut.",
+      "noInternetConnection": "Keine Internetverbindung",
+      "noInternetConnectionMessage": "Bitte überprüfe deine Verbindung und versuche es erneut."
     }
   },
   "rateUs": {
     "title": "Bewerte unsere App",
-    "subtitle": "Gefällt dir Pokémon Card Scanner?\nDein Feedback hilft uns, uns zu verbessern!",
+    "subtitle": "Gefällt dir Pokémon Card Scanner?\nDein Feedback hilft uns, besser zu werden!",
     "rateNow": "Jetzt bewerten",
-    "opening": "Öffne...",
+    "opening": "Wird geöffnet…",
     "maybeLater": "Vielleicht später",
     "dontAskAgain": "Nicht mehr fragen"
   },
   "alerts": {
     "restored": "Wiederhergestellt",
-    "restoredMessage": "Dein Abonnement wurde erfolgreich wiederhergestellt.",
+    "restoredMessage": "Dein Abonnement wurde wiederhergestellt.",
     "notFound": "Nicht gefunden",
-    "notFoundMessage": "Keine aktiven Käufe zum Wiederherstellen gefunden.",
+    "notFoundMessage": "Keine aktiven Käufe zum Wiederherstellen.",
     "restoreError": "Fehler",
     "restoreErrorMessage": "Fehler beim Wiederherstellen der Käufe."
   },
   "lockedOverlay": {
     "collectionLimitReached": "Sammlungslimit erreicht",
-    "upgradeSubtitle": "Upgrade auf Premium, um unbegrenzte Sammlungen zu erstellen und deine Karten frei zu organisieren.",
+    "upgradeSubtitle": "Upgrade auf Premium, um unbegrenzt Sammlungen zu erstellen und deine Karten frei zu organisieren.",
     "upgradeNow": "Jetzt upgraden"
   },
   "languageToggle": {
     "englishCards": "🇺🇸 Englische Karten",
-    "japaneseCards": "🇯🇵 Japanische Karten"
-  },
-  "common": {
-    "cancel": "Abbrechen",
-    "retry": "Wiederholen",
-    "loading": "Lädt...",
-    "done": "Fertig",
-    "clear": "Löschen",
-    "apply": "Anwenden"
+    "japaneseCards": "🇯🇵 Japanische Karten",
+    "scanEnglish": "🇺🇸 Scan EN",
+    "scanJapanese": "🇯🇵 Scan JP"
   }
 }

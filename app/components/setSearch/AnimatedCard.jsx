@@ -7,9 +7,11 @@ import {
   StyleSheet,
   Easing,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../../context/ThemeContext';
 
 export default function AnimatedCard({ item, delay, onPress, setStats }) {
+  const { t } = useTranslation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const { theme } = useContext(ThemeContext);
@@ -83,7 +85,7 @@ export default function AnimatedCard({ item, delay, onPress, setStats }) {
         <Image source={item.image} style={styles.image} />
         <Text style={styles.cardText}>{item.title}</Text>
         <Text style={styles.countText}>
-          {ownedCount}  owned
+          {ownedCount} {t('sets.owned')}
         </Text>
       </TouchableOpacity>
     </Animated.View>

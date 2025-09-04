@@ -137,14 +137,6 @@ export default function DrawerModal({ visible, onClose }) {
           {tNav('version')}
         </Text>
 
-        {/* Temporary Debug Section - Remove after testing */}
-        {__DEV__ && (
-          <View style={{ marginTop: 20, padding: 10, backgroundColor: '#f0f0f0' }}>
-            <Text style={{ fontSize: 12, color: '#666' }}>
-              🌍 Debug: {i18n.language} | Theme: {tNav('theme')} | Legal: {tNav('legal')}
-            </Text>
-          </View>
-        )}
       </View>
 
       <PaywallModal visible={showPaywall} onClose={() => setShowPaywall(false)} />
