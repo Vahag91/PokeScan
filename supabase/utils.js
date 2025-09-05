@@ -919,3 +919,65 @@ export const updateCollectionCardPrices = async () => {
     console.error('[prices] enumerate failed', String(err?.message || err));
   }
 };
+
+
+
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export async function fetchSeriesOptions(cardId, days = 90) {
+  const sinceIso = new Date(Date.now() - days * DAY_MS).toISOString();
+
+  const { data, error } = await supabase
+    .from('price_history_points')
+    .select('series_key, series_label, bucket_end_at')
+    .eq('card_id', cardId)
+    .gte('bucket_end_at', sinceIso)
+    .order('series_key', { ascending: true });
+
+  if (error) throw error;
+
+  const bySeries = new Map();
+  for (const r of data || []) {
+    const k = r.series_key;
+    const label = r.series_label || k;
+    const s = bySeries.get(k) || { series_key: k, series_label: label, count: 0 };
+    s.count += 1;
+    bySeries.set(k, s);
+  }
+  return [...bySeries.values()].sort((a, b) => b.count - a.count);
+}
+
+export async function fetchPriceHistoryPoints(cardId, seriesKey = null, days = 90) {
+  const sinceIso = new Date(Date.now() - days * DAY_MS).toISOString();
+
+  // pick default series if not provided
+  let chosen = seriesKey;
+  let seriesLabel = null;
+  if (!chosen) {
+    const options = await fetchSeriesOptions(cardId, days);
+    if (!options.length) return { points: [], series_key: null, series_label: null };
+    chosen = options[0].series_key;
+    seriesLabel = options[0].series_label;
+  }
+
+  const { data, error } = await supabase
+    .from('price_history_points')
+    .select('bucket_end_at, value, series_label')
+    .eq('card_id', cardId)
+    .eq('series_key', chosen)
+    .gte('bucket_end_at', sinceIso)
+    .order('bucket_end_at', { ascending: true });
+
+  if (error) throw error;
+
+  if (!seriesLabel) seriesLabel = data?.[0]?.series_label || chosen;
+
+  const points = (data || []).map((r, i) => ({
+    day: i + 1,
+    highTmp: Number(r.value),
+    date: r.bucket_end_at,
+  }));
+
+  return { points, series_key: chosen, series_label: seriesLabel };
+}

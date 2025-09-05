@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
+
 export default function SetLabelRow({ set }) {
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);

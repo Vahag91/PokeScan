@@ -1,5 +1,3 @@
-// File: screens/SingleCardScreen.jsx
-
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -17,6 +15,7 @@ import {
   CardSetHeader,
   CardImageViewer,
   ExternalLinksSection,
+  LineChart,
 } from '../components/singleCardUi';
 import { normalizeCardFromAPI, normalizeCardFromDb } from '../utils';
 import CardCollectionsModal from '../components/collections/CardCollectionsModal';
@@ -31,11 +30,12 @@ import {
   fetchCardFromSupabase,
   fetchEvolutions,
   mergeCardWithPrice,
+  fetchSeriesOptions,
+  fetchPriceHistoryPoints,
 } from '../../supabase/utils';
 import { globalStyles } from '../../globalStyles';
 
 const abilityIcon = require('../assets/icons/cardIcons/ability.png');
-
 
 export default function SingleCardScreen() {
   const { t } = useTranslation();
@@ -50,6 +50,16 @@ export default function SingleCardScreen() {
   const [fromData, setFromData] = useState([]);
   const [toData, setToData] = useState([]);
 
+  // chart state
+  const [seriesList, setSeriesList] = useState([]);
+  const [selectedSeries, setSelectedSeries] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [days, setDays] = useState(90);
+
+  // active series object to pass into <LineChart />
+  const activeSeries =
+    seriesList.find((s) => s.series_key === selectedSeries) || null;
+
   const headerRightButton = useCallback(
     () => (
       <CollectionHeaderButton
@@ -59,6 +69,10 @@ export default function SingleCardScreen() {
     ),
     [isInCollection],
   );
+
+  useEffect(() => {
+    navigation.setOptions({ headerRight: headerRightButton });
+  }, [headerRightButton, navigation]);
 
   useEffect(() => {
     if (!cardId) return;
@@ -74,32 +88,30 @@ export default function SingleCardScreen() {
 
       if (ids.length) {
         const cards = await getCardsByCollectionId(db, ids[0]);
-        const match = cards.find(c => c.cardId === cardId);
+        const match = cards.find((c) => c.cardId === cardId);
         if (match) {
           try {
             currentCard = normalizeCardFromDb(match);
-            setCardData(currentCard);            
-          } catch (_) {}
+            setCardData(currentCard);
+          } catch (_) { }
         }
       }
 
       if (!currentCard) {
-    
         const supabaseCard = await fetchCardFromSupabase(cardId, language);
         if (supabaseCard) {
-
           currentCard = supabaseCard?.normalized;
-          setCardData(currentCard);          
+          setCardData(currentCard);
           fromIds = supabaseCard?.evolvesFrom || [];
           toIds = supabaseCard?.evolvesTo || [];
         } else {
-          const fallback = defaultSearchCards.find(c => c.id === cardId);
+          const fallback = defaultSearchCards.find((c) => c.id === cardId);
           if (fallback) {
             try {
               const cardWithPrices = await mergeCardWithPrice(fallback);
               currentCard = normalizeCardFromAPI(cardWithPrices);
               setCardData(currentCard);
-            } catch (_) {}
+            } catch (_) { }
           }
         }
       }
@@ -115,13 +127,48 @@ export default function SingleCardScreen() {
     })();
   }, [cardId, language]);
 
+  // Load series options + default points (use current `days`)
   useEffect(() => {
-    navigation.setOptions({ headerRight: headerRightButton });
-  }, [headerRightButton, navigation]);
+    if (!cardData?.id) return;
+
+    (async () => {
+      try {
+        const options = await fetchSeriesOptions(cardData.id, days);
+        setSeriesList(options);
+
+        const key = options[0]?.series_key || null;
+        setSelectedSeries(key);
+
+        if (!key) {
+          setChartData([]);
+          return;
+        }
+
+        const { points } = await fetchPriceHistoryPoints(cardData.id, key, days);
+        setChartData(points || []);
+      } catch (e) {
+        setChartData([]);
+      }
+    })();
+  }, [cardData?.id, days]);
+
+  // Refetch points when either series or days change (single source of truth)
+  useEffect(() => {
+    if (!cardData?.id || !selectedSeries) return;
+    (async () => {
+      try {
+        const { points } = await fetchPriceHistoryPoints(cardData.id, selectedSeries, days);
+        setChartData(points || []);
+      } catch (e) {
+        setChartData([]);
+      }
+    })();
+  }, [cardData?.id, selectedSeries, days]);
 
   if (!cardData) return <SkeletonSingleCard />;
 
-  const navigateTo = id => navigation.push('SingleCardScreen', { cardId: id, language: language });
+  const navigateTo = (id) =>
+    navigation.push('SingleCardScreen', { cardId: id, language });
 
   const styles = getStyles(theme);
 
@@ -130,7 +177,7 @@ export default function SingleCardScreen() {
       <ScrollView style={styles.screen}>
         <EvolutionChain title={t('cards.evolvesFrom')} cards={fromData} onCardPress={navigateTo} />
         <EvolutionChain title={t('cards.evolvesTo')} cards={toData} onCardPress={navigateTo} />
-        <CardSetHeader cardData={cardData} onPress={setId => navigation.navigate('SetDetail', { setId, language })} />
+        <CardSetHeader cardData={cardData} onPress={(setId) => navigation.navigate('SetDetail', { setId, language })} />
         <CardImageViewer imageSource={cardData.image} />
 
         <AnimatedSection style={styles.sectionCard}>
@@ -138,10 +185,19 @@ export default function SingleCardScreen() {
           <MarketOverview tcgplayer={cardData.tcgplayer} cardmarket={cardData.cardmarket} />
         </AnimatedSection>
 
+        {chartData && chartData.length > 0 && (
+          <LineChart
+            data={chartData}
+            series={activeSeries}
+            days={days}
+            onChangeDays={setDays}
+          />
+        )}
+
         {cardData.abilities?.length > 0 && (
           <AnimatedSection style={styles.sectionCard}>
             <Text style={[globalStyles.subheading, styles.sectionTitle]}>{t('cards.abilities')}</Text>
-            {cardData.abilities.map(ab => (
+            {cardData.abilities.map((ab) => (
               <LabelRow
                 key={ab.name}
                 label={
@@ -159,8 +215,11 @@ export default function SingleCardScreen() {
         {cardData.attacks?.length > 0 && (
           <AnimatedSection style={styles.sectionCard}>
             <Text style={[globalStyles.subheading, styles.sectionTitle]}>{t('cards.attacks')}</Text>
-            <LabelRow label={<LabelWithIcon types={[cardData.types?.[0]]} text={t('cards.hp')} />} value={cardData.hp || t('cards.unknown')} />
-            {cardData.attacks.map(atk => (
+            <LabelRow
+              label={<LabelWithIcon types={[cardData.types?.[0]]} text={t('cards.hp')} />}
+              value={cardData.hp || t('cards.unknown')}
+            />
+            {cardData.attacks.map((atk) => (
               <LabelRow
                 key={atk.name}
                 label={<LabelWithIcon types={atk.cost} text={atk.name} />}
@@ -180,7 +239,11 @@ export default function SingleCardScreen() {
           <LabelRow label={t('cards.number')} value={cardData.number} />
           <LabelRow
             label={t('cards.rarity')}
-            value={<Text style={[globalStyles.body, styles.rarityText, { color: rarityColors[cardData.rarity] }]}>{cardData.rarity}</Text>}
+            value={
+              <Text style={[globalStyles.body, styles.rarityText, { color: rarityColors[cardData.rarity] }]}>
+                {cardData.rarity}
+              </Text>
+            }
           />
           <LabelRow label={t('cards.releaseYear')} value={cardData.set?.releaseDate} />
           <LabelRow label={t('cards.series')} value={cardData.set?.series} />
@@ -199,14 +262,14 @@ export default function SingleCardScreen() {
         visible={collectionsModalVisible}
         onClose={() => setCollectionsModalVisible(false)}
         card={cardData}
-        onChange={() => {}}
+        onChange={() => { }}
         language={language}
       />
     </>
   );
 }
 
-const getStyles = theme =>
+const getStyles = (theme) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: theme.background, padding: 12 },
     sectionCard: { backgroundColor: theme.inputBackground, borderRadius: 12 },

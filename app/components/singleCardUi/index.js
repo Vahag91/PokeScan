@@ -14,5 +14,5 @@ export { default as StatCard} from "./StatCard"
 export { default as MarketLinkButton} from "./MarketLinkButton"
 export { default as ExternalLinksSection} from "./ExternalLinksSection"
 export { default as FoilPickerModal} from "./FoilDropdownPicker"
-
+export { default as LineChart } from "./LineChart"
 
