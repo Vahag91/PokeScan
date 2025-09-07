@@ -85,12 +85,12 @@ function getPriceColor(label, value, tier) {
   }
 
   // Check for low price patterns (works with any language)
-  if (cleanLabel.includes('low') || cleanLabel.includes('minimum') || cleanLabel.includes('minimo') || cleanLabel.includes('niedrig') || cleanLabel.includes('bas') || cleanLabel.includes('laagste') || cleanLabel.includes('最低') || cleanLabel.includes('direct') || cleanLabel.includes('direkt') || cleanLabel.includes('直販') || cleanLabel.includes('ドイツ')) {
+  if (cleanLabel.includes('low') || cleanLabel.includes('minimum') || cleanLabel.includes('minimo') || cleanLabel.includes('niedrig') || cleanLabel.includes('bas') || cleanLabel.includes('laagste') || cleanLabel.includes('最低') || cleanLabel.includes('direct') || cleanLabel.includes('direkt') || cleanLabel.includes('直販') || cleanLabel.includes('ドイツ') || cleanLabel.includes('min.')) {
     return negativeColor;
   }
 
   // Check for high price patterns (works with any language)
-  if (cleanLabel.includes('high') || cleanLabel.includes('maximum') || cleanLabel.includes('massimo') || cleanLabel.includes('höchst') || cleanLabel.includes('haut') || cleanLabel.includes('hoogste') || cleanLabel.includes('最高')) {
+  if (cleanLabel.includes('high') || cleanLabel.includes('maximum') || cleanLabel.includes('massimo') || cleanLabel.includes('höchst') || cleanLabel.includes('haut') || cleanLabel.includes('hoogste') || cleanLabel.includes('最高') || cleanLabel.includes('max.')) {
     return warningColor;
   }
 
@@ -120,7 +120,10 @@ function getPriceColor(label, value, tier) {
       cleanLabel.includes('allemagne') ||
       cleanLabel.includes('germania') ||
       cleanLabel.includes('duits') ||
-      cleanLabel.includes('alemanha')) {
+      cleanLabel.includes('alemanha') ||
+      cleanLabel.includes('médio') ||
+      cleanLabel.includes('gemiddeld') ||
+      cleanLabel.includes('mittel')) {
     return specialColor;
   }
 

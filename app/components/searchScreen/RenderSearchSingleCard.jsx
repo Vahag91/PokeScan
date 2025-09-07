@@ -82,7 +82,7 @@ function RenderSearchSingleCard({ item, showCardNumber = false, selectedLanguage
                   ]}
                   numberOfLines={1}
                 >
-                  #{item.number}/{item.set.total}
+                  {selectedLanguage === 'jp' ? `#${item.number}` : `#${item.number}/${item.set.total}`}
                 </Text>
               )}
               <Text

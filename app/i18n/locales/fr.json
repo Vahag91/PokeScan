@@ -189,8 +189,8 @@
     "unknown": "Inconnu",
     "market": {
       "midPrice": "Prix moyen",
-      "lowPrice": "Prix minimum",
-      "highPrice": "Prix maximum",
+      "lowPrice": "Prix min.",
+      "highPrice": "Prix max.",
       "marketPrice": "Prix du marché",
       "directLow": "Minimum direct",
       "avgSell": "Moy. vente",
@@ -202,6 +202,12 @@
       "germanLow": "Min. Allemagne",
       "suggested": "Suggéré",
       "lastUpdated": "Dernière mise à jour"
+    },
+    "charts": {
+      "priceHistoryLocked": "Historique des prix verrouillé",
+      "priceHistorySubtitle": "Passez à Premium pour voir l'historique détaillé des prix et les tendances de vos cartes.",
+      "collectionValueLocked": "Graphique de valeur de collection verrouillé",
+      "collectionValueSubtitle": "Passez à Premium pour suivre la valeur de votre collection dans le temps avec des graphiques interactifs."
     }
   },
 
@@ -234,8 +240,8 @@
     "searchBySetName": "Rechercher par nom d’extension…",
     "searchPlaceholder": "Rechercher",
     "showingResultsFor": "Affichage des résultats pour :",
-    "deselectAll": "Tout désélectionner {{label}}",
-    "selectAll": "Tout sélectionner {{label}}",
+    "deselectAll": "Tout désélectionner",
+    "selectAll": "Tout sélectionner",
     "filtersRarity": "Rareté",
     "filtersEnergyType": "Type d'énergie",
     "filtersType": "Type",

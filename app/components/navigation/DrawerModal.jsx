@@ -133,9 +133,9 @@ export default function DrawerModal({ visible, onClose }) {
           </TouchableOpacity>
         ))}
 
-        <Text style={[styles.version, globalStyles.text, { color: theme.mutedText }]}>
+        {/* <Text style={[styles.version, globalStyles.text, { color: theme.mutedText }]}>
           {tNav('version')}
-        </Text>
+        </Text> */}
 
       </View>
 

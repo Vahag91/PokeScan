@@ -49,7 +49,7 @@ export default function ScannerScreen({ navigation }) {
   const [cardResults, setCardResults] = useState([]);
   const [noResult, setNoResult] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [scanLanguage, setScanLanguage] = useState('jp'); // 'en' or 'jp'
+  const [scanLanguage, setScanLanguage] = useState('en'); // 'en' or 'jp'
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [remainingAttempts, setRemainingAttempts] = useState(3);
 
@@ -382,13 +382,13 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   overlay: {
     position: 'absolute',
-    bottom: 44,
+    bottom: 20,
     left: 16,
     right: 16,
     alignItems: 'center',
   },
   scrollArea: { paddingBottom: 2, alignItems: 'center' },
-  scanSection: { marginTop: 8, alignItems: 'center', gap: 6 },
+  scanSection: { marginTop: 35, alignItems: 'center', gap: 0 },
   tapToScanText: { color: '#E5E7EB', fontSize: 14, opacity: 0.9, marginTop: 4, fontFamily: 'Lato-Bold' },
 
   freeAttemptsContainer: {

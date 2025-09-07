@@ -184,8 +184,8 @@
       "unknown": "不明",
       "market": {
         "midPrice": "中間価格",
-        "lowPrice": "最低価格",
-        "highPrice": "最高価格",
+        "lowPrice": "最低",
+        "highPrice": "最高",
         "marketPrice": "マーケット価格",
         "directLow": "直販最安",
         "avgSell": "平均売却",
@@ -196,9 +196,15 @@
         "avg30": "30日平均",
         "germanLow": "ドイツ最安",
         "suggested": "推奨",
-        "lastUpdated": "最終更新"
-      }
+      "lastUpdated": "最終更新"
     },
+    "charts": {
+      "priceHistoryLocked": "価格履歴がロックされています",
+      "priceHistorySubtitle": "Premiumにアップグレードして、カードの詳細な価格履歴とトレンドを表示します。",
+      "collectionValueLocked": "コレクション価値チャートがロックされています",
+      "collectionValueSubtitle": "Premiumにアップグレードして、インタラクティブなチャートでコレクションの価値を時間とともに追跡します。"
+    }
+  },
     "search": {
       "placeholder": "カードを検索…",
       "noResults": "結果が見つかりません",
@@ -228,8 +234,8 @@
       "searchBySetName": "セット名で検索…",
       "searchPlaceholder": "検索",
       "showingResultsFor": "次の結果を表示中：",
-      "deselectAll": "{{label}} をすべて解除",
-      "selectAll": "{{label}} をすべて選択",
+      "deselectAll": "をすべて解除",
+      "selectAll": "をすべて選択",
       "filtersRarity": "レアリティ",
       "filtersEnergyType": "エネルギータイプ",
       "filtersType": "タイプ",

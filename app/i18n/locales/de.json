@@ -183,9 +183,9 @@
     "noValue": "Kein Wert",
     "unknown": "Unbekannt",
     "market": {
-      "midPrice": "Mittlerer Preis",
-      "lowPrice": "Niedrigster Preis",
-      "highPrice": "Höchster Preis",
+      "midPrice": "Mittel",
+      "lowPrice": "Preis min.",
+      "highPrice": "Preis max.",
       "marketPrice": "Marktpreis",
       "directLow": "Direkt-Tiefstpreis",
       "avgSell": "Ø Verkaufspreis",
@@ -197,6 +197,12 @@
       "germanLow": "DE-Tiefstpreis",
       "suggested": "Empfohlen",
       "lastUpdated": "Zuletzt aktualisiert"
+    },
+    "charts": {
+      "priceHistoryLocked": "Preisverlauf gesperrt",
+      "priceHistorySubtitle": "Upgrade auf Premium, um detaillierte Preisverläufe und Trends für Ihre Karten zu sehen.",
+      "collectionValueLocked": "Sammlungswert-Diagramm gesperrt",
+      "collectionValueSubtitle": "Upgrade auf Premium, um den Wert Ihrer Sammlung über die Zeit mit interaktiven Diagrammen zu verfolgen."
     }
   },
   "search": {
@@ -228,8 +234,8 @@
     "searchBySetName": "Nach Setnamen suchen…",
     "searchPlaceholder": "Suchen",
     "showingResultsFor": "Zeige Ergebnisse für:",
-    "deselectAll": "Alle {{label}} abwählen",
-    "selectAll": "Alle {{label}} auswählen",
+    "deselectAll": "Alle abwählen",
+    "selectAll": "Alle auswählen",
     "filtersRarity": "Seltenheit",
     "filtersEnergyType": "Energietyp",
     "filtersType": "Typ",

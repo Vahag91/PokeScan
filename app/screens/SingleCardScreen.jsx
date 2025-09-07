@@ -26,6 +26,8 @@ import {
 } from '../lib/db';
 import { defaultSearchCards } from '../constants';
 import { ThemeContext } from '../context/ThemeContext';
+import PremiumChartWrapper from '../components/PremiumChartWrapper';
+import PaywallModal from './PaywallScreen';
 import {
   fetchCardFromSupabase,
   fetchEvolutions,
@@ -46,7 +48,7 @@ export default function SingleCardScreen() {
 
   const [cardData, setCardData] = useState(null);
   const [collectionsModalVisible, setCollectionsModalVisible] = useState(false);
-  const [isInCollection, setIsInCollection] = useState(false);
+  const [isInCollection, setIsInCollection] = useState(null);
   const [fromData, setFromData] = useState([]);
   const [toData, setToData] = useState([]);
 
@@ -55,6 +57,7 @@ export default function SingleCardScreen() {
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [days, setDays] = useState(90);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // active series object to pass into <LineChart />
   const activeSeries =
@@ -186,12 +189,18 @@ export default function SingleCardScreen() {
         </AnimatedSection>
 
         {chartData && chartData.length > 0 && (
-          <LineChart
-            data={chartData}
-            series={activeSeries}
-            days={days}
-            onChangeDays={setDays}
-          />
+          <PremiumChartWrapper
+            title={t('cards.charts.priceHistoryLocked')}
+            subtitle={t('cards.charts.priceHistorySubtitle')}
+            onUpgradePress={() => setShowPaywall(true)}
+          >
+            <LineChart
+              data={chartData}
+              series={activeSeries}
+              days={days}
+              onChangeDays={setDays}
+            />
+          </PremiumChartWrapper>
         )}
 
         {cardData.abilities?.length > 0 && (
@@ -269,6 +278,12 @@ export default function SingleCardScreen() {
           setIsInCollection(ids.length > 0);
         }}
         language={language}
+      />
+
+      {/* 💰 Paywall Modal */}
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
       />
     </>
   );

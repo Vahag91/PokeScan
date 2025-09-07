@@ -188,9 +188,9 @@
     "noValue": "Sem valor",
     "unknown": "Desconhecido",
     "market": {
-      "midPrice": "Preço médio",
-      "lowPrice": "Preço mínimo",
-      "highPrice": "Preço máximo",
+      "midPrice": "Médio",
+      "lowPrice": "Preço min.",
+      "highPrice": "Preço máx.",
       "marketPrice": "Preço de mercado",
       "directLow": "Mínimo direto",
       "avgSell": "Média de vendas",
@@ -202,6 +202,12 @@
       "germanLow": "Mínimo Alemanha",
       "suggested": "Sugerido",
       "lastUpdated": "Última atualização"
+    },
+    "charts": {
+      "priceHistoryLocked": "Histórico de preços bloqueado",
+      "priceHistorySubtitle": "Atualize para Premium para ver o histórico detalhado de preços e tendências dos seus cartões.",
+      "collectionValueLocked": "Gráfico de valor da coleção bloqueado",
+      "collectionValueSubtitle": "Atualize para Premium para rastrear o valor da sua coleção ao longo do tempo com gráficos interativos."
     }
   },
 
@@ -234,8 +240,8 @@
     "searchBySetName": "Pesquisar por nome do set…",
     "searchPlaceholder": "Pesquisar",
     "showingResultsFor": "Mostrando resultados para:",
-    "deselectAll": "Desmarcar todos {{label}}",
-    "selectAll": "Marcar todos {{label}}",
+    "deselectAll": "Desmarcar todos",
+    "selectAll": "Marcar todos",
     "filtersRarity": "Raridade",
     "filtersEnergyType": "Tipo de energia",
     "filtersType": "Tipo",

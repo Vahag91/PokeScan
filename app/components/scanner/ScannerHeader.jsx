@@ -229,6 +229,8 @@ const styles = StyleSheet.create({
     zIndex: 2,
     minWidth: 96,
     alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   segmentText: {
     fontSize: 12.5,
@@ -236,6 +238,7 @@ const styles = StyleSheet.create({
     color: '#E5E5EA',
     fontWeight: '700',
     fontFamily: 'Lato-Bold',
+    textAlign: 'center',
   },
   segmentTextActive: {
     color: '#000',

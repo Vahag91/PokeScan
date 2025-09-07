@@ -13,7 +13,7 @@ export default function CollectionHeaderButton({ isInCollection, onPress }) {
   const glowOpacity = useRef(new Animated.Value(0)).current;
   const iconScale = useRef(new Animated.Value(1)).current;
   
-  const prevIsInCollection = useRef(undefined);
+  const prevIsInCollection = useRef(null);
 
   const animate = useCallback(() => {
     // Reset all animations
@@ -91,9 +91,9 @@ export default function CollectionHeaderButton({ isInCollection, onPress }) {
 
   useEffect(() => {
     // Only animate if we have a previous value and it's different from current
-    if (prevIsInCollection.current !== undefined && 
+    if (prevIsInCollection.current !== null && 
         prevIsInCollection.current !== isInCollection && 
-        isInCollection !== undefined) {
+        isInCollection !== null) {
       animate();
     }
     

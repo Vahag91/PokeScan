@@ -197,6 +197,12 @@
       "germanLow": "German Low",
       "suggested": "Suggested",
       "lastUpdated": "Last updated"
+    },
+    "charts": {
+      "priceHistoryLocked": "Price History Locked",
+      "priceHistorySubtitle": "Upgrade to Premium to view detailed price history and trends for your cards.",
+      "collectionValueLocked": "Collection Value Chart Locked",
+      "collectionValueSubtitle": "Upgrade to Premium to track your collection's value over time with interactive charts."
     }
   },
   "search": {
@@ -228,8 +234,8 @@
     "searchBySetName": "Search by set name...",
     "searchPlaceholder": "Search",
     "showingResultsFor": "Showing results for:",
-    "deselectAll": "Deselect All {{label}}",
-    "selectAll": "Select All {{label}}",
+    "deselectAll": "Deselect All",
+    "selectAll": "Select All",
     "filtersRarity": "Rarity",
     "filtersEnergyType": "Energy Type",
     "filtersType": "Type",

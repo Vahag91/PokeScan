@@ -183,9 +183,9 @@
       "noValue": "Geen waarde",
       "unknown": "Onbekend",
       "market": {
-        "midPrice": "Gemiddelde prijs",
-        "lowPrice": "Laagste prijs",
-        "highPrice": "Hoogste prijs",
+        "midPrice": "Gemiddeld",
+        "lowPrice": "Prijs min.",
+        "highPrice": "Prijs max.",
         "marketPrice": "Marktprijs",
         "directLow": "Direct laag",
         "avgSell": "Gem. verkoop",
@@ -196,9 +196,15 @@
         "avg30": "30D gem.",
         "germanLow": "Duits laag",
         "suggested": "Aanbevolen",
-        "lastUpdated": "Laatst bijgewerkt"
-      }
+      "lastUpdated": "Laatst bijgewerkt"
     },
+    "charts": {
+      "priceHistoryLocked": "Prijsgeschiedenis vergrendeld",
+      "priceHistorySubtitle": "Upgrade naar Premium om gedetailleerde prijsgeschiedenis en trends voor je kaarten te bekijken.",
+      "collectionValueLocked": "Collectie waarde grafiek vergrendeld",
+      "collectionValueSubtitle": "Upgrade naar Premium om de waarde van je collectie in de tijd te volgen met interactieve grafieken."
+    }
+  },
     "search": {
       "placeholder": "Kaarten zoeken…",
       "noResults": "Geen resultaten gevonden",
@@ -228,8 +234,8 @@
       "searchBySetName": "Zoek op setnaam…",
       "searchPlaceholder": "Zoeken",
       "showingResultsFor": "Resultaten voor:",
-      "deselectAll": "Alles {{label}} deselecteren",
-      "selectAll": "Alle {{label}} selecteren",
+      "deselectAll": "Alles deselecteren",
+      "selectAll": "Alle selecteren",
       "filtersRarity": "Zeldzaamheid",
       "filtersEnergyType": "Energietype",
       "filtersType": "Type",

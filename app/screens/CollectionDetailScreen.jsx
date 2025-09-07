@@ -34,7 +34,8 @@ import CardGridItem from '../components/collections/CardGridItem';
 import AddCardItem from '../components/collections/AddCardItem';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
-import CollectionValueMiniChart from '../components/collections/CollectionValueMiniChart';
+import PremiumCollectionChart from '../components/PremiumCollectionChart';
+import PaywallModal from './PaywallScreen';
 import RNFS from 'react-native-fs';
 
 const HISTORY_CAP = 450; // ~15 months
@@ -133,6 +134,7 @@ export default function CollectionDetailScreen() {
   const [selectedSet, setSelectedSet] = useState(null);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [updateKey, setUpdateKey] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const loadCards = useCallback(async () => {
     const db = await getDBConnection();
@@ -325,9 +327,10 @@ export default function CollectionDetailScreen() {
       </View>
 
       {/* Mini value chart (reads RNFS history) */}
-      <View style={{ marginTop: 6 }}>
-        <CollectionValueMiniChart collectionId={collectionId} />
-      </View>
+      <PremiumCollectionChart
+        collectionId={collectionId}
+        onUpgradePress={() => setShowPaywall(true)}
+      />
 
       {uniqueSeries.length > 0 && (
         <ScrollView
@@ -490,6 +493,11 @@ export default function CollectionDetailScreen() {
         />
       )}
 
+      {/* 💰 Paywall Modal */}
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+      />
     </View>
   );
 }

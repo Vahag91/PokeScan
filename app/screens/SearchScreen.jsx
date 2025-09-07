@@ -12,6 +12,7 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   ActivityIndicator,
   StyleSheet,
   Text,
@@ -114,17 +115,19 @@ export default function SearchScreen() {
     [term, language]
   );
 
-  // Debounce search on both term and language (single source of truth)
-  useEffect(() => {
-    if (!term.trim()) return;
-    const id = setTimeout(() => {
-      fetchResults(term, language); // pass explicit snapshots
-    }, 400);
-    return () => clearTimeout(id);
-  }, [term, language, fetchResults]);
+  // Search only when user presses Enter or dismisses keyboard
+  // No automatic debounce while typing
+  const debounceTimeoutRef = useRef(null);
+  const isInputFocused = useRef(false);
 
+  // Reset search state when term changes
   useEffect(() => {
-    setHasFetched(false);
+    if (term.trim()) {
+      setHasFetched(false);
+      setResults([]);
+      setErrorType(null);
+      setErrorMessage(null);
+    }
   }, [term]);
 
   useEffect(() => {
@@ -147,6 +150,15 @@ export default function SearchScreen() {
     })();
   }, []);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const clearSearch = () => {
     Keyboard.dismiss();
     setTerm('');
@@ -156,6 +168,9 @@ export default function SearchScreen() {
     setHasFetched(false);
     requestIdRef.current++; // cancel any in-flight requests
     clearTimeout(loaderTimeoutRef.current);
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
     setShowLoader(false);
   };
 
@@ -253,6 +268,19 @@ export default function SearchScreen() {
 
   const resultsCount = filteredAndSortedResults.length;
 
+  const handleInputBlur = () => {
+    // Search when input loses focus if there's a term
+    if (term.trim()) {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      debounceTimeoutRef.current = setTimeout(() => {
+        fetchResults(term, language);
+      }, 100); // Small delay to ensure keyboard is fully dismissed
+    }
+    isInputFocused.current = false;
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Language Toggle - Above Search Bar */}
@@ -283,14 +311,22 @@ export default function SearchScreen() {
         />
         <TextInput
           style={[globalStyles.body, styles.input, { color: theme.text }]}
-                      placeholder={t('search.searchPlaceholder')}
+          placeholder={t('search.searchPlaceholder')}
           placeholderTextColor={theme.placeholder}
           value={term}
           onChangeText={setTerm}
           returnKeyType="search"
+          onFocus={() => {
+            isInputFocused.current = true;
+          }}
+          onBlur={handleInputBlur}
           onSubmitEditing={() => {
             Keyboard.dismiss();
-            if (term.trim()) fetchResults(term, language); // explicit snapshots
+            // Clear debounce timeout and search immediately
+            if (debounceTimeoutRef.current) {
+              clearTimeout(debounceTimeoutRef.current);
+            }
+            if (term.trim()) fetchResults(term, language);
           }}
         />
         {!!term && hasFetched && !showLoader && (
@@ -343,7 +379,7 @@ export default function SearchScreen() {
         maxToRenderPerBatch={8}
         windowSize={5}
         contentContainerStyle={styles.listContainer}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="never"
       />
     </View>
   );
