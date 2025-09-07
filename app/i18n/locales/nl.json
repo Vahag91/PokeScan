@@ -117,7 +117,7 @@
       "scanInstructions2": "• Neem deze details op: Naam, HP, kaartnummer, Illustrator.",
       "scanHint": "Tik om te scannen",
       "clearFloating": "Wissen",
-      "scan": "SCAN",
+      "scan": "Scannen",
       "searching": "Zoeken…",
       "noMatchFound": "We konden geen match vinden. Probeer het opnieuw met beter licht of scherpere kadrering.",
       "header": {
@@ -154,6 +154,19 @@
       "set": "Set",
       "series": "Serie",
       "marketOverview": "Marktoverzicht",
+      "priceHistory": "Prijsgeschiedenis",
+      "noPriceData": "Geen prijsgegevens beschikbaar",
+      "timeRanges": {
+        "1M": "1M",
+        "3M": "3M", 
+        "6M": "6M",
+        "1Y": "1J",
+        "last1Month": "1 maand",
+        "last3Months": "3 maanden",
+        "last6Months": "6 maanden", 
+        "last1Year": "1 jaar",
+        "lastDays": "{{days}} dagen"
+      },
       "abilities": "Vermogen",
       "attacks": "Aanvallen",
       "details": "Details",
@@ -202,6 +215,7 @@
       "sortByDateAsc": "Releasedatum: oud → nieuw",
       "sortByDateDesc": "Releasedatum: nieuw → oud",
       "results": "{{count}} resultaten",
+    "resultsText": "resultaten",
       "searchBy": "🔍 Je kunt zoeken op:",
       "searchTags": {
         "name": "Naam",
@@ -241,6 +255,7 @@
     "navigation": {
       "collections": "Collecties",
       "scanner": "Scanner",
+      "scan": "Scannen",
       "search": "Zoeken",
       "sets": "Sets",
       "theme": "Thema",
@@ -293,6 +308,10 @@
         "cards": "kaarten",
         "noValue": "Geen waarde",
         "clearFilters": "Filters wissen",
+        "collectionValue": "Collectie waarde",
+        "addFromScan": "Toevoegen van scan",
+        "searchCards": "Kaarten zoeken",
+        "notEnoughData": "Niet genoeg gegevens",
         "noCardsYet": "Nog geen kaarten",
         "startBuilding": "Voeg kaarten toe om je collectie op te bouwen.",
         "findCards": "Kaarten zoeken"
@@ -314,8 +333,8 @@
       "release": "Release",
       "searchCardSets": "Zoek kaartsets",
       "failedToLoadStats": "Je setstatistieken laden is mislukt.",
-      "sortLowToHigh": "Laag naar hoog",
-      "sortHighToLow": "Hoog naar laag",
+      "sortLowToHigh": "Nummer: Laag naar hoog",
+      "sortHighToLow": "Nummer: Hoog naar laag",
       "errorLoadingCards": "Fout bij laden van kaarten.",
       "noCardsInSet": "Geen kaarten in deze set gevonden.",
       "owned": "in bezit"

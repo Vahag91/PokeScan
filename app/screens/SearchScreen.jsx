@@ -302,7 +302,7 @@ export default function SearchScreen() {
                 { color: theme.secondaryText },
               ]}
             >
-              {t('search.results', { count: resultsCount })}
+              {`${resultsCount || 0} ${t('search.resultsText', 'results')}`}
             </Text>
             <TouchableOpacity onPress={clearSearch} style={styles.clearBtn}>
               <Icon name="close" size={20} color={theme.text} />

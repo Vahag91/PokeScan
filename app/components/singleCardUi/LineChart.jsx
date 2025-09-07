@@ -9,6 +9,7 @@ import {
 } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
 import { Area, CartesianChart, Line, useChartPressState } from "victory-native";
+import { useTranslation } from "react-i18next";
 import { ThemeContext } from "../../context/ThemeContext";
 
 const inter = require("../../assets/fonts/Lato-Regular.ttf");
@@ -27,6 +28,7 @@ export default function LineChart({
   days: daysProp = 90,                     // controlled current range (days)
   onChangeDays,                            // controlled setter (if provided)
 }) {
+  const { t } = useTranslation();
   const { theme } = useContext(ThemeContext);
   const font = useFont(inter, 10);
   const chartFont = useFont(interBold, 20);
@@ -139,11 +141,11 @@ export default function LineChart({
 
   // label for current range
   const rangeLabel =
-    days === 30 ? "Last 1 month"
-    : days === 90 ? "Last 3 months"
-    : days === 180 ? "Last 6 months"
-    : days === 365 ? "Last 1 year"
-    : `Last ${days} days`;
+    days === 30 ? t('cards.timeRanges.last1Month')
+    : days === 90 ? t('cards.timeRanges.last3Months')
+    : days === 180 ? t('cards.timeRanges.last6Months')
+    : days === 365 ? t('cards.timeRanges.last1Year')
+    : t('cards.timeRanges.lastDays', { days });
 
   // handle range change
   const handlePick = (d) => {
@@ -161,7 +163,7 @@ export default function LineChart({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: theme.text }]}>Price History</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('cards.priceHistory')}</Text>
           <View style={[styles.statusIndicator, { backgroundColor: primaryColor }]} />
         </View>
         <Text style={[styles.subtitle, { color: theme.mutedText }]}>
@@ -182,7 +184,7 @@ export default function LineChart({
                 ]}
               >
                 <Text style={[styles.rangeText, { color: active ? "#fff" : theme.text }]}>
-                  {opt.key}
+                  {t(`cards.timeRanges.${opt.key}`)}
                 </Text>
               </Pressable>
             );
@@ -194,7 +196,7 @@ export default function LineChart({
       <View style={styles.chartContainer} pointerEvents={switching ? "none" : "auto"}>
         {!hasData ? (
           <View style={styles.emptyWrap}>
-            <Text style={{ color: theme.mutedText }}>No price data</Text>
+            <Text style={{ color: theme.mutedText }}>{t('cards.noPriceData')}</Text>
           </View>
         ) : (
           <CartesianChart

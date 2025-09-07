@@ -262,7 +262,12 @@ export default function SingleCardScreen() {
         visible={collectionsModalVisible}
         onClose={() => setCollectionsModalVisible(false)}
         card={cardData}
-        onChange={() => { }}
+        onChange={async () => {
+          // Refresh the collection status when modal closes
+          const db = await getDBConnection();
+          const ids = await getCollectionsForCard(db, cardId);
+          setIsInCollection(ids.length > 0);
+        }}
         language={language}
       />
     </>

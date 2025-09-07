@@ -50,7 +50,11 @@ export default function MainTabs({ setIsDrawerOpen }) {
       <Tab.Screen
         name="Scan"
         component={ScannerScreen}
-        options={{ headerShown: false, tabBarStyle: { display: 'none' } }}
+        options={{ 
+          headerShown: false, 
+          tabBarStyle: { display: 'none' },
+          title: t('navigation.scan')
+        }}
       />
       <Tab.Screen name="Sets" component={SetScreen} options={{ title: t('navigation.sets') }} />
     </Tab.Navigator>

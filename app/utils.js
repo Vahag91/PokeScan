@@ -77,29 +77,54 @@ function getPriceColor(label, value, tier) {
 
   if (!base || isNaN(num)) return defaultColor;
 
-  const cleanLabel = label.trim();
-  switch (cleanLabel) {
-    case 'Market Price':
-    case 'Trend':
-    case 'Price Trend':
-      return num > base ? positiveColor : defaultColor;
-
-    case 'Low Price':
-      return negativeColor;
-
-    case 'High Price':
-    case '1D Avg':
-      return warningColor;
-
-    case 'Direct Low':
-    case 'German Low':
-    case 'Avg Sell':
-    case 'Mid Price':
-      return specialColor;
-
-    default:
-      return defaultColor;
+  const cleanLabel = label.trim().toLowerCase();
+  
+  // Check for market price / trend patterns (works with any language)
+  if (cleanLabel.includes('market') || cleanLabel.includes('trend') || cleanLabel.includes('marché') || cleanLabel.includes('mercado') || cleanLabel.includes('markt') || cleanLabel.includes('mercato') || cleanLabel.includes('tendencia') || cleanLabel.includes('tendenza') || cleanLabel.includes('tendance') || cleanLabel.includes('マーケット') || cleanLabel.includes('トレンド')) {
+    return num > base ? positiveColor : defaultColor;
   }
+
+  // Check for low price patterns (works with any language)
+  if (cleanLabel.includes('low') || cleanLabel.includes('minimum') || cleanLabel.includes('minimo') || cleanLabel.includes('niedrig') || cleanLabel.includes('bas') || cleanLabel.includes('laagste') || cleanLabel.includes('最低') || cleanLabel.includes('direct') || cleanLabel.includes('direkt') || cleanLabel.includes('直販') || cleanLabel.includes('ドイツ')) {
+    return negativeColor;
+  }
+
+  // Check for high price patterns (works with any language)
+  if (cleanLabel.includes('high') || cleanLabel.includes('maximum') || cleanLabel.includes('massimo') || cleanLabel.includes('höchst') || cleanLabel.includes('haut') || cleanLabel.includes('hoogste') || cleanLabel.includes('最高')) {
+    return warningColor;
+  }
+
+  // Check for special price types (mid, direct, german, avg, sell, suggested)
+  if (cleanLabel.includes('mid') || 
+      cleanLabel.includes('moyen') ||
+      cleanLabel.includes('medio') ||
+      cleanLabel.includes('中間') ||
+      cleanLabel.includes('avg') || 
+      cleanLabel.includes('sell') ||
+      cleanLabel.includes('vente') ||
+      cleanLabel.includes('vendita') ||
+      cleanLabel.includes('verkoop') ||
+      cleanLabel.includes('venda') ||
+      cleanLabel.includes('平均') ||
+      cleanLabel.includes('売却') ||
+      cleanLabel.includes('suggested') ||
+      cleanLabel.includes('sugerido') ||
+      cleanLabel.includes('suggéré') ||
+      cleanLabel.includes('empfohlen') ||
+      cleanLabel.includes('consigliato') ||
+      cleanLabel.includes('aanbevolen') ||
+      cleanLabel.includes('推奨') ||
+      cleanLabel.includes('german') ||
+      cleanLabel.includes('deutsch') ||
+      cleanLabel.includes('alemania') ||
+      cleanLabel.includes('allemagne') ||
+      cleanLabel.includes('germania') ||
+      cleanLabel.includes('duits') ||
+      cleanLabel.includes('alemanha')) {
+    return specialColor;
+  }
+
+  return defaultColor;
 }
 
 const defaultColor = { color: '#1E293B' }; // slate-800 (was #94A3B8)

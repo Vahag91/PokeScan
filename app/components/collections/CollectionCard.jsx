@@ -143,7 +143,7 @@ export default function CollectionCard({
             <Text
               style={[globalStyles.caption, styles.timestamp, { color: theme.mutedText }]}
             >
-                             {t('collections.card.lastUpdated')}: {getDaysAgo(item.updatedAt || item.createdAt)}
+              {t('collections.card.lastUpdated')} {getDaysAgo(item.updatedAt || item.createdAt)}
             </Text>
 
             <View style={styles.metaRow}>
@@ -152,7 +152,7 @@ export default function CollectionCard({
                 <Text
                   style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
                 >
-                                     {item.cardCount} {item.cardCount === 1 ? t('collections.detail.card') : t('collections.detail.cards')}
+                  {item.cardCount} {item.cardCount === 1 ? t('collections.detail.card') : t('collections.detail.cards')}
                 </Text>
               </View>
 
@@ -161,7 +161,7 @@ export default function CollectionCard({
                 <Text
                   style={[globalStyles.smallText, styles.metaText, { color: theme.mutedText }]}
                 >
-                                     {item.totalValue ? `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.totalValue)}` : t('collections.card.noValue')}
+                  {item.totalValue ? `$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(item.totalValue)}` : t('collections.card.noValue')}
                 </Text>
               </View>
             </View>

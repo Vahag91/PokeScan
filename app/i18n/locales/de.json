@@ -117,7 +117,7 @@
     "scanInstructions2": "• Nimm diese Details auf: Name, KP, Kartennummer, Illustrator.",
     "scanHint": "Zum Scannen tippen",
     "clearFloating": "Löschen",
-    "scan": "SCAN",
+    "scan": "Scannen",
     "searching": "Suche…",
     "noMatchFound": "Wir konnten keine Übereinstimmung finden. Versuche es mit besserer Beleuchtung oder klarerer Ausrichtung erneut.",
     "header": {
@@ -154,6 +154,19 @@
     "set": "Set",
     "series": "Serie",
     "marketOverview": "Marktübersicht",
+    "priceHistory": "Preisverlauf",
+    "noPriceData": "Keine Preisdaten verfügbar",
+    "timeRanges": {
+      "1M": "1M",
+      "3M": "3M", 
+      "6M": "6M",
+      "1Y": "1J",
+      "last1Month": "1 Monat",
+      "last3Months": "3 Monate",
+      "last6Months": "6 Monate", 
+      "last1Year": "1 Jahr",
+      "lastDays": "{{days}} Tage"
+    },
     "abilities": "Fähigkeiten",
     "attacks": "Attacken",
     "details": "Details",
@@ -202,6 +215,7 @@
     "sortByDateAsc": "Veröffentlichungsdatum: alt → neu",
     "sortByDateDesc": "Veröffentlichungsdatum: neu → alt",
     "results": "{{count}} Ergebnisse",
+    "resultsText": "Ergebnisse",
     "searchBy": "🔍 Du kannst suchen nach:",
     "searchTags": {
       "name": "Name",
@@ -241,6 +255,7 @@
   "navigation": {
     "collections": "Sammlungen",
     "scanner": "Scanner",
+    "scan": "Scannen",
     "search": "Suche",
     "sets": "Sets",
     "theme": "Thema",
@@ -288,11 +303,15 @@
       "title": "Hier ist noch nichts…",
       "subtitle": "Tippe auf den +-Button, um deine erste Sammlung zu erstellen."
     },
-    "detail": {
-      "card": "Karte",
-      "cards": "Karten",
-      "noValue": "Kein Wert",
-      "clearFilters": "Filter löschen",
+      "detail": {
+        "card": "Karte",
+        "cards": "Karten",
+        "noValue": "Kein Wert",
+        "clearFilters": "Filter löschen",
+        "collectionValue": "Sammlungswert",
+        "addFromScan": "Vom Scan hinzufügen",
+        "searchCards": "Karten suchen",
+      "notEnoughData": "Nicht genügend Daten",
       "noCardsYet": "Noch keine Karten",
       "startBuilding": "Füge Karten hinzu und baue deine Sammlung auf.",
       "findCards": "Karten finden"
@@ -314,8 +333,8 @@
     "release": "Veröffentlichung",
     "searchCardSets": "Kartensets durchsuchen",
     "failedToLoadStats": "Fehler beim Laden deiner Set-Statistiken.",
-    "sortLowToHigh": "Niedrig bis hoch",
-    "sortHighToLow": "Hoch bis niedrig",
+    "sortLowToHigh": "Nummer: Niedrig bis hoch",
+    "sortHighToLow": "Nummer: Hoch bis niedrig",
     "errorLoadingCards": "Fehler beim Laden der Karten.",
     "noCardsInSet": "Keine Karten in diesem Set gefunden.",
     "owned": "im Besitz"

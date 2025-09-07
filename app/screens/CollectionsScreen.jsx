@@ -1,3 +1,4 @@
+// screens/CollectionsScreen.jsx
 import React, { useEffect, useState, useCallback, useContext } from 'react';
 import { View, Text, FlatList, StyleSheet, Animated } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -22,6 +23,69 @@ import LockedBlurOverlay from '../components/searchScreen/filter/LockedBlurOverl
 import PaywallModal from '../screens/PaywallScreen';
 import { updateCollectionCardPrices } from '../../supabase/utils';
 
+// ✅ RNFS helpers inline
+import RNFS from 'react-native-fs';
+
+const HISTORY_CAP = 450;
+const historyPathFor = (id) => `${RNFS.DocumentDirectoryPath}/collection_history_${id}.json`;
+const dateKeyUTC = (d = new Date()) => {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+async function upsertTodayInline(collectionId, totalValue, cardCount) {
+  const path = historyPathFor(collectionId);
+  const today = dateKeyUTC();
+
+  // read existing
+  let points = [];
+  try {
+    if (await RNFS.exists(path)) {
+      const txt = await RNFS.readFile(path, 'utf8');
+      const parsed = JSON.parse(txt || '{}');
+      if (Array.isArray(parsed.points)) points = parsed.points;
+    }
+  } catch {}
+
+  // upsert today's (value + count)
+  const val = Number(totalValue) || 0;
+  const cnt = Number(cardCount) || 0;
+  const i = points.findIndex(p => p.date === today);
+  const row = { date: today, totalValue: val, count: cnt };
+  if (i >= 0) points[i] = row; else points.push(row);
+
+  // sort + cap
+  points.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  if (points.length > HISTORY_CAP) points = points.slice(points.length - HISTORY_CAP);
+
+  // atomic-ish write
+  const tmp = `${path}.tmp`;
+  await RNFS.writeFile(tmp, JSON.stringify({ points }), 'utf8');
+  try { await RNFS.unlink(path); } catch {}
+  await RNFS.moveFile(tmp, path);
+}
+
+async function deleteHistoryInline(collectionId) {
+  const path = historyPathFor(collectionId);
+  try { if (await RNFS.exists(path)) await RNFS.unlink(path); } catch {}
+}
+
+// count cards (all copies) for a collection
+async function getCollectionCardCount(db, collectionId) {
+  try {
+    const res = await db.executeSql(
+      `SELECT COUNT(*) as cnt FROM collection_cards WHERE collectionId = ?`,
+      [collectionId]
+    );
+    const cnt = res?.[0]?.rows?.item(0)?.cnt ?? 0;
+    return Number(cnt) || 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default function CollectionsScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
   const { isPremium } = useContext(SubscriptionContext);
@@ -36,7 +100,6 @@ export default function CollectionsScreen({ navigation }) {
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0.95))[0];
 
-
   const loadCollections = useCallback(async () => {
     const db = await getDBConnection();
     const all = await getAllCollectionsWithPreviewCards(db);
@@ -49,36 +112,41 @@ export default function CollectionsScreen({ navigation }) {
     }, [loadCollections]),
   );
 
+  // 🔁 Daily sync: refresh prices -> recompute totals -> snapshot (value+count) -> refresh
   useFocusEffect(
     useCallback(() => {
       const syncPricesAndLoad = async () => {
         await updateCollectionCardPrices();
-  
+
         const db = await getDBConnection();
-        const all = await getAllCollectionsWithPreviewCards(db);
+
+        // read
+        let all = await getAllCollectionsWithPreviewCards(db);
+
+        // recompute totals
         for (const c of all) {
           await updateCollectionTotalValue(db, c.id);
         }
-  
+
+        // re-read after totals
+        all = await getAllCollectionsWithPreviewCards(db);
+
+        // snapshot (value + count)
+        for (const c of all) {
+          const cnt = await getCollectionCardCount(db, c.id);
+          await upsertTodayInline(c.id, c.totalValue ?? 0, cnt);
+        }
+
         await loadCollections();
       };
       syncPricesAndLoad();
     }, [loadCollections])
   );
 
-
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 6,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 6, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -96,9 +164,11 @@ export default function CollectionsScreen({ navigation }) {
     loadCollections();
   };
 
+  // 🗑️ Also remove sidecar history when deleting a collection
   const handleDelete = async collection => {
     const db = await getDBConnection();
     await deleteCollection(db, collection.id);
+    await deleteHistoryInline(collection.id);
     setEditModalVisible(false);
     setEditingCollection(null);
     loadCollections();
@@ -201,12 +271,11 @@ export default function CollectionsScreen({ navigation }) {
         onDelete={handleDelete}
       />
 
-      {/* 🔒 Show overlay then open paywall */}
       {showLockedOverlay && (
         <LockedBlurOverlay
-                  title={t('lockedOverlay.collectionLimitReached')}
-        subtitle={t('lockedOverlay.upgradeSubtitle')}
-        buttonText={t('lockedOverlay.upgradeNow')}
+          title={t('lockedOverlay.collectionLimitReached')}
+          subtitle={t('lockedOverlay.upgradeSubtitle')}
+          buttonText={t('lockedOverlay.upgradeNow')}
           onPress={() => {
             setShowLockedOverlay(false);
             setTimeout(() => setShowPaywall(true), 250);
@@ -215,15 +284,13 @@ export default function CollectionsScreen({ navigation }) {
         />
       )}
 
-      {/* 💰 Paywall Modal */}
       <PaywallModal
         visible={showPaywall}
         onClose={() => setShowPaywall(false)}
-      /> 
+      />
     </Animated.View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

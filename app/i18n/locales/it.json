@@ -159,6 +159,19 @@
     "set": "Set",
     "series": "Serie",
     "marketOverview": "Panoramica del mercato",
+    "priceHistory": "Cronologia prezzi",
+    "noPriceData": "Nessun dato sui prezzi disponibile",
+    "timeRanges": {
+      "1M": "1M",
+      "3M": "3M", 
+      "6M": "6M",
+      "1Y": "1A",
+      "last1Month": "1 mese",
+      "last3Months": "3 mesi",
+      "last6Months": "6 mesi", 
+      "last1Year": "1 anno",
+      "lastDays": "{{days}} giorni"
+    },
     "abilities": "Abilità",
     "attacks": "Attacchi",
     "details": "Dettagli",
@@ -208,6 +221,7 @@
     "sortByDateAsc": "Data di uscita: antico → recente",
     "sortByDateDesc": "Data di uscita: recente → antico",
     "results": "{{count}} risultati",
+    "resultsText": "risultati",
     "searchBy": "🔍 Puoi cercare per:",
     "searchTags": {
       "name": "Nome",
@@ -248,6 +262,7 @@
   "navigation": {
     "collections": "Collezioni",
     "scanner": "Scanner",
+    "scan": "Scansiona",
     "search": "Cerca",
     "sets": "Set",
     "theme": "Tema",
@@ -301,6 +316,10 @@
       "cards": "carte",
       "noValue": "Nessun valore",
       "clearFilters": "Pulisci filtri",
+      "collectionValue": "Valore della collezione",
+      "addFromScan": "Aggiungi dalla scansione",
+      "searchCards": "Cerca carte",
+      "notEnoughData": "Dati insufficienti",
       "noCardsYet": "Nessuna carta al momento",
       "startBuilding": "Inizia a costruire la tua collezione aggiungendo carte.",
       "findCards": "Trova carte"
@@ -323,8 +342,8 @@
     "release": "Uscita",
     "searchCardSets": "Cerca set di carte",
     "failedToLoadStats": "Impossibile caricare le statistiche del set.",
-    "sortLowToHigh": "Basso → alto",
-    "sortHighToLow": "Alto → basso",
+    "sortLowToHigh": "Numero: Basso → alto",
+    "sortHighToLow": "Numero: Alto → basso",
     "errorLoadingCards": "Errore nel caricamento delle carte.",
     "noCardsInSet": "Nessuna carta trovata in questo set.",
     "owned": "in possesso"

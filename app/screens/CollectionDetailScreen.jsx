@@ -1,3 +1,4 @@
+// screens/CollectionDetailScreen.jsx
 import React, { useState, useCallback, useMemo, useContext, memo } from 'react';
 import { useLayoutEffect } from 'react';
 import {
@@ -8,6 +9,12 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import {
+  Menu,
+  MenuOptions,
+  MenuOption,
+  MenuTrigger,
+} from 'react-native-popup-menu';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -27,12 +34,91 @@ import CardGridItem from '../components/collections/CardGridItem';
 import AddCardItem from '../components/collections/AddCardItem';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
+import CollectionValueMiniChart from '../components/collections/CollectionValueMiniChart';
+import RNFS from 'react-native-fs';
 
-export const HeaderAddButton = memo(({ onPress }) => (
-  <TouchableOpacity onPress={onPress} style={{ marginRight: 16 }}>
-    <Ionicons name="add" size={26} color={'#10B981'} />
-  </TouchableOpacity>
-));
+const HISTORY_CAP = 450; // ~15 months
+const historyPathFor = (id) => `${RNFS.DocumentDirectoryPath}/collection_history_${id}.json`;
+const dateKeyUTC = (d = new Date()) => {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+async function upsertToday(collectionId, totalValue, cardCount) {
+  const path = historyPathFor(collectionId);
+  const today = dateKeyUTC();
+
+  // read existing
+  let points = [];
+  try {
+    const exists = await RNFS.exists(path);
+    if (exists) {
+      const txt = await RNFS.readFile(path, 'utf8');
+      const parsed = JSON.parse(txt || '{}');
+      if (Array.isArray(parsed.points)) points = parsed.points;
+    }
+  } catch {}
+
+  // upsert today's point (value + count)
+  const val = Number(totalValue) || 0;
+  const cnt = Number(cardCount) || 0;
+  const i = points.findIndex(p => p.date === today);
+  const row = { date: today, totalValue: val, count: cnt };
+  if (i >= 0) points[i] = row; else points.push(row);
+
+  // sort ASC + cap
+  points.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  if (points.length > HISTORY_CAP) points = points.slice(points.length - HISTORY_CAP);
+
+  // atomic-ish write
+  const tmp = `${path}.tmp`;
+  await RNFS.writeFile(tmp, JSON.stringify({ points }), 'utf8');
+  try { await RNFS.unlink(path); } catch {}
+  await RNFS.moveFile(tmp, path);
+}
+
+export const AddMenu = memo(() => {
+  const { t } = useTranslation();
+  const { theme } = useContext(ThemeContext);
+  const navigation = useNavigation();
+
+  const handleAddFromScan = () => {
+    navigation.navigate('MainTabs', { screen: 'Scan' });
+  };
+
+  const handleSearchCards = () => {
+    navigation.push('SearchStandalone');
+  };
+
+  return (
+    <Menu>
+      <MenuTrigger>
+        <View style={{ marginRight: 16 }}>
+          <Ionicons name="add" size={26} color={'#10B981'} />
+        </View>
+      </MenuTrigger>
+      <MenuOptions customStyles={getOptionsStyles(theme)}>
+        <MenuOption onSelect={handleAddFromScan}>
+          <View style={styles.optionRow}>
+            <Ionicons name="scan" size={16} color="#10B981" />
+            <Text style={[globalStyles.body, { color: theme.text }]}>
+              {t('collections.detail.addFromScan', 'Add from Scan')}
+            </Text>
+          </View>
+        </MenuOption>
+        <MenuOption onSelect={handleSearchCards}>
+          <View style={styles.optionRow}>
+            <Ionicons name="search" size={16} color="#10B981" />
+            <Text style={[globalStyles.body, { color: theme.text }]}>
+              {t('collections.detail.searchCards', 'Search Cards')}
+            </Text>
+          </View>
+        </MenuOption>
+      </MenuOptions>
+    </Menu>
+  );
+});
 
 export default function CollectionDetailScreen() {
   const { t } = useTranslation();
@@ -48,24 +134,33 @@ export default function CollectionDetailScreen() {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [updateKey, setUpdateKey] = useState(0);
 
-  const loadCollectionInfo = useCallback(async () => {
+  const loadCards = useCallback(async () => {
     const db = await getDBConnection();
-    const results = await db.executeSql(
+
+    // cards (also for count)
+    const results = await getCardsByCollectionId(db, collectionId);
+    setCards(results);
+
+    // collection info for totalValue
+    const rows = await db.executeSql(
       `SELECT * FROM collections WHERE id = ? LIMIT 1`,
       [collectionId],
     );
-    if (results[0]?.rows?.length) {
-      setCollectionInfo(results[0].rows.item(0));
+    let row = null;
+    if (rows[0]?.rows?.length) {
+      row = rows[0].rows.item(0);
+      setCollectionInfo(row);
     }
-  }, [collectionId]);
 
-  const loadCards = useCallback(async () => {
-    const db = await getDBConnection();
-    const results = await getCardsByCollectionId(db, collectionId);
-    setCards(results);
-    await loadCollectionInfo();
+    // snapshot today (value + count)
+    try {
+      const total = row?.totalValue ?? 0;
+      const count = results.length;
+      await upsertToday(collectionId, total, count);
+    } catch {}
+
     setUpdateKey(prev => prev + 1);
-  }, [collectionId, loadCollectionInfo]);
+  }, [collectionId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -73,19 +168,15 @@ export default function CollectionDetailScreen() {
     }, [loadCards]),
   );
 
-
-
   const handleQuantityChange = async (item, newQty) => {
     if (newQty < 1) return;
-  
+
     const db = await getDBConnection();
     const currentQty = item.quantity;
-  
+
     if (newQty > currentQty) {
-      // Add one more copy by duplicating an existing row
       await duplicateOneCardRow(db, item.cardId, item.collectionId);
     } else {
-      // Remove one copy (deterministic)
       const results = await db.executeSql(
         `SELECT rowid FROM collection_cards
          WHERE cardId = ? AND collectionId = ?
@@ -98,71 +189,50 @@ export default function CollectionDetailScreen() {
         await removeCardFromCollectionByRowId(db, row.rowid, item.collectionId);
       }
     }
-  
+
     await loadCards();
   };
-  
+
   const handleDeleteAllCopies = async item => {
     const db = await getDBConnection();
     await removeAllCopiesOfCard(db, item.cardId, item.collectionId);
     await loadCards();
   };
 
-
   const uniqueSeries = useMemo(() => {
     const seriesMap = new Map();
-    
     cards.forEach(card => {
       if (card.seriesName) {
         const language = card.language?.toLowerCase() || 'en';
         const flag = language === 'jp' ? '🇯🇵' : '🇺🇸';
         const key = `${card.seriesName}|${language}`;
         const displayName = `${card.seriesName} ${flag}`;
-        
         if (!seriesMap.has(key)) {
-          seriesMap.set(key, {
-            name: card.seriesName,
-            language: language,
-            displayName: displayName,
-            key: key
-          });
+          seriesMap.set(key, { name: card.seriesName, language, displayName, key });
         }
       }
     });
-    
     return Array.from(seriesMap.values());
   }, [cards]);
 
   const uniqueSets = useMemo(() => {
     const setsMap = new Map();
-    
     cards.forEach(card => {
       if (card.setName) {
-        // Check if this set should be shown based on selected series
         if (selectedSeries) {
           const selectedLanguage = selectedSeries.language;
           const cardLanguage = card.language?.toLowerCase() || 'en';
-          if (card.seriesName !== selectedSeries.name || cardLanguage !== selectedLanguage) {
-            return; // Skip this card if it doesn't match the selected series
-          }
+          if (card.seriesName !== selectedSeries.name || cardLanguage !== selectedLanguage) return;
         }
-        
         const language = card.language?.toLowerCase() || 'en';
         const flag = language === 'jp' ? '🇯🇵' : '🇺🇸';
         const key = `${card.setName}|${language}`;
         const displayName = `${card.setName} ${flag}`;
-        
         if (!setsMap.has(key)) {
-          setsMap.set(key, {
-            name: card.setName,
-            language: language,
-            displayName: displayName,
-            key: key
-          });
+          setsMap.set(key, { name: card.setName, language, displayName, key });
         }
       }
     });
-    
     return Array.from(setsMap.values());
   }, [cards, selectedSeries]);
 
@@ -190,29 +260,35 @@ export default function CollectionDetailScreen() {
         map.get(key).quantity += 1;
       }
     }
-    return Array.from(map.values()).sort((a, b) =>
-      a.name?.localeCompare(b.name),
-    );
+    return Array.from(map.values()).sort((a, b) => a.name?.localeCompare(b.name));
   }, [filteredCards]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <HeaderAddButton onPress={() => navigation.push('SearchStandalone')} />
+        <AddMenu />
       ),
     });
   }, [navigation]);
+
   const clearFilters = () => {
     setSelectedSet(null);
     setSelectedSeries(null);
   };
 
+  const handleAddFromScan = () => {
+    navigation.navigate('MainTabs', { screen: 'Scan' });
+  };
+
+  const handleSearchCards = () => {
+    navigation.push('SearchStandalone');
+  };
 
   const renderHeader = () => (
     <View key={collectionInfo?.updatedAt || updateKey}>
       <View style={styles.headerWrapper}>
         <Text style={[globalStyles.subheading, { color: theme.text }]}>
-          {collectionInfo.name}
+          {collectionInfo?.name}
         </Text>
       </View>
 
@@ -241,11 +317,16 @@ export default function CollectionDetailScreen() {
             <Ionicons name="cash-outline" size={16} color="#fff" />
           </LinearGradient>
           <Text style={[globalStyles.smallText, { color: theme.text }]}>
-            {collectionInfo.totalValue > 0
-              ? `$${collectionInfo.totalValue.toFixed(2)}`
-                              : t('collections.detail.noValue')}
+            {collectionInfo?.totalValue > 0
+              ? `$${Number(collectionInfo.totalValue).toFixed(2)}`
+              : t('collections.detail.noValue')}
           </Text>
         </View>
+      </View>
+
+      {/* Mini value chart (reads RNFS history) */}
+      <View style={{ marginTop: 6 }}>
+        <CollectionValueMiniChart collectionId={collectionId} />
       </View>
 
       {uniqueSeries.length > 0 && (
@@ -320,7 +401,7 @@ export default function CollectionDetailScreen() {
         <TouchableOpacity style={styles.clearBtn} onPress={clearFilters}>
           <Ionicons name="close-outline" size={18} color="#fff" />
           <Text style={[globalStyles.smallText, styles.clearText]}>
-                          {t('collections.detail.clearFilters')}
+            {t('collections.detail.clearFilters')}
           </Text>
         </TouchableOpacity>
       )}
@@ -342,7 +423,10 @@ export default function CollectionDetailScreen() {
         item={item}
         isSelected={isSelected}
         onPress={() =>
-          navigation.navigate('SingleCardScreen', { cardId: item.cardId, language: item.language?.toLowerCase() || 'en' })
+          navigation.navigate('SingleCardScreen', {
+            cardId: item.cardId,
+            language: item.language?.toLowerCase() || 'en',
+          })
         }
         onLongPress={() => setSelectedCardId(isSelected ? null : item.cardId)}
         onDecrease={() => handleQuantityChange(item, item.quantity - 1)}
@@ -370,7 +454,7 @@ export default function CollectionDetailScreen() {
               { color: theme.text },
             ]}
           >
-                          {t('collections.detail.noCardsYet')}
+            {t('collections.detail.noCardsYet')}
           </Text>
           <Text
             style={[
@@ -379,7 +463,7 @@ export default function CollectionDetailScreen() {
               { color: theme.mutedText },
             ]}
           >
-                          {t('collections.detail.startBuilding')}
+            {t('collections.detail.startBuilding')}
           </Text>
 
           <TouchableOpacity
@@ -388,27 +472,44 @@ export default function CollectionDetailScreen() {
           >
             <Ionicons name="search" size={16} color="#fff" />
             <Text style={[globalStyles.smallText, styles.emptyButtonText]}>
-                              {t('collections.detail.findCards')}
+              {t('collections.detail.findCards')}
             </Text>
           </TouchableOpacity>
         </View>
       ) : (
-<FlatList
-  data={[...groupedCards]}
-  keyExtractor={item => item.cardId || 'add-button'}
-  renderItem={renderItem}
-  numColumns={2}
-  ListHeaderComponent={renderHeader}
-  columnWrapperStyle={styles.gridRow}
-  contentContainerStyle={styles.list}
-  extraData={updateKey + (collectionInfo?.updatedAt || '')}
-  showsVerticalScrollIndicator={false}
-/>
-
+        <FlatList
+          data={[...groupedCards]}
+          keyExtractor={item => item.cardId || 'add-button'}
+          renderItem={renderItem}
+          numColumns={2}
+          ListHeaderComponent={renderHeader}
+          columnWrapperStyle={styles.gridRow}
+          contentContainerStyle={styles.list}
+          extraData={updateKey + (collectionInfo?.updatedAt || '')}
+          showsVerticalScrollIndicator={false}
+        />
       )}
+
     </View>
   );
 }
+
+const getOptionsStyles = (theme) => ({
+  optionsContainer: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    backgroundColor: theme.cardCollectionBackground,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
+    minWidth: 120,
+    maxWidth: 200,
+    marginTop: 35,
+  },
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
@@ -428,7 +529,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 14,
-    marginBottom: 16,
+    marginBottom: 12,
     paddingHorizontal: 10,
   },
   iconTextBox: {
@@ -448,6 +549,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   filterScroll: {
+    marginTop: 8,
     marginBottom: 8,
     paddingHorizontal: 6,
   },
@@ -519,5 +621,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
+  },
+  
+  // Popup Menu Styles
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    gap: 10,
+    flex: 1,
+    minWidth: 100,
   },
 });

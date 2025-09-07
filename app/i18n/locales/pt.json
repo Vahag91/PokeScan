@@ -159,6 +159,19 @@
     "set": "Set",
     "series": "Série",
     "marketOverview": "Visão geral do mercado",
+    "priceHistory": "Histórico de preços",
+    "noPriceData": "Nenhum dado de preço disponível",
+    "timeRanges": {
+      "1M": "1M",
+      "3M": "3M", 
+      "6M": "6M",
+      "1Y": "1A",
+      "last1Month": "1 mês",
+      "last3Months": "3 meses",
+      "last6Months": "6 meses", 
+      "last1Year": "1 ano",
+      "lastDays": "{{days}} dias"
+    },
     "abilities": "Habilidades",
     "attacks": "Ataques",
     "details": "Detalhes",
@@ -208,6 +221,7 @@
     "sortByDateAsc": "Data de lançamento: antigo → recente",
     "sortByDateDesc": "Data de lançamento: recente → antigo",
     "results": "{{count}} resultados",
+    "resultsText": "resultados",
     "searchBy": "🔍 Você pode pesquisar por:",
     "searchTags": {
       "name": "Nome",
@@ -248,6 +262,7 @@
   "navigation": {
     "collections": "Coleções",
     "scanner": "Scanner",
+    "scan": "Escanear",
     "search": "Pesquisar",
     "sets": "Sets",
     "theme": "Tema",
@@ -296,11 +311,15 @@
       "title": "Nada aqui ainda…",
       "subtitle": "Toque no botão + para criar sua primeira coleção."
     },
-    "detail": {
-      "card": "carta",
-      "cards": "cartas",
-      "noValue": "Sem valor",
-      "clearFilters": "Limpar filtros",
+      "detail": {
+        "card": "carta",
+        "cards": "cartas",
+        "noValue": "Sem valor",
+        "clearFilters": "Limpar filtros",
+        "collectionValue": "Valor da coleção",
+        "addFromScan": "Adicionar do scan",
+        "searchCards": "Buscar cartas",
+      "notEnoughData": "Dados insuficientes",
       "noCardsYet": "Ainda não há cartas",
       "startBuilding": "Comece sua coleção adicionando cartas.",
       "findCards": "Encontrar cartas"
@@ -323,8 +342,8 @@
     "release": "Lançamento",
     "searchCardSets": "Pesquisar sets de cartas",
     "failedToLoadStats": "Falha ao carregar suas estatísticas do set.",
-    "sortLowToHigh": "Baixo → alto",
-    "sortHighToLow": "Alto → baixo",
+    "sortLowToHigh": "Número: Baixo → alto",
+    "sortHighToLow": "Número: Alto → baixo",
     "errorLoadingCards": "Erro ao carregar as cartas.",
     "noCardsInSet": "Nenhuma carta encontrada neste set.",
     "owned": "em posse"

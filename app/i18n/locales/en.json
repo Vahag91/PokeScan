@@ -154,6 +154,19 @@
     "set": "Set",
     "series": "Series",
     "marketOverview": "Market Overview",
+    "priceHistory": "Price History",
+    "noPriceData": "No price data available",
+    "timeRanges": {
+      "1M": "1M",
+      "3M": "3M", 
+      "6M": "6M",
+      "1Y": "1Y",
+      "last1Month": "1 month",
+      "last3Months": "3 months",
+      "last6Months": "6 months", 
+      "last1Year": "1 year",
+      "lastDays": "{{days}} days"
+    },
     "abilities": "Abilities",
     "attacks": "Attacks",
     "details": "Details",
@@ -202,6 +215,7 @@
     "sortByDateAsc": "Release Date: Oldest",
     "sortByDateDesc": "Release Date: Newest",
     "results": "{{count}} results",
+    "resultsText": "results",
     "searchBy": "🔍 You can search by:",
     "searchTags": {
       "name": "Name",
@@ -241,6 +255,7 @@
   "navigation": {
     "collections": "Collections",
     "scanner": "Scanner",
+    "scan": "Scan",
     "search": "Search",
     "sets": "Sets",
     "theme": "Theme",
@@ -293,6 +308,10 @@
         "cards": "cards",
         "noValue": "No value",
         "clearFilters": "Clear filters",
+        "collectionValue": "Collection Value",
+        "addFromScan": "Add from Scan",
+        "searchCards": "Search Cards",
+        "notEnoughData": "Not enough data yet",
         "noCardsYet": "No cards yet",
         "startBuilding": "Start building your collection by adding cards.",
         "findCards": "Find Cards"
@@ -314,8 +333,8 @@
       "release": "Release",
       "searchCardSets": "Search Card Sets",
       "failedToLoadStats": "Failed to load your set stats.",
-      "sortLowToHigh": "Low to High",
-      "sortHighToLow": "High to Low",
+      "sortLowToHigh": "Number: Low to High",
+      "sortHighToLow": "Number: High to Low",
       "errorLoadingCards": "Error loading cards.",
       "noCardsInSet": "No cards found in this set.",
       "owned": "owned"

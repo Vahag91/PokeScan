@@ -121,7 +121,7 @@
     "scanInstructions2": "• Incluez ces détails : nom, PV, numéro de carte, illustrateur.",
     "scanHint": "Appuyez pour scanner",
     "clearFloating": "Effacer",
-    "scan": "SCAN",
+    "scan": "Scanner",
     "searching": "Recherche…",
     "noMatchFound": "Aucune correspondance trouvée. Réessayez avec un meilleur éclairage ou un cadrage plus clair.",
     "header": {
@@ -159,6 +159,19 @@
     "set": "Extension",
     "series": "Série",
     "marketOverview": "Aperçu du marché",
+    "priceHistory": "Historique des prix",
+    "noPriceData": "Aucune donnée de prix disponible",
+    "timeRanges": {
+      "1M": "1M",
+      "3M": "3M", 
+      "6M": "6M",
+      "1Y": "1A",
+      "last1Month": "1 mois",
+      "last3Months": "3 mois",
+      "last6Months": "6 mois", 
+      "last1Year": "1 an",
+      "lastDays": "{{days}} jours"
+    },
     "abilities": "Capacités",
     "attacks": "Attaques",
     "details": "Détails",
@@ -208,6 +221,7 @@
     "sortByDateAsc": "Date de sortie : ancien → récent",
     "sortByDateDesc": "Date de sortie : récent → ancien",
     "results": "{{count}} résultats",
+    "resultsText": "résultats",
     "searchBy": "🔍 Vous pouvez rechercher par :",
     "searchTags": {
       "name": "Nom",
@@ -248,6 +262,7 @@
   "navigation": {
     "collections": "Collections",
     "scanner": "Scanner",
+    "scan": "Scanner",
     "search": "Recherche",
     "sets": "Extensions",
     "theme": "Thème",
@@ -296,11 +311,15 @@
       "title": "Rien ici pour le moment…",
       "subtitle": "Appuyez sur le bouton + pour créer votre première collection."
     },
-    "detail": {
-      "card": "carte",
-      "cards": "cartes",
-      "noValue": "Aucune valeur",
-      "clearFilters": "Effacer les filtres",
+      "detail": {
+        "card": "carte",
+        "cards": "cartes",
+        "noValue": "Aucune valeur",
+        "clearFilters": "Effacer les filtres",
+        "collectionValue": "Valeur de la collection",
+        "addFromScan": "Ajouter depuis le scan",
+        "searchCards": "Rechercher des cartes",
+      "notEnoughData": "Pas assez de données",
       "noCardsYet": "Aucune carte pour le moment",
       "startBuilding": "Commencez votre collection en ajoutant des cartes.",
       "findCards": "Trouver des cartes"
@@ -323,8 +342,8 @@
     "release": "Sortie",
     "searchCardSets": "Rechercher des extensions de cartes",
     "failedToLoadStats": "Échec du chargement de vos statistiques du set.",
-    "sortLowToHigh": "Bas → élevé",
-    "sortHighToLow": "Élevé → bas",
+    "sortLowToHigh": "Numéro: Bas → élevé",
+    "sortHighToLow": "Numéro: Élevé → bas",
     "errorLoadingCards": "Erreur lors du chargement des cartes.",
     "noCardsInSet": "Aucune carte trouvée dans ce set.",
     "owned": "en possession"
