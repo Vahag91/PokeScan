@@ -49,23 +49,23 @@ export default function PremiumCollectionChart({
           colors={[theme.overlayDark, theme.overlayDarker]}
           style={styles.absoluteFill}
         />
-      <View style={styles.lockIconContainer}>
-        <Ionicons name="lock-closed" size={22} color="#8B5CF6" />
-      </View>
-      
-      <Text style={[styles.title, { color: theme.text }]}>
-        {t('cards.charts.collectionValueLocked')}
-      </Text>
-      
-      <TouchableOpacity
-        style={styles.upgradeButton}
-        onPress={onUpgradePress}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.upgradeButtonText}>
-          {t('search.unlockPremium')}
+        <View style={styles.lockIconContainer}>
+          <Ionicons name="lock-closed" size={22} color="#8B5CF6" />
+        </View>
+        
+        <Text style={[styles.title, { color: theme.text }]}>
+          {t('cards.charts.collectionValueLocked')}
         </Text>
-      </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={styles.upgradeButton}
+          onPress={onUpgradePress}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.upgradeButtonText}>
+            {t('search.unlockPremium')}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
     minHeight: 220,
-    marginTop: 6,
+    marginTop: 14,
     position: 'relative',
     overflow: 'hidden',
   },

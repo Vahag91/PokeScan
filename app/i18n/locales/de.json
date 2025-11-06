@@ -31,7 +31,7 @@
     "week": "Woche",
     "year": "Jahr",
     "freeTrialEnabled": "Kostenlose Testphase aktiviert",
-    "tryForFree": "Kostenlos testen",
+    "tryForFree": "Kostenlose Testversion starten",
     "continue": "Weiter",
     "unlockFeatures": "Schalte alle Funktionen frei und scanne mit voller Power.",
     "features": {
@@ -156,6 +156,7 @@
     "marketOverview": "Marktübersicht",
     "priceHistory": "Preisverlauf",
     "noPriceData": "Keine Preisdaten verfügbar",
+    "noPriceDataHint": "Für diesen Zeitraum liegen noch nicht genügend Preisdaten vor. Wähle einen längeren Zeitraum oder schau später noch einmal vorbei.",
     "timeRanges": {
       "1M": "1M",
       "3M": "3M", 
@@ -317,6 +318,10 @@
         "collectionValue": "Sammlungswert",
         "addFromScan": "Vom Scan hinzufügen",
         "searchCards": "Karten suchen",
+        "sortPriceHighToLow": "Preis: Hoch bis niedrig",
+        "sortPriceLowToHigh": "Preis: Niedrig bis hoch",
+        "sortNameAZ": "Name: A bis Z",
+        "sortNameZA": "Name: Z bis A",
       "notEnoughData": "Nicht genügend Daten",
       "noCardsYet": "Noch keine Karten",
       "startBuilding": "Füge Karten hinzu und baue deine Sammlung auf.",

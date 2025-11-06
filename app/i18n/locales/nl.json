@@ -31,7 +31,7 @@
       "week": "Week",
       "year": "Jaar",
       "freeTrialEnabled": "Proefperiode ingeschakeld",
-      "tryForFree": "Gratis proberen",
+      "tryForFree": "Start gratis proefperiode",
       "continue": "Doorgaan",
       "unlockFeatures": "Ontgrendel alle functies en scan op volle kracht.",
       "features": {
@@ -156,6 +156,7 @@
       "marketOverview": "Marktoverzicht",
       "priceHistory": "Prijsgeschiedenis",
       "noPriceData": "Geen prijsgegevens beschikbaar",
+      "noPriceDataHint": "Voor deze periode hebben we nog niet genoeg prijsgegevens. Probeer een langere periode of kom later terug.",
       "timeRanges": {
         "1M": "1M",
         "3M": "3M", 
@@ -317,6 +318,10 @@
         "collectionValue": "Collectie waarde",
         "addFromScan": "Toevoegen van scan",
         "searchCards": "Kaarten zoeken",
+        "sortPriceHighToLow": "Prijs: Hoog naar laag",
+        "sortPriceLowToHigh": "Prijs: Laag naar hoog",
+        "sortNameAZ": "Naam: A tot Z",
+        "sortNameZA": "Naam: Z tot A",
         "notEnoughData": "Niet genoeg gegevens",
         "noCardsYet": "Nog geen kaarten",
         "startBuilding": "Voeg kaarten toe om je collectie op te bouwen.",

@@ -37,6 +37,7 @@ import { globalStyles } from '../../globalStyles';
 import PremiumCollectionChart from '../components/PremiumCollectionChart';
 import PaywallModal from './PaywallScreen';
 import RNFS from 'react-native-fs';
+import { normalizeCardFromDb } from '../utils';
 
 const HISTORY_CAP = 450; // ~15 months
 const historyPathFor = (id) => `${RNFS.DocumentDirectoryPath}/collection_history_${id}.json`;
@@ -135,6 +136,7 @@ export default function CollectionDetailScreen() {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [updateKey, setUpdateKey] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [sortOption, setSortOption] = useState('price-desc');
 
   const loadCards = useCallback(async () => {
     const db = await getDBConnection();
@@ -238,6 +240,50 @@ export default function CollectionDetailScreen() {
     return Array.from(setsMap.values());
   }, [cards, selectedSeries]);
 
+  const computeUnitPrice = useCallback((card) => {
+    const normalized = normalizeCardFromDb(card);
+
+    const extractTcgPrice = (tcg) => {
+      const src = (tcg?.prices ?? tcg) || {};
+      const markets = [];
+
+      const walk = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        Object.values(obj).forEach((value) => {
+          if (!value) return;
+          if (typeof value === 'number') return;
+          if (typeof value === 'object') {
+            if (value?.market != null && typeof value.market === 'number') {
+              markets.push(value.market);
+            }
+            walk(value);
+          }
+        });
+      };
+
+      walk(src);
+      return markets.length ? markets[0] : null;
+    };
+
+    const extractCardmarketPrice = (cm) => {
+      const src = (cm?.prices ?? cm) || {};
+      const candidates = [
+        src.averageSellPrice,
+        src.trendPrice,
+        src.lowPrice,
+      ];
+      return candidates.find((n) => typeof n === 'number' && !Number.isNaN(n)) ?? null;
+    };
+
+    const tcgPrice = extractTcgPrice(normalized.tcgplayer);
+    if (tcgPrice != null) return tcgPrice;
+
+    const cmPrice = extractCardmarketPrice(normalized.cardmarket);
+    if (cmPrice != null) return cmPrice;
+
+    return null;
+  }, []);
+
   const filteredCards = useMemo(() => {
     return cards.filter(card => {
       if (selectedSet) {
@@ -256,14 +302,80 @@ export default function CollectionDetailScreen() {
     const map = new Map();
     for (const card of filteredCards) {
       const key = card.cardId;
-      if (!map.has(key)) {
-        map.set(key, { ...card, quantity: 1 });
-      } else {
-        map.get(key).quantity += 1;
+      const unitPrice = computeUnitPrice(card);
+      const existing = map.get(key);
+
+      if (!existing) {
+        map.set(key, {
+          ...card,
+          quantity: 1,
+          unitPrice,
+        });
+        continue;
+      }
+
+      existing.quantity += 1;
+      if (existing.unitPrice == null && unitPrice != null) {
+        existing.unitPrice = unitPrice;
       }
     }
-    return Array.from(map.values()).sort((a, b) => a.name?.localeCompare(b.name));
-  }, [filteredCards]);
+
+    return Array.from(map.values())
+      .map(entry => ({
+        ...entry,
+        totalPrice:
+          typeof entry.unitPrice === 'number'
+            ? entry.unitPrice * entry.quantity
+            : null,
+      }))
+      .sort((a, b) => {
+        const nameA = (a.customName || a.name || '').toLowerCase();
+        const nameB = (b.customName || b.name || '').toLowerCase();
+        const pa =
+          typeof a.unitPrice === 'number' && !Number.isNaN(a.unitPrice)
+            ? a.unitPrice
+            : null;
+        const pb =
+          typeof b.unitPrice === 'number' && !Number.isNaN(b.unitPrice)
+            ? b.unitPrice
+            : null;
+
+        if (pa == null && pb == null) {
+          if (nameA === nameB) return 0;
+          return nameA > nameB ? 1 : -1;
+        }
+
+        if (pa == null) return 1;
+        if (pb == null) return -1;
+
+        const diff = sortOption === 'price-desc' ? pb - pa : pa - pb;
+        if (diff !== 0) return diff;
+
+        if (nameA === nameB) return 0;
+        return nameA > nameB ? 1 : -1;
+      });
+  }, [filteredCards, computeUnitPrice, sortOption]);
+
+  const sortConfig = useMemo(
+    () => ({
+      'price-desc': {
+        label: t('collections.detail.sortPriceHighToLow'),
+        icon: 'arrow-down',
+      },
+      'price-asc': {
+        label: t('collections.detail.sortPriceLowToHigh'),
+        icon: 'arrow-up',
+      },
+    }),
+    [t],
+  );
+
+  const cycleSortOption = useCallback(() => {
+    const order = ['price-desc', 'price-asc'];
+    const currentIdx = order.indexOf(sortOption);
+    const next = order[(currentIdx + 1) % order.length];
+    setSortOption(next);
+  }, [sortOption]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -408,6 +520,31 @@ export default function CollectionDetailScreen() {
           </Text>
         </TouchableOpacity>
       )}
+
+      <View style={styles.sortWrapper}>
+        <TouchableOpacity
+          style={styles.sortButton}
+          onPress={cycleSortOption}
+          activeOpacity={0.85}
+        >
+          <View style={styles.sortButtonInner}>
+            <Ionicons
+              name={sortConfig[sortOption]?.icon || 'swap-vertical'}
+              size={16}
+              color={theme.secondaryText}
+            />
+            <Text
+              style={[
+                globalStyles.smallText,
+                styles.sortButtonText,
+                { color: theme.text },
+              ]}
+            >
+              {sortConfig[sortOption]?.label}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -539,6 +676,25 @@ const styles = StyleSheet.create({
     gap: 14,
     marginBottom: 12,
     paddingHorizontal: 10,
+  },
+  sortWrapper: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 2,
+  },
+  sortButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 18,
+  },
+  sortButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sortButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   iconTextBox: {
     flexDirection: 'row',

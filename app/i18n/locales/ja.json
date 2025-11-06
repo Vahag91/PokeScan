@@ -31,7 +31,7 @@
       "week": "週",
       "year": "年",
       "freeTrialEnabled": "無料トライアル有効",
-      "tryForFree": "無料で試す",
+      "tryForFree": "無料トライアルを開始",
       "continue": "続行",
       "unlockFeatures": "すべての機能を解放してフルパワーでスキャン。",
       "features": {
@@ -156,6 +156,7 @@
     "marketOverview": "市場概要",
     "priceHistory": "価格履歴",
     "noPriceData": "価格データがありません",
+    "noPriceDataHint": "この期間の価格データが不足しています。より長い期間を試すか、後ほどもう一度ご確認ください。",
     "timeRanges": {
       "1M": "1ヶ月",
       "3M": "3ヶ月", 
@@ -317,6 +318,10 @@
         "collectionValue": "コレクション価値",
         "addFromScan": "スキャンから追加",
         "searchCards": "カードを検索",
+        "sortPriceHighToLow": "価格: 高い順",
+        "sortPriceLowToHigh": "価格: 低い順",
+        "sortNameAZ": "名前: A→Z",
+        "sortNameZA": "名前: Z→A",
         "notEnoughData": "データが不足しています",
         "noCardsYet": "カードはまだありません",
         "startBuilding": "カードを追加してコレクションを作成しましょう。",

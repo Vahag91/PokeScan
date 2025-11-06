@@ -56,6 +56,7 @@ export default function SingleCardScreen() {
   const [seriesList, setSeriesList] = useState([]);
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [chartData, setChartData] = useState([]);
+  const [hasChartAttempted, setHasChartAttempted] = useState(false);
   const [days, setDays] = useState(90);
   const [showPaywall, setShowPaywall] = useState(false);
 
@@ -78,6 +79,10 @@ export default function SingleCardScreen() {
   }, [headerRightButton, navigation]);
 
   useEffect(() => {
+    setSeriesList([]);
+    setSelectedSeries(null);
+    setChartData([]);
+    setHasChartAttempted(false);
     if (!cardId) return;
 
     (async () => {
@@ -144,13 +149,16 @@ export default function SingleCardScreen() {
 
         if (!key) {
           setChartData([]);
+          setHasChartAttempted(true);
           return;
         }
 
         const { points } = await fetchPriceHistoryPoints(cardData.id, key, days);
         setChartData(points || []);
+        setHasChartAttempted(true);
       } catch (e) {
         setChartData([]);
+        setHasChartAttempted(true);
       }
     })();
   }, [cardData?.id, days]);
@@ -162,8 +170,10 @@ export default function SingleCardScreen() {
       try {
         const { points } = await fetchPriceHistoryPoints(cardData.id, selectedSeries, days);
         setChartData(points || []);
+        setHasChartAttempted(true);
       } catch (e) {
         setChartData([]);
+        setHasChartAttempted(true);
       }
     })();
   }, [cardData?.id, selectedSeries, days]);
@@ -188,14 +198,14 @@ export default function SingleCardScreen() {
           <MarketOverview tcgplayer={cardData.tcgplayer} cardmarket={cardData.cardmarket} />
         </AnimatedSection>
 
-        {chartData && chartData.length > 0 && (
+        {hasChartAttempted && (
           <PremiumChartWrapper
             title={t('cards.charts.priceHistoryLocked')}
             subtitle={t('cards.charts.priceHistorySubtitle')}
             onUpgradePress={() => setShowPaywall(true)}
           >
             <LineChart
-              data={chartData}
+              data={chartData || []}
               series={activeSeries}
               days={days}
               onChangeDays={setDays}

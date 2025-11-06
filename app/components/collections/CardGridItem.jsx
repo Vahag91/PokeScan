@@ -35,6 +35,13 @@ export default function CardGridItem({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.95)).current;
   const closeAnim = useRef(new Animated.Value(20)).current;
+  const unitPrice =
+    typeof item?.unitPrice === 'number' && !Number.isNaN(item.unitPrice)
+      ? item.unitPrice
+      : null;
+  const formattedUnitPrice =
+    unitPrice != null ? `$${unitPrice.toFixed(2)}` : '$0.00';
+  const priceColor = unitPrice != null ? theme.greenBadgeText || '#16A34A' : theme.mutedText;
 
   useEffect(() => {
     if (isSelected) {
@@ -65,9 +72,20 @@ export default function CardGridItem({
           style={styles.cardImage}
           resizeMode="cover"
         />
-        <Text style={[globalStyles.smallText, styles.cardName, { color: theme.text }]} numberOfLines={1}>
-          {item.customName || item.name}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text
+            style={[globalStyles.smallText, styles.cardName, { color: theme.text }]}
+            numberOfLines={1}
+          >
+            {item.customName || item.name}
+          </Text>
+          <Text
+            style={[globalStyles.smallText, styles.priceTag, { color: priceColor }]}
+            numberOfLines={1}
+          >
+            {formattedUnitPrice}
+          </Text>
+        </View>
 
         {item.quantity > 1 && (
           <View style={styles.quantityBadge}>
@@ -150,8 +168,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   cardName: {
-    textAlign: 'center',
+    flex: 1,
+    marginRight: 8,
+    textAlign: 'left',
     fontWeight: '600',
+  },
+  titleRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  priceTag: {
+    fontWeight: '700',
   },
   quantityBadge: {
     position: 'absolute',

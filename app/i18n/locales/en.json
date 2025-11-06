@@ -31,7 +31,7 @@
     "week": "Week",
     "year": "Year",
     "freeTrialEnabled": "Free trial enabled",
-    "tryForFree": "Try For Free",
+    "tryForFree": "Start free trial",
     "continue": "Continue",
     "unlockFeatures": "Unlock all features and scan with full power.",
     "features": {
@@ -156,6 +156,7 @@
     "marketOverview": "Market Overview",
     "priceHistory": "Price History",
     "noPriceData": "No price data available",
+    "noPriceDataHint": "We don't have enough price data for this range yet. Try a longer range or check back soon.",
     "timeRanges": {
       "1M": "1M",
       "3M": "3M", 
@@ -317,6 +318,10 @@
         "collectionValue": "Collection Value",
         "addFromScan": "Add from Scan",
         "searchCards": "Search Cards",
+        "sortPriceHighToLow": "Price: High to Low",
+        "sortPriceLowToHigh": "Price: Low to High",
+        "sortNameAZ": "Name: A to Z",
+        "sortNameZA": "Name: Z to A",
         "notEnoughData": "Not enough data yet",
         "noCardsYet": "No cards yet",
         "startBuilding": "Start building your collection by adding cards.",

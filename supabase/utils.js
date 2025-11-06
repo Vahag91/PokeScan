@@ -950,15 +950,25 @@ export async function fetchSeriesOptions(cardId, days = 90) {
 
 export async function fetchPriceHistoryPoints(cardId, seriesKey = null, days = 90) {
   const sinceIso = new Date(Date.now() - days * DAY_MS).toISOString();
+  console.log('[fetchPriceHistoryPoints] start', { cardId, seriesKey, days, sinceIso });
 
   // pick default series if not provided
   let chosen = seriesKey;
   let seriesLabel = null;
   if (!chosen) {
     const options = await fetchSeriesOptions(cardId, days);
+    console.log('[fetchPriceHistoryPoints] fetched series options', {
+      cardId,
+      days,
+      optionCount: options.length,
+      options,
+    });
     if (!options.length) return { points: [], series_key: null, series_label: null };
     chosen = options[0].series_key;
     seriesLabel = options[0].series_label;
+    console.log('[fetchPriceHistoryPoints] default series selected', { chosen, seriesLabel });
+  } else {
+    console.log('[fetchPriceHistoryPoints] using provided series', { chosen });
   }
 
   const { data, error } = await supabase
@@ -969,7 +979,17 @@ export async function fetchPriceHistoryPoints(cardId, seriesKey = null, days = 9
     .gte('bucket_end_at', sinceIso)
     .order('bucket_end_at', { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    console.error('[fetchPriceHistoryPoints] query error', { cardId, chosen, days, error });
+    throw error;
+  }
+
+  console.log('[fetchPriceHistoryPoints] raw data count', {
+    cardId,
+    chosen,
+    days,
+    count: data?.length ?? 0,
+  });
 
   if (!seriesLabel) seriesLabel = data?.[0]?.series_label || chosen;
 
@@ -978,6 +998,13 @@ export async function fetchPriceHistoryPoints(cardId, seriesKey = null, days = 9
     highTmp: Number(r.value),
     date: r.bucket_end_at,
   }));
+
+  console.log('[fetchPriceHistoryPoints] mapped points', {
+    cardId,
+    chosen,
+    days,
+    pointCount: points.length,
+  });
 
   return { points, series_key: chosen, series_label: seriesLabel };
 }

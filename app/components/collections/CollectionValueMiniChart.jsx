@@ -71,7 +71,6 @@ export default function CollectionValueMiniChart({
   // fonts
   const font = useFont(inter, 10);
   const chartFont = useFont(interBold, 16);
-  const fontsReady = !!font && !!chartFont;
 
   // press state
   const { state, isActive } = useChartPressState({ x: 0, y: { highTmp: 0 } });
@@ -306,7 +305,7 @@ export default function CollectionValueMiniChart({
                   {chartFont && !isActive ? (
                     <SKText
                       x={chartBounds.left + 6}
-                      y={16}
+                      y={12}
                       font={chartFont}
                       text={money(latestValue)}
                       color={primaryColor}
@@ -378,7 +377,7 @@ const styles = StyleSheet.create({
   rangeRow: { flexDirection: "row", gap: 6 },
   rangeBtn: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 },
   rangeText: { fontSize: 11, fontWeight: "600" },
-  chartContainer: { height: 120, width: "100%", overflow: "hidden" },
+  chartContainer: { height: 135, width: "100%", overflow: "hidden" },
   loadingWrap: { height: 120, alignItems: "center", justifyContent: "center" },
   emptyWrap: { flex: 1, height: 120, alignItems: "center", justifyContent: "center" },
 });

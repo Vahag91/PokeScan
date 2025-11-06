@@ -11,17 +11,14 @@ import { useDerivedValue } from "react-native-reanimated";
 import { Area, CartesianChart, Line, useChartPressState } from "victory-native";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "../../context/ThemeContext";
-
 const inter = require("../../assets/fonts/Lato-Regular.ttf");
 const interBold = require("../../assets/fonts/Lato-Bold.ttf");
-
 const RANGE_OPTIONS = [
   { key: "1M", days: 30 },
   { key: "3M", days: 90 },
   { key: "6M", days: 180 },
   { key: "1Y", days: 365 },
 ];
-
 export default function LineChart({
   data = [],                               // [{ highTmp, date }]
   series = null,                           // { series_key, series_label }
@@ -33,16 +30,13 @@ export default function LineChart({
   const font = useFont(inter, 10);
   const chartFont = useFont(interBold, 20);
   const { state, isActive } = useChartPressState({ x: 0, y: { highTmp: 0 } });
-
   // Uncontrolled fallback if parent didn't pass onChangeDays
   const [daysUncontrolled, setDaysUncontrolled] = useState(daysProp || 90);
   const days = onChangeDays ? daysProp : daysUncontrolled;
-
   // ===== pretty series label (dedupe trailing tokens + split) =====
   const prettySeries = useMemo(() => {
     const raw = (series?.series_label || series?.series_key || "").replace(/[_]+/g, " ").trim();
     if (!raw) return null;
-
     const variants = [
       "1st edition holofoil",
       "reverse holofoil",
@@ -51,11 +45,8 @@ export default function LineChart({
       "normal",
       "unlimited",
     ];
-
     const norm = (s) => s.toLowerCase().replace(/\s+/g, " ").trim();
-
     let s = raw.replace(/\s+/g, " ").trim();
-
     // collapse “… <variant> <variant>” to “… <variant>”
     for (const v of variants.sort((a,b)=>b.length-a.length)) {
       const reDup = new RegExp(`${v.replace(" ", "\\s+")}\\s+${v.replace(" ", "\\s+")}$`, "i");
@@ -64,32 +55,24 @@ export default function LineChart({
         break;
       }
     }
-
     // find trailing variant phrase
     let found = null;
     for (const v of variants.sort((a,b)=>b.length-a.length)) {
       const reEnd = new RegExp(`${v.replace(" ", "\\s+")}$`, "i");
       if (reEnd.test(s)) { found = v; break; }
     }
-
     if (!found) return titleCase(s);
-
     // strip the trailing variant (once)
     const reEndOnce = new RegExp(`\\s*${found.replace(" ", "\\s+")}\\s*$`, "i");
     let left = s.replace(reEndOnce, "").trim();
-
     // if left still ends with the same variant (duplicate earlier), remove again
     const reEndAgain = new RegExp(`\\s*${found.replace(" ", "\\s+")}\\s*$`, "i");
     left = left.replace(reEndAgain, "").trim();
-
     const variantLabel = titleCase(found);
     if (!left) return variantLabel;
-
     if (norm(left).endsWith(norm(found))) return titleCase(left);
-
     return `${titleCase(left)} — ${variantLabel}`;
   }, [series?.series_label, series?.series_key]);
-
   // ===== data prep (use real dates for X) =====
   const prepared = useMemo(() => {
     return (data || []).map((d, i) => {
@@ -97,12 +80,10 @@ export default function LineChart({
       return { x: ts, highTmp: Number(d?.highTmp ?? 0) };
     });
   }, [data]);
-
   const dtFmt = useMemo(
     () => new Intl.DateTimeFormat(undefined, { month: "short", day: "2-digit" }),
     []
   );
-
   // ===== initial appear animation =====
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(30)).current;
@@ -112,7 +93,6 @@ export default function LineChart({
       Animated.timing(translateY, { toValue: 0, duration: 400, useNativeDriver: true }),
     ]).start();
   }, [opacity, translateY]);
-
   // ===== tiny "switching" window to keep UI in sync during range changes =====
   const [switching, setSwitching] = useState(false);
   const switchTimer = useRef(null);
@@ -123,22 +103,24 @@ export default function LineChart({
     switchTimer.current = setTimeout(() => setSwitching(false), 150);
     return () => clearTimeout(switchTimer.current);
   }, [data]);
-
   // ===== hover value =====
   const value = useDerivedValue(() => {
     const v = state?.y?.highTmp?.value?.value;
     if (typeof v !== "number" || Number.isNaN(v)) return "$0.00";
     return "$" + v.toFixed(2);
   }, [state]);
-
   // ===== theme =====
   const labelColor = theme.mutedText;
   const lineColor = theme.border;
   const primaryColor = "#00C853";
   const gradientColor = theme.background === "#0F172A" ? "#00C85315" : "#00C85308";
-
   const hasData = prepared.length > 0;
-
+  const suggestedRanges = useMemo(() => {
+    const others = RANGE_OPTIONS.filter((opt) => opt.days !== days);
+    const longer = others.filter((opt) => opt.days > days);
+    const source = longer.length ? longer : others;
+    return source.slice(0, 3);
+  }, [days]);
   // label for current range
   const rangeLabel =
     days === 30 ? t('cards.timeRanges.last1Month')
@@ -146,13 +128,11 @@ export default function LineChart({
     : days === 180 ? t('cards.timeRanges.last6Months')
     : days === 365 ? t('cards.timeRanges.last1Year')
     : t('cards.timeRanges.lastDays', { days });
-
   // handle range change
   const handlePick = (d) => {
     if (onChangeDays) onChangeDays(d);
     else setDaysUncontrolled(d);
   };
-
   return (
     <Animated.View
       style={[
@@ -169,7 +149,6 @@ export default function LineChart({
         <Text style={[styles.subtitle, { color: theme.mutedText }]}>
           {rangeLabel}{prettySeries ? ` • ${prettySeries}` : ""}
         </Text>
-
         {/* Range switcher */}
         <View style={styles.rangeRow}>
           {RANGE_OPTIONS.map(opt => {
@@ -191,12 +170,32 @@ export default function LineChart({
           })}
         </View>
       </View>
-
       {/* Chart */}
       <View style={styles.chartContainer} pointerEvents={switching ? "none" : "auto"}>
         {!hasData ? (
           <View style={styles.emptyWrap}>
-            <Text style={{ color: theme.mutedText }}>{t('cards.noPriceData')}</Text>
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>{t('cards.noPriceData')}</Text>
+            <Text style={[styles.emptySubtitle, { color: theme.mutedText }]}>
+              {t('cards.noPriceDataHint')}
+            </Text>
+            {suggestedRanges.length > 0 && (
+              <View style={styles.emptyActions}>
+                {suggestedRanges.map((opt) => (
+                  <Pressable
+                    key={`empty-${opt.key}`}
+                    onPress={() => handlePick(opt.days)}
+                    style={[
+                      styles.emptyActionBtn,
+                      { borderColor: theme.border, backgroundColor: theme.inputBackground },
+                    ]}
+                  >
+                    <Text style={[styles.emptyActionText, { color: theme.text }]}>
+                      {t(`cards.timeRanges.${opt.key}`)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
         ) : (
           <CartesianChart
@@ -228,7 +227,6 @@ export default function LineChart({
                       style={"fill"}
                     />
                   ) : null}
-
                   {seriesPts.length > 0 && (
                     <Area
                       points={seriesPts}
@@ -242,7 +240,6 @@ export default function LineChart({
                       />
                     </Area>
                   )}
-
                   {seriesPts.length > 0 && (
                     <Line
                       points={seriesPts}
@@ -251,7 +248,6 @@ export default function LineChart({
                       animate={switching ? undefined : { type: "timing", duration: 400 }}
                     />
                   )}
-
                   {!switching && isActive && state?.x && state?.y?.highTmp ? (
                     <ToolTip x={state.x.position} y={state.y.highTmp.position} color={primaryColor} />
                   ) : null}
@@ -264,7 +260,6 @@ export default function LineChart({
     </Animated.View>
   );
 }
-
 function ToolTip({ x, y, color = "#00C853" }) {
   return (
     <>
@@ -274,11 +269,9 @@ function ToolTip({ x, y, color = "#00C853" }) {
     </>
   );
 }
-
 function titleCase(s) {
   return s.replace(/\b([a-z])/gi, (m) => m.toUpperCase());
 }
-
 const getStyles = (theme) =>
   StyleSheet.create({
     sectionBox: {
@@ -292,14 +285,12 @@ const getStyles = (theme) =>
       elevation: 2,
     },
   });
-
 const styles = StyleSheet.create({
   header: { marginBottom: 12 },
   titleRow: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
   title: { fontSize: 18, fontWeight: "600", marginRight: 8, letterSpacing: -0.3 },
   statusIndicator: { width: 6, height: 6, borderRadius: 3, opacity: 0.9 },
   subtitle: { fontSize: 14, fontWeight: "400", opacity: 0.8 },
-
   rangeRow: {
     flexDirection: "row",
     gap: 8,
@@ -313,7 +304,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   rangeText: { fontSize: 12, fontWeight: "600" },
-
   chartContainer: { height: 180, width: "100%", overflow: "hidden" },
-  emptyWrap: { flex: 1, height: 180, alignItems: "center", justifyContent: "center" },
+  emptyWrap: {
+    flex: 1,
+    height: 180,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  emptyTitle: { fontSize: 16, fontWeight: "600", marginBottom: 6, textAlign: "center" },
+  emptySubtitle: { fontSize: 13, textAlign: "center", lineHeight: 18, marginBottom: 12 },
+  emptyActions: { flexDirection: "row", justifyContent: "center", flexWrap: "wrap" },
+  emptyActionBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginHorizontal: 4,
+    marginBottom: 8,
+  },
+  emptyActionText: { fontSize: 12, fontWeight: "600" },
 });

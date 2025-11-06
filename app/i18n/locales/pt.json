@@ -32,7 +32,7 @@
     "week": "Semana",
     "year": "Ano",
     "freeTrialEnabled": "Teste gratuito ativado",
-    "tryForFree": "Experimentar grátis",
+    "tryForFree": "Iniciar teste gratuito",
     "continue": "Continuar",
     "unlockFeatures": "Desbloqueie todos os recursos e escaneie com potência máxima.",
     "features": {
@@ -161,6 +161,7 @@
     "marketOverview": "Visão geral do mercado",
     "priceHistory": "Histórico de preços",
     "noPriceData": "Nenhum dado de preço disponível",
+    "noPriceDataHint": "Ainda não temos dados suficientes para este intervalo. Experimente um período maior ou volte mais tarde.",
     "timeRanges": {
       "1M": "1M",
       "3M": "3M", 
@@ -325,6 +326,10 @@
         "collectionValue": "Valor da coleção",
         "addFromScan": "Adicionar do scan",
         "searchCards": "Buscar cartas",
+        "sortPriceHighToLow": "Preço: Maior para menor",
+        "sortPriceLowToHigh": "Preço: Menor para maior",
+        "sortNameAZ": "Nome: A a Z",
+        "sortNameZA": "Nome: Z a A",
       "notEnoughData": "Dados insuficientes",
       "noCardsYet": "Ainda não há cartas",
       "startBuilding": "Comece sua coleção adicionando cartas.",

@@ -22,23 +22,23 @@ export default function CreateCollectionModal({ visible, onClose, onCreated }) {
 
   const styles = getStyles(theme, error);
 
-const handleCreate = async () => {
-  if (!newName.trim()) {
-    setError(true);
-    return;
-  }
+  const handleCreate = async () => {
+    if (!newName.trim()) {
+      setError(true);
+      return;
+    }
 
-  try {
-    const db = await getDBConnection();
-    await createCollection(db, newName.trim());
-    setNewName('');
-    setError(false);
-    onClose();
-    if (onCreated) onCreated();
-  } catch (_) {
-    // Silently ignore any errors
-  }
-};
+    try {
+      const db = await getDBConnection();
+      await createCollection(db, newName.trim());
+      setNewName('');
+      setError(false);
+      onClose();
+      if (onCreated) onCreated();
+    } catch (_) {
+      // Silently ignore any errors
+    }
+  };
 
   const handleBackdropPress = () => {
     Keyboard.dismiss();
@@ -52,15 +52,15 @@ const handleCreate = async () => {
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.container}>
-                              <Text style={[globalStyles.subheading, styles.title]}>
-                  {t('collections.create')}
-                </Text>
+              <Text style={[globalStyles.subheading, styles.title]}>
+                {t('collections.create')}
+              </Text>
 
               <TextInput
-                                  placeholder={t('collections.enterCollectionName')}
+                placeholder={t('collections.enterCollectionName')}
                 placeholderTextColor={theme.placeholder}
                 value={newName}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setNewName(text);
                   if (error && text.trim()) setError(false);
                 }}
@@ -68,19 +68,22 @@ const handleCreate = async () => {
               />
               {error && (
                 <Text style={[globalStyles.smallText, styles.errorText]}>
-                                      {t('collections.nameRequired')}
+                  {t('collections.nameRequired')}
                 </Text>
               )}
 
               <View style={styles.buttons}>
                 <TouchableOpacity onPress={onClose} style={styles.btnSecondary}>
                   <Text style={[globalStyles.body, styles.btnSecondaryText]}>
-                                          {t('common.cancel')}
+                    {t('common.cancel')}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleCreate} style={styles.btnPrimary}>
+                <TouchableOpacity
+                  onPress={handleCreate}
+                  style={styles.btnPrimary}
+                >
                   <Text style={[globalStyles.body, styles.btnPrimaryText]}>
-                                          {t('collections.create')}
+                    {t('collections.create')}
                   </Text>
                 </TouchableOpacity>
               </View>
