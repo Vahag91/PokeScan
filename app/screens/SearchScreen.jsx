@@ -12,7 +12,6 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   ActivityIndicator,
   StyleSheet,
   Text,
@@ -32,12 +31,11 @@ import { searchCardsUnified } from '../../supabase/utils';
 import { ThemeContext } from '../context/ThemeContext';
 import { globalStyles } from '../../globalStyles';
 import { mergeCardWithPrice } from '../../supabase/utils';
-import { SubscriptionContext } from '../context/SubscriptionContext';
 import LanguageToggle from '../components/LanguageToggle';
 
 export default function SearchScreen() {
   const { t } = useTranslation();
-  const { width: screenWidth } = Dimensions.get('window');
+  Dimensions.get('window');
   const { theme } = useContext(ThemeContext);
   const [term, setTerm] = useState('');
   const [hydratedDefaults, setHydratedDefaults] = useState(defaultSearchCards);
@@ -61,13 +59,7 @@ export default function SearchScreen() {
   const loaderTimeoutRef = useRef(null);
   const flatListRef = useRef(null);
   const requestIdRef = useRef(0); // ensures only latest request updates state
-
-  const {
-    purchasePackage,
-    restorePurchases,
-    fetchOfferings,
-    availablePackages,
-  } = useContext(SubscriptionContext);
+  const hasSearchedRef = useRef(false);
 
   // Explicit snapshot-based fetch (avoid closure over stale language)
   const fetchResults = useCallback(
@@ -93,6 +85,7 @@ export default function SearchScreen() {
         const data = await searchCardsUnified(query, { language: selectedLang });
         if (myRequestId !== requestIdRef.current) return; // stale response
         setHasFetched(true);
+        hasSearchedRef.current = true;
 
         if (!data || data.length === 0) {
           setErrorType('noResults');
@@ -104,6 +97,7 @@ export default function SearchScreen() {
       } catch (e) {
         if (myRequestId !== requestIdRef.current) return; // stale response
         setHasFetched(true);
+        hasSearchedRef.current = true;
         setErrorType('network');
         setErrorMessage('Unable to connect. Please try again.');
       } finally {
@@ -131,10 +125,16 @@ export default function SearchScreen() {
   }, [term]);
 
   useEffect(() => {
-    if (flatListRef.current && filteredAndSortedResults.length > 0) {
+    if (flatListRef.current && resultsCount > 0) {
       flatListRef.current.scrollToOffset({ offset: 0, animated: true });
     }
-  }, [filters, sortKey]);
+  }, [filters, sortKey, resultsCount]);
+
+  useEffect(() => {
+    if (flatListRef.current && resultsCount > 0) {
+      flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+    }
+  }, [language, resultsCount]);
 
   useEffect(() => {
     (async () => {
@@ -166,6 +166,7 @@ export default function SearchScreen() {
     setErrorType(null);
     setErrorMessage(null);
     setHasFetched(false);
+    hasSearchedRef.current = false;
     requestIdRef.current++; // cancel any in-flight requests
     clearTimeout(loaderTimeoutRef.current);
     if (debounceTimeoutRef.current) {
@@ -176,13 +177,33 @@ export default function SearchScreen() {
 
   const retryFetch = () => fetchResults(term, language);
 
-  const dataToSort = term.trim() 
-    ? results 
-    : language === 'en' 
-      ? hydratedDefaults 
-      : language === 'jp' 
-        ? hydratedDefaultsJP 
-        : [];
+  const handleLanguageChange = useCallback(
+    (newLanguage) => {
+      if (!newLanguage || newLanguage === language) return;
+      setLanguage(newLanguage);
+
+      // If the user already searched, re-run the search in the new language.
+      const query = term.trim();
+      if (query && hasSearchedRef.current) {
+        fetchResults(query, newLanguage);
+        return;
+      }
+
+      // If no active search yet, just reset any stale search UI.
+      setResults([]);
+      setErrorType(null);
+      setErrorMessage(null);
+      setHasFetched(false);
+    },
+    [fetchResults, language, term],
+  );
+
+  const dataToSort = useMemo(() => {
+    if (term.trim()) return Array.isArray(results) ? results : [];
+    if (language === 'en') return Array.isArray(hydratedDefaults) ? hydratedDefaults : [];
+    if (language === 'jp') return Array.isArray(hydratedDefaultsJP) ? hydratedDefaultsJP : [];
+    return [];
+  }, [term, results, language, hydratedDefaults, hydratedDefaultsJP]);
 
   const languageOptions = [
     { key: 'en', label: t('languageToggle.englishCards') },
@@ -190,7 +211,8 @@ export default function SearchScreen() {
   ];
 
   const sortedResults = useMemo(() => {
-    if (!dataToSort.length || !sortKey) return dataToSort;
+    const list = Array.isArray(dataToSort) ? dataToSort : [];
+    if (list.length === 0 || !sortKey) return list;
     const [base, direction = 'desc'] = sortKey.split('-');
     const isAsc = direction === 'asc';
 
@@ -209,7 +231,7 @@ export default function SearchScreen() {
       }
     };
 
-    return [...dataToSort].sort((a, b) => {
+    return [...list].sort((a, b) => {
       const aVal = getVal(a);
       const bVal = getVal(b);
       return typeof aVal === 'string'
@@ -223,13 +245,14 @@ export default function SearchScreen() {
   }, [dataToSort, sortKey]);
 
   const filteredAndSortedResults = useMemo(() => {
-    return sortedResults.filter(card => {
+    const list = Array.isArray(sortedResults) ? sortedResults : [];
+    return list.filter(card => {
       const matchesRarity =
         filters.rarity.length === 0 || filters.rarity.includes(card.rarity);
 
       const matchesType =
         filters.type.length === 0 ||
-        (card.types || []).some(t => filters.type.includes(t));
+        (card.types || []).some(type => filters.type.includes(type));
 
       const matchesAttack =
         filters.attack.length === 0 ||
@@ -266,7 +289,7 @@ export default function SearchScreen() {
     });
   }, [sortedResults, filters]);
 
-  const resultsCount = filteredAndSortedResults.length;
+  const resultsCount = filteredAndSortedResults?.length ?? 0;
 
   const handleInputBlur = () => {
     // Search when input loses focus if there's a term
@@ -287,7 +310,7 @@ export default function SearchScreen() {
       <View style={styles.languageToggleContainer}>
         <LanguageToggle 
           value={language} 
-          onChange={setLanguage} 
+          onChange={handleLanguageChange} 
           options={languageOptions}
           chipPaddingHorizontal={12}
         />
@@ -364,7 +387,7 @@ export default function SearchScreen() {
         extraData={language} // force refresh across language flips
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <RenderSearchSingleCard item={item} showCardNumber selectedLanguage={language} />
+          <RenderSearchSingleCard item={item} showCardNumber selectedLanguage={item.language ?? language} />
         )}
         numColumns={2}
         columnWrapperStyle={styles.rowWrapper}

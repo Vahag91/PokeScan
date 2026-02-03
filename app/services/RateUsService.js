@@ -9,12 +9,13 @@ const RATE_KEYS = {
 
 // App Store IDs - you'll need to replace these with your actual IDs
 const IOS_APP_ID = '6749329103'; // Replace with your iOS App Store ID
-const ANDROID_APP_ID = 'com.cardscanner.app'; // Replace with your Android package name
+const ANDROID_APP_ID = 'com.cardscanner'; // Replace with your Android package name
 
 // iOS review URLs - using both deep link and web fallback for better compatibility
 const IOS_DEEP_LINK = `itms-apps://itunes.apple.com/app/id${IOS_APP_ID}?action=write-review`;
 const IOS_WEB_FALLBACK = `https://apps.apple.com/app/id${IOS_APP_ID}?action=write-review`;
 const PLAY_STORE_LINK = `market://details?id=${ANDROID_APP_ID}`;
+const PLAY_STORE_WEB_FALLBACK = `https://play.google.com/store/apps/details?id=${ANDROID_APP_ID}`;
 
 class RateUsService {
   // Check if we should show the rate prompt
@@ -105,8 +106,12 @@ class RateUsService {
           await Linking.openURL(IOS_WEB_FALLBACK);
         }
       } else {
-        // Android: Use Play Store link
-        await Linking.openURL(PLAY_STORE_LINK);
+        // Android: Try Play Store deep link first, then web fallback
+        try {
+          await Linking.openURL(PLAY_STORE_LINK);
+        } catch (_) {
+          await Linking.openURL(PLAY_STORE_WEB_FALLBACK);
+        }
       }
       
       await this.markPromptShown();

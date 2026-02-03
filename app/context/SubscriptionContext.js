@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
+import { REVENUE_PUBLIC_ANDROID, REVENUE_PUBLIC_IOS } from '@env';
 
 export const SubscriptionContext = createContext();
 
@@ -24,8 +25,8 @@ export const SubscriptionProvider = ({ children }) => {
 
         const apiKey =
           Platform.OS === 'ios'
-            ? process.env.REVENUE_PUBLIC_IOS
-            : process.env.REVENUE_PUBLIC_ANDROID;
+            ? REVENUE_PUBLIC_IOS
+            : REVENUE_PUBLIC_ANDROID;
 
         if (!apiKey) {
           console.warn('❌ RevenueCat API Key missing');
@@ -51,7 +52,7 @@ export const SubscriptionProvider = ({ children }) => {
   }, []);
 
   const handleCustomerInfo = async info => {
-    const hasPremium = Boolean(info.entitlements.active[ENTITLEMENT_ID]);
+    const hasPremium = Boolean(info?.entitlements?.active?.[ENTITLEMENT_ID]);
     setIsPremium(hasPremium);
     setCustomerInfo(info);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(hasPremium));
@@ -108,25 +109,29 @@ export const SubscriptionProvider = ({ children }) => {
     }
   };
 
-const fetchOfferings = async () => {
-  try {
-    const offerings = await Purchases.getOfferings();
-    if (!offerings?.all) return; 
-    const all = {};
-    const defaultPkgs = offerings.all.default?.availablePackages || [];
-    for (let pkg of defaultPkgs) {
-      if (pkg.identifier === '$rc_weekly') all.weekly = pkg;
-      if (pkg.identifier === '$rc_annual') all.yearly = pkg;
+  const fetchOfferings = async () => {
+    try {
+      const offerings = await Purchases.getOfferings();
+      if (!offerings?.all) return;
+
+      const next = { yearly: null, weekly: null, oneTime: null };
+
+      const defaultPkgs = offerings.all.default?.availablePackages || [];
+      for (let pkg of defaultPkgs) {
+        if (pkg.identifier === '$rc_weekly') next.weekly = pkg;
+        if (pkg.identifier === '$rc_annual') next.yearly = pkg;
+      }
+
+      const otoPkgs = offerings.all.oto?.availablePackages || [];
+      for (let pkg of otoPkgs) {
+        if (pkg.identifier === '$rc_annual') next.oneTime = pkg;
+      }
+
+      setAvailablePackages(next);
+    } catch (e) {
+      console.warn('❌ Failed to fetch packages:', e.message);
     }
-    const otoPkgs = offerings.all.oto?.availablePackages || [];
-    for (let pkg of otoPkgs) {
-      if (pkg.identifier === '$rc_annual') all.oneTime = pkg;
-    }
-    setAvailablePackages(all);
-  } catch (e) {
-    console.warn('❌ Failed to fetch packages:', e.message);
-  }
-};
+  };
 
   return (
     <SubscriptionContext.Provider

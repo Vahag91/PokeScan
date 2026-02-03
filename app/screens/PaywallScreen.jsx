@@ -84,7 +84,7 @@ export default function PaywallModal({ visible, onClose, onPurchaseSuccess }) {
           animationRef.stop();
           animationRef = null;
         }
-      }, 2500);
+      }, 3500);
     } else {
       setCloseButtonActive(false);
     }

@@ -26,6 +26,7 @@ import PaywallModal from './app/screens/PaywallScreen';
 import OneTimeOfferPaywall from './app/components/OneTimeOfferPaywallModal';
 import RateUsService from './app/services/RateUsService';
 import { useTranslation } from 'react-i18next';
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {

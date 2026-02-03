@@ -14,7 +14,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,7 +32,6 @@ export default function SetScreen() {
   const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
   const listRef = useRef(null);
-  const screenWidth = Dimensions.get('window').width;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [language, setLanguage] = useState('en');
@@ -45,7 +43,6 @@ export default function SetScreen() {
   );
 
   const { data: setStats, loading, error, retry } = useSafeAsync(fetchSetStats);
-
   // Refresh set stats when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -138,12 +135,18 @@ export default function SetScreen() {
                     {
                       id: set1.id,
                       title: set1.name,
-                      image: { uri: set1.logo_url }
+                      image: { uri: set1.logo_url },
+                      logoUrl: set1.logo_url,
+                      releaseDate: set1.release_date,
+                      total: set1.total ?? set1.total_cards ?? null,
                     },
                     set2 ? {
                       id: set2.id,
                       title: set2.name,
-                      image: { uri: set2.logo_url }
+                      image: { uri: set2.logo_url },
+                      logoUrl: set2.logo_url,
+                      releaseDate: set2.release_date,
+                      total: set2.total ?? set2.total_cards ?? null,
                     } : null
                   ],
                   index: i / 2,
@@ -178,12 +181,18 @@ export default function SetScreen() {
                     {
                       id: set1.id,
                       title: set1.name,
-                      image: { uri: set1.logo_url }
+                      image: { uri: set1.logo_url },
+                      logoUrl: set1.logo_url,
+                      releaseDate: set1.release_date,
+                      total: set1.total ?? set1.total_cards ?? null,
                     },
                     set2 ? {
                       id: set2.id,
                       title: set2.name,
-                      image: { uri: set2.logo_url }
+                      image: { uri: set2.logo_url },
+                      logoUrl: set2.logo_url,
+                      releaseDate: set2.release_date,
+                      total: set2.total ?? set2.total_cards ?? null,
                     } : null
                   ],
                   index: i / 2,
@@ -229,10 +238,21 @@ export default function SetScreen() {
       <AnimatedRow
         itemPair={item.pair}
         index={item.index}
-        onPress={setId => navigation.navigate('SetDetail', {
-          setId,
-          language: language
-        })}
+        onPress={(setItem) =>
+          navigation.navigate('SetDetail', {
+            setId: setItem?.id,
+            language,
+            setMeta: setItem
+              ? {
+                  id: setItem.id,
+                  name: setItem.title,
+                  logoUrl: setItem.logoUrl || setItem.image?.uri,
+                  releaseDate: setItem.releaseDate,
+                  total: setItem.total,
+                }
+              : null,
+          })
+        }
         setStats={setStats || {}}
       />
     );

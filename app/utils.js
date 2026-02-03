@@ -301,7 +301,7 @@ function formatFoilLabel(key) {
     .replace(/^promo Holofoil/, 'Promo Holofoil')
     .replace(/^pokallolo/, 'Poke Ball Holo')
     .replace(/^reverseolo/, 'Reverse Holofoil')
-    .replace(/^masterallolo/, 'Master Baell Holo');
+    .replace(/^masterallolo/, 'Master Ball Holo');
 }
 
 export const DATA = Array.from({ length: 31 }, (_, i) => ({

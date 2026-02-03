@@ -17,11 +17,17 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2;
 const IMAGE_HEIGHT = CARD_WIDTH * 1.35;
 
-function RenderSearchSingleCard({ item, showCardNumber = false, selectedLanguage = 'en' }) {
+function RenderSearchSingleCard({
+  item,
+  showCardNumber = false,
+  selectedLanguage = 'en',
+  imageProps = null,
+}) {
   const nav = useNavigation();
   const price = getCardPrice(item);
   const rarityColor = rarityColors[item.rarity] || '#bdbdbd';
   const { theme } = useContext(ThemeContext);
+  const { style: imageStyleProp, ...restImageProps } = imageProps || {};
 
   return (
     <TouchableOpacity
@@ -46,7 +52,8 @@ function RenderSearchSingleCard({ item, showCardNumber = false, selectedLanguage
                   ? { uri: item.images.small }
                   : item.images.small
               }
-              style={styles.cardImage}
+              style={[styles.cardImage, imageStyleProp]}
+              {...restImageProps}
             />
 
             {item.rarity && (
@@ -95,7 +102,7 @@ function RenderSearchSingleCard({ item, showCardNumber = false, selectedLanguage
                   },
                 ]}
               >
-                ${price?.toFixed(2) || '0.00'}
+                {price == null ? '—' : `$${price.toFixed(2)}`}
               </Text>
             </View>
           </View>

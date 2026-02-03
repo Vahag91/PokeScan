@@ -35,7 +35,7 @@ export default function AnimatedCard({ item, delay, onPress, setStats }) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [delay, fadeAnim, scaleAnim]);
 
   const styles = useMemo(() => StyleSheet.create({
     card: {
@@ -81,7 +81,7 @@ export default function AnimatedCard({ item, delay, onPress, setStats }) {
         { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
       ]}
     >
-      <TouchableOpacity onPress={() => onPress(item.id)} activeOpacity={0.85}>
+      <TouchableOpacity onPress={() => onPress(item)} activeOpacity={0.85}>
         <Image source={item.image} style={styles.image} />
         <Text style={styles.cardText}>{item.title}</Text>
         <Text style={styles.countText}>

@@ -5,20 +5,21 @@ import { ThemeContext } from '../../context/ThemeContext';
 import { globalStyles } from '../../../globalStyles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export default function SetHeader({ cards }) {
+export default function SetHeader({ cards, setMeta = null }) {
   const { theme } = useContext(ThemeContext);
   const { t } = useTranslation();
 
   const set = cards?.[0]?.set;
-  const setName = set?.name || 'Cards in Set';
-  const setSymbol = set?.images?.symbol;
-  const setLogo = set?.images?.logo;
-  const releaseDate = set?.releaseDate;
-  const totalCards =  set?.total || cards.length;
+  const setName = set?.name || setMeta?.name || 'Cards in Set';
+  const setSymbol = set?.images?.symbol || setMeta?.symbolUrl;
+  const setLogo = set?.images?.logo || setMeta?.logoUrl;
+  const releaseDate = set?.releaseDate || setMeta?.releaseDate;
+  const totalCards =
+    set?.total ?? setMeta?.total ?? (Array.isArray(cards) ? cards.length : 0);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.surface }]}>  
-      <Image source={{ uri: setLogo }} style={styles.setLogo} />
+      {!!setLogo && <Image source={{ uri: setLogo }} style={styles.setLogo} />}
       <View style={styles.nameRow}>
         {setSymbol && <Image source={{ uri: setSymbol }} style={styles.setSymbol} />}
         <Text

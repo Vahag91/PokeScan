@@ -39,13 +39,64 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
   const [loading, setLoading] = useState(false);
   const [hasInternet, setHasInternet] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const spinnerAnimRef = useRef(new Animated.Value(0));
   const { themeName, theme } = useContext(ThemeContext);
+  
+  // Loading state for close button
+  const [closeButtonActive, setCloseButtonActive] = useState(false);
   const {
     purchasePackage,
     restorePurchases,
     fetchOfferings,
     availablePackages,
   } = useContext(SubscriptionContext);
+
+  // Control close button activation with delay
+  useEffect(() => {
+    let animationRef = null;
+    let timerRef = null;
+
+    if (visible) {
+      // Create completely fresh Animated.Value instance
+      const freshSpinnerAnim = new Animated.Value(0);
+      spinnerAnimRef.current = freshSpinnerAnim;
+      
+      // Create completely new animation instance
+      animationRef = Animated.loop(
+        Animated.timing(freshSpinnerAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        })
+      );
+      
+      // Start the fresh animation
+      animationRef.start();
+
+      timerRef = setTimeout(() => {
+        setCloseButtonActive(true);
+        // Stop and destroy the animation
+        if (animationRef) {
+          animationRef.stop();
+          animationRef = null;
+        }
+      }, 3500);
+    } else {
+      setCloseButtonActive(false);
+    }
+    
+    return () => {
+      // Cleanup function - ensure everything is destroyed
+      if (timerRef) {
+        clearTimeout(timerRef);
+        timerRef = null;
+      }
+      if (animationRef) {
+        animationRef.stop();
+        animationRef = null;
+      }
+    };
+  }, [visible]);
 
   useEffect(() => {
     if (!visible) return;
@@ -145,13 +196,6 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <TouchableOpacity
-        style={styles.closeBtn}
-        onPress={onClose}
-      >
-        <Ionicons name="close" size={22} color={theme.text} />
-      </TouchableOpacity>
-
       <ImageBackground source={backgroundImage} style={styles.background}>
         <View
           style={[
@@ -161,6 +205,35 @@ export default function OneTimeOfferPaywall({ visible, onClose }) {
             },
           ]}
         >
+          {/* Close button with simple spinner overlay */}
+          <View style={styles.closeBtn}>
+            {closeButtonActive ? (
+              <TouchableOpacity 
+                onPress={onClose} 
+                style={styles.closeButtonActive}
+              >
+                <Ionicons name="close" size={22} color={theme.text} />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.spinnerOverlay}>
+                <Animated.View 
+                  key={`spinner-${visible ? 'active' : 'inactive'}`}
+                  style={[
+                    styles.simpleSpinner,
+                    {
+                      transform: [{
+                        rotate: spinnerAnimRef.current.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0deg', '360deg']
+                        })
+                      }]
+                    }
+                  ]} 
+                />
+              </View>
+            )}
+          </View>
+
           <ScrollView
             contentContainerStyle={styles.container}
             showsVerticalScrollIndicator={false}
@@ -227,10 +300,42 @@ const styles = StyleSheet.create({
   closeBtn: {
     position: 'absolute',
     top: 50,
-    right: 20,
+    left: 20,
     zIndex: 10,
-    padding: 8,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonActive: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+    transition: 'all 0.3s ease',
+  },
+  spinnerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  simpleSpinner: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.3)',
+    borderTopColor: '#fff',
+    borderRightColor: '#fff',
   },
   container: {
     flexGrow: 1,

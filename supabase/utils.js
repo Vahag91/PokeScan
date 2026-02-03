@@ -752,32 +752,103 @@ export const fetchJapaneseSets = async () => {
 };
 
 // Fetch cards for a specific English set
-export const fetchEnglishSetCards = async (setId) => {
+export const fetchEnglishSetCards = async (setId, options = {}) => {
   try {
-    const { data, error } = await supabase
-      .from('cards')
-      .select('*')
-      .filter('set->>id', 'eq', setId);
+    if (!setId) {
+      console.warn('[fetchEnglishSetCards] missing setId', { setId });
+    }
+    const { offset = 0, limit = 5000, includeMarket = true } = options || {};
+    const baseColumns = 'id,name,number,rarity,types,images,set';
+    const columns = includeMarket ? `${baseColumns},tcgplayer,cardmarket` : baseColumns;
 
-    if (error) throw error;
+    let { data, error } = await supabase
+      .from('cards')
+      .select(columns)
+      // Prefer JSON containment (index-friendly with GIN on `set`) over expression filtering.
+      .contains('set', { id: setId })
+      .order('id', { ascending: true })
+      .range(offset, Math.max(offset, offset + limit - 1));
+
+    if (error && /operator does not exist|jsonb|@>/.test(String(error?.message || '').toLowerCase())) {
+      console.warn('[fetchEnglishSetCards] falling back to set->>id filter', {
+        setId,
+        message: error?.message,
+      });
+      ({ data, error } = await supabase
+        .from('cards')
+        .select(columns)
+        .filter('set->>id', 'eq', setId)
+        .order('id', { ascending: true })
+        .range(offset, Math.max(offset, offset + limit - 1)));
+    }
+
+    if (error) {
+      console.error('[fetchEnglishSetCards] supabase error', {
+        setId,
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+      });
+      throw error;
+    }
     return data || [];
   } catch (err) {
-    return [];
+    console.error('[fetchEnglishSetCards] request failed', {
+      setId,
+      message: err?.message,
+      stack: err?.stack,
+    });
+    throw err;
   }
 };
 
 // Fetch cards for a specific Japanese set
-export const fetchJapaneseSetCards = async (setId) => {
+export const fetchJapaneseSetCards = async (setId, options = {}) => {
   try {
-    const { data, error } = await supabase
-      .from('cards_jp')
-      .select('*')
-      .filter('set->>id', 'eq', setId);
+    if (!setId) {
+      console.warn('[fetchJapaneseSetCards] missing setId', { setId });
+    }
+    const { offset = 0, limit = 5000, includeMarket = true } = options || {};
+    const baseColumns = 'id,name,number,rarity,types,images,set';
+    const columns = includeMarket ? `${baseColumns},tcgplayer,cardmarket` : baseColumns;
 
-    if (error) throw error;
+    let { data, error } = await supabase
+      .from('cards_jp')
+      .select(columns)
+      .contains('set', { id: setId })
+      .order('id', { ascending: true })
+      .range(offset, Math.max(offset, offset + limit - 1));
+
+    if (error && /operator does not exist|jsonb|@>/.test(String(error?.message || '').toLowerCase())) {
+      console.warn('[fetchJapaneseSetCards] falling back to set->>id filter', {
+        setId,
+        message: error?.message,
+      });
+      ({ data, error } = await supabase
+        .from('cards_jp')
+        .select(columns)
+        .filter('set->>id', 'eq', setId)
+        .order('id', { ascending: true })
+        .range(offset, Math.max(offset, offset + limit - 1)));
+    }
+
+    if (error) {
+      console.error('[fetchJapaneseSetCards] supabase error', {
+        setId,
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+      });
+      throw error;
+    }
     return data || [];
   } catch (err) {
-    return [];
+    console.error('[fetchJapaneseSetCards] request failed', {
+      setId,
+      message: err?.message,
+      stack: err?.stack,
+    });
+    throw err;
   }
 };
 
@@ -950,25 +1021,15 @@ export async function fetchSeriesOptions(cardId, days = 90) {
 
 export async function fetchPriceHistoryPoints(cardId, seriesKey = null, days = 90) {
   const sinceIso = new Date(Date.now() - days * DAY_MS).toISOString();
-  console.log('[fetchPriceHistoryPoints] start', { cardId, seriesKey, days, sinceIso });
 
   // pick default series if not provided
   let chosen = seriesKey;
   let seriesLabel = null;
   if (!chosen) {
     const options = await fetchSeriesOptions(cardId, days);
-    console.log('[fetchPriceHistoryPoints] fetched series options', {
-      cardId,
-      days,
-      optionCount: options.length,
-      options,
-    });
     if (!options.length) return { points: [], series_key: null, series_label: null };
     chosen = options[0].series_key;
     seriesLabel = options[0].series_label;
-    console.log('[fetchPriceHistoryPoints] default series selected', { chosen, seriesLabel });
-  } else {
-    console.log('[fetchPriceHistoryPoints] using provided series', { chosen });
   }
 
   const { data, error } = await supabase
@@ -984,13 +1045,6 @@ export async function fetchPriceHistoryPoints(cardId, seriesKey = null, days = 9
     throw error;
   }
 
-  console.log('[fetchPriceHistoryPoints] raw data count', {
-    cardId,
-    chosen,
-    days,
-    count: data?.length ?? 0,
-  });
-
   if (!seriesLabel) seriesLabel = data?.[0]?.series_label || chosen;
 
   const points = (data || []).map((r, i) => ({
@@ -998,13 +1052,6 @@ export async function fetchPriceHistoryPoints(cardId, seriesKey = null, days = 9
     highTmp: Number(r.value),
     date: r.bucket_end_at,
   }));
-
-  console.log('[fetchPriceHistoryPoints] mapped points', {
-    cardId,
-    chosen,
-    days,
-    pointCount: points.length,
-  });
 
   return { points, series_key: chosen, series_label: seriesLabel };
 }

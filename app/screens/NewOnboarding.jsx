@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemeContext } from '../context/ThemeContext';
+import RateUsService from '../services/RateUsService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -56,6 +57,8 @@ export default function NewOnboarding({ onDone }) {
   const buttonScale = useRef(new Animated.Value(1)).current;
   const { themeName, theme } = useContext(ThemeContext);
   const slides = useMemo(() => getSlides(themeName, t), [themeName, t]);
+  const continuePressCountRef = useRef(0);
+  const ratePromptTriggeredRef = useRef(false);
 
   const backgroundImage = themeName === 'dark'
     ? require('../assets/onboarding/darkpaywall.png')
@@ -80,8 +83,31 @@ export default function NewOnboarding({ onDone }) {
     ).start();
   }, []);
 
+  const maybeShowRatePromptOnThirdContinue = async () => {
+    if (ratePromptTriggeredRef.current) {
+      return;
+    }
+
+    ratePromptTriggeredRef.current = true;
+
+    try {
+      const shouldShow = await RateUsService.shouldShowRatePrompt();
+      if (shouldShow) {
+        await RateUsService.showRatePrompt();
+      }
+    } catch (error) {
+      // Ignore errors from rate prompt attempts during onboarding
+    }
+  };
+
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
+      const isThirdContinue = continuePressCountRef.current === 2;
+      continuePressCountRef.current += 1;
+      if (isThirdContinue) {
+        void maybeShowRatePromptOnThirdContinue();
+      }
+
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
     } else {
       onDone();
@@ -242,28 +268,28 @@ const styles = StyleSheet.create({
     backfaceVisibility: 'hidden',
   },
   image: {
-    width: width * 0.7,
+    width: width * 0.6,
     height: height * 0.6,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   imageLarger: {
     width: width * 0.95,
     height: height * 0.65,
   },
   title: {
-    fontSize: width < 768 ? 26 : 34,
+    fontSize: width < 768 ? 26 : 35,
     fontWeight: '800',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 6,
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   subtitle: {
-    fontSize: width < 768 ? 16 : 20,
+    fontSize: width < 768 ? 15 : 20,
     textAlign: 'center',
     paddingHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: 20,
     lineHeight: 24,
   },
   button: {
@@ -287,8 +313,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 0,
     height: 18,
+    marginBottom: 10,
   },
   dot: {
     width: 10,
